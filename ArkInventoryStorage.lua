@@ -607,6 +607,7 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 
 	ArkInventory.Global.Mode.VaultContext = personal and "personal" or "guild"
 	loc_id = personal and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	ArkInventory.Global.Mode.VaultLocation = loc_id
 	ArkInventory.Global.Location[loc_id].Name = personal and "Personal Bank" or GUILD_BANK
 	ArkInventory.Global.Location[loc_id].isOffline = false
 
@@ -637,10 +638,11 @@ function ArkInventory:LISTEN_VAULT_LEAVE( )
 
 	--ArkInventory.OutputDebug( "LISTEN_VAULT_LEAVE" )
 
-	local loc_id = ( ArkInventory.Global.Mode.VaultContext == "personal" ) and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 
 	ArkInventory.Global.Mode.Vault = false
 	ArkInventory.Global.Mode.VaultContext = nil
+	ArkInventory.Global.Mode.VaultLocation = nil
 	ArkInventory.Global.Location[loc_id].Name = ( loc_id == ArkInventory.Const.Location.PersonalBank ) and "Personal Bank" or GUILD_BANK
 	ArkInventory.Global.Location[loc_id].isOffline = true
 
@@ -664,7 +666,7 @@ function ArkInventory:LISTEN_VAULT_UPDATE_BUCKET( )
 
 	--ArkInventory.Output( "LISTEN_VAULT_UPDATE_BUCKET" )
 
-	local loc_id = ( ArkInventory.Global.Mode.VaultContext == "personal" ) and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 
 	ArkInventory.ScanVault( )
 	ArkInventory.ScanVaultHeader( )
@@ -692,7 +694,7 @@ function ArkInventory:LISTEN_VAULT_LOCK( event, ... )
 	--local tab = ...
 	--ArkInventory.Output( "LISTEN_VAULT_LOCK: ", tab )
 
-	local loc_id = ( ArkInventory.Global.Mode.VaultContext == "personal" ) and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 	local bag_id = GetCurrentGuildBankTab( )
 
 	for slot_id = 1, ArkInventory.Global.Location[loc_id].maxSlot[bag_id] or 0 do
@@ -718,7 +720,7 @@ function ArkInventory:LISTEN_VAULT_TABS( )
 
 	--ArkInventory.Output( "LISTEN_VAULT_TABS" )
 
-	local loc_id = ( ArkInventory.Global.Mode.VaultContext == "personal" ) and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 	if not ArkInventory.Global.Location[loc_id].isOffline then
 		-- ignore pre vault entrance events
 		ArkInventory.ScanVaultHeader( )
@@ -1485,7 +1487,7 @@ function ArkInventory.ScanVault( )
 		return
 	end
 
-	local loc_id = ( ArkInventory.Global.Mode.VaultContext == "personal" ) and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 	local bag_id = GetCurrentGuildBankTab( )
 
 	if not ArkInventory.LocationIsMonitored( loc_id ) then
@@ -1495,7 +1497,7 @@ function ArkInventory.ScanVault( )
 
 
 	local cp
-	if ArkInventory.Global.Mode.VaultContext == "personal" then
+	if loc_id == ArkInventory.Const.Location.PersonalBank then
 		cp = ArkInventory.Global.Me
 	else
 		cp = ArkInventory.PlayerInfoGet( ArkInventory.Global.Me.info.guild_id )
@@ -1647,8 +1649,9 @@ function ArkInventory.ScanVaultHeader( )
 		end
 	end
 
+	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 	local cp
-	if ArkInventory.Global.Mode.VaultContext == "personal" then
+	if loc_id == ArkInventory.Const.Location.PersonalBank then
 		cp = ArkInventory.Global.Me
 	else
 		cp = ArkInventory.PlayerInfoGet( ArkInventory.Global.Me.info.guild_id )
@@ -1656,7 +1659,7 @@ function ArkInventory.ScanVaultHeader( )
 
 	--ArkInventory.Output( "scaning tab headers" )
 
-	local loc_id = ( ArkInventory.Global.Mode.VaultContext == "personal" ) and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 
 	for bag_id = 1, MAX_GUILDBANK_TABS do
 

@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0246,
-		UIVersion = "3.2.46",
+		Version = 3.0300,
+		UIVersion = "3.3.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -927,6 +927,7 @@ ArkInventory.Global = { -- globals
 		Bank = false,
 		Vault = false,
 		VaultContext = nil,
+		VaultLocation = nil,
 		Mail = false,
 		Merchant = false,
 
@@ -2171,14 +2172,15 @@ function ArkInventory.LocationPlayerInfoGet( loc_id )
 	end
 
 	if loc_id == ArkInventory.Const.Location.Vault then
-		if ArkInventory.Global.Mode.VaultContext ~= "personal" then
-			local guild_id = cp.info.guild_id
-			if guild_id then
-				cp = ArkInventory.PlayerInfoGet( guild_id )
-				if cp == nil then
-					ArkInventory.Output( "player id (", player_id, ") has an invalid guild id (", guild_id, ") at location (", loc_id, ")" )
-					assert( false, "code error" )
-				end
+		-- vault location (4) is always stored under the guild owner,
+		-- never under the character directly. Personal banks use
+		-- their own location id (PersonalBank) instead.
+		local guild_id = cp.info.guild_id
+		if guild_id then
+			cp = ArkInventory.PlayerInfoGet( guild_id )
+			if cp == nil then
+				ArkInventory.Output( "player id (", player_id, ") has an invalid guild id (", guild_id, ") at location (", loc_id, ")" )
+				assert( false, "code error" )
 			end
 		end
 	end
@@ -4383,13 +4385,14 @@ function ArkInventory.Frame_Main_OnHide( frame )
 
 	elseif loc_id == ArkInventory.Const.Location.Bag then
 		PlaySound( "igBackPackClose" )
-	elseif loc_id == ArkInventory.Const.Location.Vault then
+	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
 
 		PlaySound( "GuildVaultClose" )
 
 		if ArkInventory.Global.Mode.Vault and ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) then
 
-			-- close blizzards vault frame if we're hiding blizzard frames, we're at the vault, and the vault window was closed
+			-- close blizzards vault/personal-bank frame if we're hiding blizzard frames,
+			-- we're at the vault, and the vault window was closed
 
 			GuildBankPopupFrame:Hide( )
 			StaticPopup_Hide( "GUILDBANK_WITHDRAW" )

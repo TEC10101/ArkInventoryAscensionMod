@@ -1,14 +1,14 @@
 ﻿## Interface: 30300
-## X-Curse-Packaged-Version: 3.02.46
+## X-Curse-Packaged-Version: 3.03.00
 ## X-Curse-Project-Name: ArkInventory
 ## X-Curse-Project-ID: ark-inventory
 ## X-Curse-Repository-ID: wow/ark-inventory/mainline
 
-## Title: ArkInventory
+## Title: ArkInventory - Ascension Modded
 ## Title-zhCN: [背包]ArkInventory 整合背包银行
-## Author: Arkayenro
+## Author: Arkayenro - Mod by Thatgnome
 ## Email: arkayenro at gmail dot com
-## Version: 3.02
+## Version: 3.03
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: ARKINVDB
