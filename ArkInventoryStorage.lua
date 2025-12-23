@@ -219,6 +219,13 @@ function ArkInventory.PlayerInfoSet( )
 		p["guild_id"] = nil
 	end
 
+	-- ensure new locations like PersonalBank are controlled by default
+	if ArkInventory.Global.Me.control then
+		if ArkInventory.Global.Me.control[ArkInventory.Const.Location.PersonalBank] == nil then
+			ArkInventory.Global.Me.control[ArkInventory.Const.Location.PersonalBank] = true
+		end
+	end
+
 	local m = GetMoney( )
 	if m > 0 then  -- returns 0 on logout so dont wipe the current value
 		p["money"] = m
@@ -613,7 +620,9 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 
 	ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 
-	if ArkInventory.LocationIsControlled( loc_id ) then
+	-- for personal banks, always show the window; for guild vaults,
+	-- respect the usual "control" setting
+	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.LocationIsControlled( loc_id ) then
 		ArkInventory.Frame_Main_Show( loc_id )
 		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 	end
