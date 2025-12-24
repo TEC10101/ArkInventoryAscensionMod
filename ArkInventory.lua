@@ -6061,7 +6061,7 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 	--ArkInventory.Output( "item=[", i.h, "]" )
 	local usedmycode = false
 
-	if ArkInventory.Global.Mode.Edit or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
+	if ArkInventory.Global.Mode.Edit or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
 
 		usedmycode = true -- edit mode, offline, bank, keyring, vault, mail, pet, token
 
@@ -6115,7 +6115,7 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 
 				GameTooltip:SetInventoryItem( "player", KeyRingButtonIDToInvSlotID( i.slot_id ) )
 
-			elseif loc_id == ArkInventory.Const.Location.Vault then
+			elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
 
 				local tab_id = i.bag_id
 
@@ -6129,7 +6129,8 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 
 			else
 
-				assert( false, "uncoded value to build tooltip " )
+				-- fallback: just show the hyperlink if we somehow reach here
+				GameTooltip:SetHyperlink( i.h )
 
 			end
 
