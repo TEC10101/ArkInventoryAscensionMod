@@ -2614,6 +2614,13 @@ function ArkInventory.CategoryBarGet( loc_id, cat_id )
 		cat_id = cat_def
 	end
 
+	-- when physically at a vault-style container, make sure category
+	-- lookups for the generic vault location are redirected to the
+	-- actual active vault location (guild vault vs personal bank)
+	if loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultLocation then
+		loc_id = ArkInventory.Global.Mode.VaultLocation
+	end
+
 	local bar = ArkInventory.LocationOptionGet( loc_id, { "category", cat_id } )
 
 	-- if it's the default category and the default is not on a bar then put it on bar 1
@@ -2632,6 +2639,13 @@ function ArkInventory.CategoryLocationSet( loc_id, cat_id, bar_id )
 	local cat_def = ArkInventory.CategoryGetSystemID( "SYSTEM_DEFAULT" )
 
 	if cat_id ~= cat_def or bar_id ~= nil then
+		-- ensure that bar assignments made while at a vault-style
+		-- container are stored against the active vault location
+		-- (guild vault or personal bank) instead of always using
+		-- the generic vault location id
+		if loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultLocation then
+			loc_id = ArkInventory.Global.Mode.VaultLocation
+		end
 		ArkInventory.LocationOptionSet( loc_id, { "category", cat_id }, bar_id )
 	end
 
@@ -2643,6 +2657,14 @@ function ArkInventory.CategoryLocationGet( loc_id, cat_id )
 
 	if cat_id == nil then
 		cat_id = ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
+	end
+
+	-- when at a vault-style container, redirect the generic
+	-- vault location id to the currently active vault location
+	-- so that guild vault and personal bank each honour their
+	-- own bar layouts and category mappings.
+	if loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultLocation then
+		loc_id = ArkInventory.Global.Mode.VaultLocation
 	end
 
 	local bar = ArkInventory.CategoryBarGet( loc_id, cat_id )
@@ -3761,7 +3783,7 @@ function ArkInventory.Frame_Main_Offline( frame )
 			ArkInventory.Global.Location[loc_id].isOffline = true
 		end
 
-		if loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault == false then
+		if ( loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank ) and ArkInventory.Global.Mode.Vault == false then
 			ArkInventory.Global.Location[loc_id].isOffline = true
 		end
 
@@ -4021,6 +4043,17 @@ function ArkInventory.Frame_Main_Draw( frame )
 	local obj = _G[frame:GetName( ) .. ArkInventory.Const.Frame.Title.Name .. "Who"]
 
 	local cp = ArkInventory.LocationPlayerInfoGet( loc_id )
+
+	-- ensure guild vault metadata always uses the guild owner when online
+	if loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultContext == "guild" then
+		local guild_id = ArkInventory.Global.Me and ArkInventory.Global.Me.info and ArkInventory.Global.Me.info.guild_id
+		if guild_id then
+			local gcp = ArkInventory.PlayerInfoGet( guild_id )
+			if gcp then
+				cp = gcp
+			end
+		end
+	end
 
 	local t = ""
 	if ArkInventory.LocationOptionGet( loc_id, { "title", "size" } ) == ArkInventory.Const.Window.Title.SizeThin then
