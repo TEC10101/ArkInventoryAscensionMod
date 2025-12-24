@@ -4950,7 +4950,7 @@ function ArkInventory.Frame_Container_Draw( frame )
 				local itemframe = _G[itemframename]
 				if not itemframe then
 					--ArkInventory.Output( "creating item frame [", itemframename, "]" )
-					if loc_id == ArkInventory.Const.Location.Vault then
+					if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
 						itemframe = CreateFrame( "Button", itemframename, bagframe, "ARKINV_TemplateButtonVaultItem" )
 					elseif loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount then
 						itemframe = CreateFrame( "Button", itemframename, bagframe, "ARKINV_TemplateButtonPetItem" )
@@ -6668,7 +6668,7 @@ function ArkInventory.Frame_Vault_Item_OnClick( frame, arg1 )
 
 	--ArkInventory.Output( "OnClick( ", frame:GetName( ), ", ", arg1, " )" )
 
-	if frame.ARK_Data.loc_id == ArkInventory.Const.Location.Vault then
+	if frame.ARK_Data.loc_id == ArkInventory.Const.Location.Vault or frame.ARK_Data.loc_id == ArkInventory.Const.Location.PersonalBank then
 
 		local loc_id = frame.ARK_Data.loc_id
 		local tab_id = frame.ARK_Data.bag_id
