@@ -998,7 +998,13 @@ function Rule.Execute.location( ... )
 		elseif k == "bank" or k == string.lower( ArkInventory.Localise["LOCATION_BANK"] ) then
 			k = ArkInventory.Const.Location.Bank
 		elseif k == "guild bank" or k == "vault" or k == string.lower( GUILD_BANK ) then
+			-- treat "vault" / "guild bank" as matching both the guild vault and the personal bank
+			if Rule.Item.loc_id == ArkInventory.Const.Location.Vault or Rule.Item.loc_id == ArkInventory.Const.Location.PersonalBank then
+				return true
+			end
 			k = ArkInventory.Const.Location.Vault
+		elseif k == "personal bank" or k == "personalbank" or k == string.lower( ArkInventory.Global.Location[ArkInventory.Const.Location.PersonalBank].Name or "" ) then
+			k = ArkInventory.Const.Location.PersonalBank
 		elseif k == "mail" or k == string.lower( MAIL_LABEL ) then
 			k = ArkInventory.Const.Location.Mail
 		elseif k == "wearing" or k == "gear" or k == string.lower( ArkInventory.Localise["LOCATION_WEARING"] ) then
@@ -1892,7 +1898,8 @@ function ArkInventory.Frame_Rules_Button_Modify( t )
 		_G[fmd .. "ScrollFormula"]:SetText( ArkInventory.nilStringEmpty( d.formula ) )
 	else
 		_G[fmd .. "Id"]:SetText( "<NEW>" )
-		_G[fmd .. "Enabled"]:SetChecked( true )
+		-- new rules start disabled by default
+		_G[fmd .. "Enabled"]:SetChecked( false )
 		_G[fmd .. "Order"]:SetText( "100" )
 		_G[fmd .. "Description"]:SetText( "" )
 		_G[fmd .. "ScrollFormula"]:SetText( "false" )
@@ -2070,4 +2077,3 @@ function Rule.Execute.BagType_NOLONGERUSED( t )
 end
 
 ]]--
-
