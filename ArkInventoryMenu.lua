@@ -399,8 +399,13 @@ function ArkInventory.MenuBarOpen( frame )
 
 									if t == "RULE" then
 										local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-										if not ArkInventory.db.profile.option.rule[cat_code] then
-											t = "DO_NOT_USE" -- don't display disabled rules
+										local rp = ArkInventory.db.profile.option.rule[cat_code]
+										local usable = true
+										if type( rp ) == "table" and rp.usable == false then
+											usable = false
+										end
+										if not usable then
+											t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
 										end
 									end
 
@@ -461,8 +466,13 @@ function ArkInventory.MenuBarOpen( frame )
 
 								if t == "RULE" then
 									local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-									if not ArkInventory.db.profile.option.rule[cat_code] then
-										t = "DO_NOT_USE" -- don't display disabled rules
+									local rp = ArkInventory.db.profile.option.rule[cat_code]
+									local usable = true
+									if type( rp ) == "table" and rp.usable == false then
+										usable = false
+									end
+									if not usable then
+										t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
 									end
 								end
 

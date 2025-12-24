@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0301,
-		UIVersion = "3.3.01",
+		Version = 3.0400,
+		UIVersion = "3.4.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -2649,6 +2649,58 @@ function ArkInventory.CategoryLocationSet( loc_id, cat_id, bar_id )
 		ArkInventory.LocationOptionSet( loc_id, { "category", cat_id }, bar_id )
 	end
 
+	-- for rule categories, keep the per-profile enabled flag
+	-- in sync with whether the rule is actually assigned to
+	-- any bar in this profile
+	local cat_type, cat_code = ArkInventory.CategoryCodeSplit( cat_id )
+	if cat_type == ArkInventory.Const.Category.Type.Rule then
+		if bar_id ~= nil then
+			-- assigning the rule to a bar (including hidden bars)
+			-- enables it for the current profile
+			local rp = ArkInventory.db.profile.option.rule[cat_code]
+			if type( rp ) ~= "table" then
+				rp = { enabled = true, usable = true }
+			else
+				rp.enabled = true
+				if rp.usable == nil then
+					rp.usable = true
+				end
+			end
+			ArkInventory.db.profile.option.rule[cat_code] = rp
+		else
+			-- removing the rule from this bar; if it is no longer
+			-- assigned to any bar in any location for this profile,
+			-- then disable it for this profile
+			local still_used = false
+			for l_id in pairs( ArkInventory.Global.Location ) do
+				local cats = ArkInventory.LocationOptionGet( l_id, { "category" } )
+				if cats then
+					for assigned_cat, assigned_bar in pairs( cats ) do
+						if assigned_cat == cat_id and assigned_bar ~= nil then
+							still_used = true
+							break
+						end
+					end
+				end
+				if still_used then
+					break
+				end
+			end
+			if not still_used then
+				local rp = ArkInventory.db.profile.option.rule[cat_code]
+				if type( rp ) ~= "table" then
+					rp = { enabled = false, usable = true }
+				else
+					rp.enabled = false
+					if rp.usable == nil then
+						rp.usable = true
+					end
+				end
+				ArkInventory.db.profile.option.rule[cat_code] = rp
+			end
+		end
+	end
+
 end
 
 function ArkInventory.CategoryLocationGet( loc_id, cat_id )
@@ -2900,8 +2952,14 @@ function ArkInventory.CategoryBarHasEntries( loc_id, bar_id, cat_type )
 
 			if t == "RULE" and cat_type == t then
 				local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-				--ArkInventory.Output( "rule=[", cat_code, "], enabled=[", ArkInventory.db.profile.option.rule[cat_code], "]" )
-				if not ArkInventory.db.profile.option.rule[cat_code] then
+				local rp = ArkInventory.db.profile.option.rule[cat_code]
+				local enabled = false
+				if type( rp ) == "table" then
+					enabled = rp.enabled and true or false
+				else
+					enabled = rp and true or false
+				end
+				if not enabled then
 					t = "DO_NOT_USE" -- don't display disabled rules
 				end
 			end
