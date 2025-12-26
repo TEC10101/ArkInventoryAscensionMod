@@ -169,20 +169,17 @@ function ArkInventory.MenuBarOpen( frame )
 		local x, y, p, rp
 		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
 		y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
+		-- For bar menus, always anchor from the bottom edge so the
+		-- menu grows upward, matching the behavior of the item menu
+		-- in your layout and avoiding bottom-of-screen overflow.
 		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
-			p = "TOPRIGHT"
-			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
-				rp = "BOTTOMLEFT"
-			else
-				rp = "TOPLEFT"
-			end
+			-- right side of the screen
+			p = "BOTTOMRIGHT"
+			rp = "TOPLEFT"
 		else
-			p = "TOPLEFT"
-			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
-				rp = "BOTTOMRIGHT"
-			else
-				rp = "TOPRIGHT"
-			end
+			-- left side of the screen
+			p = "BOTTOMLEFT"
+			rp = "TOPRIGHT"
 		end
 
 		local category = {
