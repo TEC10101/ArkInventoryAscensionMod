@@ -24,16 +24,40 @@ function ArkInventory.MenuMainOpen( frame )
 			[ArkInventory.Const.Anchor.TopLeft] = ArkInventory.Localise["TOPLEFT"],
 		}
 
-		local x, p, rp
-		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
-		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
-			p = "TOPRIGHT"
-			rp = "TOPLEFT"
-		else
-			p = "TOPLEFT"
-			rp = "TOPRIGHT"
+		-- Prefer to anchor the menu to the game tooltip if it is visible so the
+		-- Ark menu will appear in the same area as the tooltip (matches user's
+		-- expectation). Otherwise fall back to the item button (`this`).
+		local anchor_frame = this
+		if GameTooltip and GameTooltip:IsShown() and GameTooltip:GetOwner() then
+			anchor_frame = GameTooltip
 		end
 
+		local x, y, p, rp
+		if anchor_frame.GetLeft and anchor_frame.GetRight and anchor_frame.GetTop and anchor_frame.GetBottom then
+			x = anchor_frame:GetLeft( ) + ( anchor_frame:GetRight( ) - anchor_frame:GetLeft( ) ) / 2
+			y = anchor_frame:GetTop( ) + ( anchor_frame:GetBottom( ) - anchor_frame:GetTop( ) ) / 2
+		else
+			x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
+			y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
+		end
+
+		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
+			p = "TOPRIGHT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMLEFT"
+			else
+				rp = "TOPLEFT"
+			end
+		else
+			p = "TOPLEFT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMRIGHT"
+			else
+				rp = "TOPRIGHT"
+			end
+		end
+
+		-- Open DewDrop at the calculated anchor point (restore original behavior).
 		ArkInventory.Lib.DewDrop:Open( this,
 			"point", p,
 			"relativePoint", rp,
@@ -142,14 +166,23 @@ function ArkInventory.MenuBarOpen( frame )
 
 		--ArkInventory.Output( "sid=[", sid, "] default=[", sid_def, "]" )
 
-		local x, p, rp
+		local x, y, p, rp
 		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
+		y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
 		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
 			p = "TOPRIGHT"
-			rp = "TOPLEFT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMLEFT"
+			else
+				rp = "TOPLEFT"
+			end
 		else
 			p = "TOPLEFT"
-			rp = "TOPRIGHT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMRIGHT"
+			else
+				rp = "TOPRIGHT"
+			end
 		end
 
 		local category = {
@@ -720,14 +753,34 @@ function ArkInventory.MenuItemOpen( frame )
 		end
 
 
-		local x, p, rp
+		local x, y, p, rp
 		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
+		y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
+		-- Adjust anchoring so that for items in the lower half of the
+		-- screen the menu is anchored from its bottom edge, causing it
+		-- to grow upwards and stay inside the screen.
 		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
-			p = "TOPRIGHT"
-			rp = "TOPLEFT"
+			-- right half of the screen
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				-- upper-right quadrant: keep original top-based anchor
+				p = "TOPRIGHT"
+				rp = "BOTTOMLEFT"
+			else
+				-- lower-right quadrant: anchor from bottom-right so menu grows up
+				p = "BOTTOMRIGHT"
+				rp = "TOPLEFT"
+			end
 		else
-			p = "TOPLEFT"
-			rp = "TOPRIGHT"
+			-- left half of the screen
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				-- upper-left quadrant: keep original top-based anchor
+				p = "TOPLEFT"
+				rp = "BOTTOMRIGHT"
+			else
+				-- lower-left quadrant: anchor from bottom-left so menu grows up
+				p = "BOTTOMLEFT"
+				rp = "TOPRIGHT"
+			end
 		end
 
 		local ic = select( 4, GetItemQualityColor( i.q ) )
@@ -1075,14 +1128,23 @@ function ArkInventory.MenuBagOpen( frame )
 
 		local bag = cp.location[loc_id].bag[bag_id]
 
-		local x, p, rp
+		local x, y, p, rp
 		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
+		y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
 		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
-			p = "BOTTOMRIGHT" -- TOPRIGHT
-			rp = "TOPLEFT" -- BOTTOMLEFT
+			p = "BOTTOMRIGHT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "TOPLEFT"
+			else
+				rp = "BOTTOMLEFT"
+			end
 		else
-			p = "BOTTOMLEFT" -- TOPLEFT
-			rp = "TOPRIGHT" -- BOTTOMRIGHT
+			p = "BOTTOMLEFT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "TOPRIGHT"
+			else
+				rp = "BOTTOMRIGHT"
+			end
 		end
 
 		ArkInventory.Lib.DewDrop:Open( this,
@@ -1173,14 +1235,23 @@ function ArkInventory.MenuVaultTabOpen( frame )
 		local button = _G[ArkInventory.Const.Frame.Main.Name .. loc_id .. ArkInventory.Const.Frame.Changer.Name .. "WindowBag" .. bag_id]
 
 
-		local x, p, rp
+		local x, y, p, rp
 		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
+		y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
 		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
 			p = "TOPRIGHT"
-			rp = "TOPLEFT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMLEFT"
+			else
+				rp = "TOPLEFT"
+			end
 		else
 			p = "TOPLEFT"
-			rp = "TOPRIGHT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMRIGHT"
+			else
+				rp = "TOPRIGHT"
+			end
 		end
 
 		ArkInventory.Lib.DewDrop:Open( this,
@@ -1343,14 +1414,23 @@ function ArkInventory.MenuSwitchLocationOpen( frame )
 
 	else
 
-		local x, p, rp
+		local x, y, p, rp
 		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
+		y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
 		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
 			p = "TOPRIGHT"
-			rp = "BOTTOMLEFT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMLEFT"
+			else
+				rp = "TOPLEFT"
+			end
 		else
 			p = "TOPLEFT"
-			rp = "BOTTOMRIGHT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMRIGHT"
+			else
+				rp = "TOPRIGHT"
+			end
 		end
 
 		ArkInventory.Lib.DewDrop:Open( this,
@@ -1506,14 +1586,23 @@ function ArkInventory.MenuSwitchCharacterOpen( frame )
 
 	else
 
-		local x, p, rp
+		local x, y, p, rp
 		x = this:GetLeft( ) + ( this:GetRight( ) - this:GetLeft( ) ) / 2
+		y = this:GetTop( ) + ( this:GetBottom( ) - this:GetTop( ) ) / 2
 		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
 			p = "TOPRIGHT"
-			rp = "BOTTOMLEFT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMLEFT"
+			else
+				rp = "TOPLEFT"
+			end
 		else
 			p = "TOPLEFT"
-			rp = "BOTTOMRIGHT"
+			if ( y >= ( GetScreenHeight( ) / 2 ) ) then
+				rp = "BOTTOMRIGHT"
+			else
+				rp = "TOPRIGHT"
+			end
 		end
 
 		ArkInventory.Lib.DewDrop:Open( this,

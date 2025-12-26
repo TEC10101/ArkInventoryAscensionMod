@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0500,
-		UIVersion = "3.05.00",
+		Version = 3.0501,
+		UIVersion = "3.05.01",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -8224,24 +8224,10 @@ end
 
 function ArkInventory.GameTooltipSetPosition( frame, bottom )
 
-	local x, a
-	x = frame:GetLeft( ) + ( frame:GetRight( ) - frame:GetLeft( ) ) / 2
-
-	if bottom then
-		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
-			a = "ANCHOR_BOTTOMLEFT"
-		else
-			a = "ANCHOR_BOTTOMRIGHT"
-		end
-	else
-		if ( x >= ( GetScreenWidth( ) / 2 ) ) then
-			a = "ANCHOR_LEFT"
-		else
-			a = "ANCHOR_RIGHT"
-		end
-	end
-
-	GameTooltip:SetOwner( frame, a )
+	-- Use the default game tooltip anchoring logic so tooltips behave like standard tooltips
+	-- (follows cursor/owner and is clamped to the screen). The optional `bottom` flag
+	-- is intentionally ignored because the default anchor already handles flipping.
+	GameTooltip_SetDefaultAnchor( GameTooltip, frame )
 
 end
 
