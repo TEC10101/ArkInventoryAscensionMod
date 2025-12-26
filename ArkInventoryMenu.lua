@@ -390,39 +390,97 @@ function ArkInventory.MenuBarOpen( frame )
 
 							ArkInventory.Lib.DewDrop:AddLine( )
 							local has_entries = false
-							for _, cat in ArkInventory.spairs( ArkInventory.Global.Category, function(a,b) return ArkInventory.Global.Category[a].fullname < ArkInventory.Global.Category[b].fullname end ) do
 
-								local t = cat.type_code
-								local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat.id )
+							if cat_type == "RULE" then
 
-								if abs( cat_bar ) == bar_id and not def_bar then
+								-- collect current bar's rule categories and sort by rule order
+								local rule_entries = { }
+								for _, cat in ArkInventory.spairs( ArkInventory.Global.Category, function(a,b) return ArkInventory.Global.Category[a].fullname < ArkInventory.Global.Category[b].fullname end ) do
 
-									if t == "RULE" then
-										local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-										local rp = ArkInventory.db.profile.option.rule[cat_code]
-										local usable = true
-										if type( rp ) == "table" and rp.usable == false then
-											usable = false
+									local t = cat.type_code
+									local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat.id )
+
+									if abs( cat_bar ) == bar_id and not def_bar then
+
+										if t == "RULE" then
+											local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
+											local rp = ArkInventory.db.profile.option.rule[cat_code]
+											local usable = true
+											if type( rp ) == "table" and rp.usable == false then
+												usable = false
+											end
+											if usable then
+												local ruleData = ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Rule].data[cat_code]
+												local order = ( ruleData and ruleData.order ) or 0
+												table.insert( rule_entries, { cat = cat, cat_bar = cat_bar, order = order } )
+											end
 										end
-										if not usable then
-											t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
-										end
+
 									end
 
-									if cat_type == t then
+								end
 
-										local tag_colour = GREEN_FONT_COLOR_CODE
-										if cat_bar < 0 then
-											tag_colour = RED_FONT_COLOR_CODE
+								table.sort( rule_entries, function( a, b )
+									if a.order == b.order then
+										return a.cat.name < b.cat.name
+									end
+									return a.order < b.order
+								end )
+
+								for _, entry in ipairs( rule_entries ) do
+									local cat = entry.cat
+									local cat_bar = entry.cat_bar
+									local tag_colour = GREEN_FONT_COLOR_CODE
+									if cat_bar < 0 then
+										tag_colour = RED_FONT_COLOR_CODE
+									end
+
+									has_entries = true
+									ArkInventory.Lib.DewDrop:AddLine(
+										"text", tag_colour .. cat.name,
+										"tooltipTitle", cat.fullname,
+										"hasArrow", true,
+										"value", "CATEGORY_CURRENT_OPTION_" .. cat.id
+									)
+								end
+
+							else
+
+								for _, cat in ArkInventory.spairs( ArkInventory.Global.Category, function(a,b) return ArkInventory.Global.Category[a].fullname < ArkInventory.Global.Category[b].fullname end ) do
+
+									local t = cat.type_code
+									local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat.id )
+
+									if abs( cat_bar ) == bar_id and not def_bar then
+
+										if t == "RULE" then
+											local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
+											local rp = ArkInventory.db.profile.option.rule[cat_code]
+											local usable = true
+											if type( rp ) == "table" and rp.usable == false then
+												usable = false
+											end
+											if not usable then
+												t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
+											end
 										end
 
-										has_entries = true
-										ArkInventory.Lib.DewDrop:AddLine(
-											"text", tag_colour .. cat.name,
-											"tooltipTitle", cat.fullname,
-											"hasArrow", true,
-											"value", "CATEGORY_CURRENT_OPTION_" .. cat.id
-										)
+										if cat_type == t then
+
+											local tag_colour = GREEN_FONT_COLOR_CODE
+											if cat_bar < 0 then
+												tag_colour = RED_FONT_COLOR_CODE
+											end
+
+											has_entries = true
+											ArkInventory.Lib.DewDrop:AddLine(
+												"text", tag_colour .. cat.name,
+												"tooltipTitle", cat.fullname,
+												"hasArrow", true,
+												"value", "CATEGORY_CURRENT_OPTION_" .. cat.id
+											)
+
+										end
 
 									end
 
@@ -455,28 +513,46 @@ function ArkInventory.MenuBarOpen( frame )
 							)
 
 							ArkInventory.Lib.DewDrop:AddLine( )
-							for _, cat in ArkInventory.spairs( ArkInventory.Global.Category, function(a,b) return ArkInventory.Global.Category[a].fullname < ArkInventory.Global.Category[b].fullname end ) do
 
-								local t = cat.type_code
-								local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat.id )
+							if cat_type == "RULE" then
 
-								if abs( cat_bar ) == bar_id and not def_bar then
-									t = "DO_NOT_USE" -- change the category so it doesn't display
+								-- collect assignable rule categories and sort by rule order
+								local rule_entries = { }
+								for _, cat in ArkInventory.spairs( ArkInventory.Global.Category, function(a,b) return ArkInventory.Global.Category[a].fullname < ArkInventory.Global.Category[b].fullname end ) do
+
+									local t = cat.type_code
+									local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat.id )
+
+									if abs( cat_bar ) == bar_id and not def_bar then
+										t = "DO_NOT_USE" -- change the category so it doesn't display
+									end
+
+									if t == "RULE" then
+										local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
+										local rp = ArkInventory.db.profile.option.rule[cat_code]
+										local usable = true
+										if type( rp ) == "table" and rp.usable == false then
+											usable = false
+										end
+										if usable then
+											local ruleData = ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Rule].data[cat_code]
+											local order = ( ruleData and ruleData.order ) or 0
+											table.insert( rule_entries, { cat = cat, def_bar = def_bar, order = order } )
+										end
+									end
+
 								end
 
-								if t == "RULE" then
-									local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-									local rp = ArkInventory.db.profile.option.rule[cat_code]
-									local usable = true
-									if type( rp ) == "table" and rp.usable == false then
-										usable = false
+								table.sort( rule_entries, function( a, b )
+									if a.order == b.order then
+										return a.cat.name < b.cat.name
 									end
-									if not usable then
-										t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
-									end
-								end
+									return a.order < b.order
+								end )
 
-								if cat_type == t then
+								for _, entry in ipairs( rule_entries ) do
+									local cat = entry.cat
+									local def_bar = entry.def_bar
 
 									local n = cat.name
 
@@ -494,6 +570,51 @@ function ArkInventory.MenuBarOpen( frame )
 											ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
 										end
 									)
+								end
+
+							else
+
+								for _, cat in ArkInventory.spairs( ArkInventory.Global.Category, function(a,b) return ArkInventory.Global.Category[a].fullname < ArkInventory.Global.Category[b].fullname end ) do
+
+									local t = cat.type_code
+									local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat.id )
+
+									if abs( cat_bar ) == bar_id and not def_bar then
+										t = "DO_NOT_USE" -- change the category so it doesn't display
+									end
+
+									if t == "RULE" then
+										local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
+										local rp = ArkInventory.db.profile.option.rule[cat_code]
+										local usable = true
+										if type( rp ) == "table" and rp.usable == false then
+											usable = false
+										end
+										if not usable then
+											t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
+										end
+									end
+
+									if cat_type == t then
+
+										local n = cat.name
+
+										if not def_bar then
+											-- category is assigned to a bar - show the user where
+											n = LIGHTYELLOW_FONT_COLOR_CODE .. cat.name .. GREEN_FONT_COLOR_CODE .. "  [" .. ArkInventory.CategoryLocationGet( loc_id, cat.id ) .. "]" .. FONT_COLOR_CODE_CLOSE
+										end
+
+										ArkInventory.Lib.DewDrop:AddLine(
+											"text", n,
+											"tooltipTitle", ArkInventory.Localise["MENU_BAR_CATEGORY"],
+											"tooltipText", string.format( ArkInventory.Localise["MENU_BAR_CATEGORY_TEXT"], cat.fullname ),
+											"func", function( )
+												ArkInventory.CategoryLocationSet( loc_id, cat.id, bar_id )
+												ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
+											end
+										)
+									end
+
 								end
 
 							end

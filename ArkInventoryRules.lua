@@ -1347,7 +1347,7 @@ function ArkInventory.Frame_Rules_Build_Sort( )
 
 	local x
 
-	--enabled
+	-- usable (header over per-row Usable checkbox)
 	x = _G[f .. "_T1"]
 	x:ClearAllPoints( )
 	x:SetWidth( 32 )
@@ -1406,27 +1406,48 @@ function ArkInventory.Frame_Rules_Build_Row( )
 	local x
 	local sz = 18
 
-	--enabled
+	-- hide legacy enabled icon column
 	x = _G[f .. "T1"]
-	x:ClearAllPoints( )
-	x:SetWidth( sz )
-	x:SetHeight( sz )
-	x:SetPoint( "LEFT", 17, 0 )
-	x:Show( )
+	if x then
+		x:Hide( )
+		x:ClearAllPoints( )
+		x:SetWidth( 1 )
+		x:SetHeight( 1 )
+	end
 
-	--damaged
+	-- usable checkbox (first column)
+	x = _G[f .. "Usable"]
+	if x then
+		x:ClearAllPoints( )
+		x:SetWidth( sz )
+		x:SetHeight( sz )
+		x:SetPoint( "LEFT", 17, 0 )
+		x:Show( )
+	end
+
+	-- damaged icon
 	x = _G[f .. "T2"]
-	x:ClearAllPoints( )
-	x:SetWidth( sz )
-	x:SetHeight( sz )
-	x:SetPoint( "LEFT", f .. "T1", "RIGHT", 19, 0 )
-	x:Show( )
+	if x then
+		x:ClearAllPoints( )
+		x:SetWidth( sz )
+		x:SetHeight( sz )
+		if _G[f .. "Usable"] then
+			x:SetPoint( "LEFT", f .. "Usable", "RIGHT", 10, 0 )
+		else
+			x:SetPoint( "LEFT", 17, 0 )
+		end
+		x:Show( )
+	end
 
 	-- id
 	x = _G[f .. "C1"]
 	x:ClearAllPoints( )
 	x:SetWidth( 50 )
-	x:SetPoint( "LEFT", f .. "T2", "RIGHT", 12, 0 )
+	if _G[f .. "T2"] then
+		x:SetPoint( "LEFT", f .. "T2", "RIGHT", 12, 0 )
+	else
+		x:SetPoint( "LEFT", 17, 0 )
+	end
 	x:SetPoint( "TOP", 0, 0 )
 	x:SetPoint( "BOTTOM", 0, 0 )
 	x:SetTextColor( 1, 1, 1, 1 )
@@ -1444,24 +1465,10 @@ function ArkInventory.Frame_Rules_Build_Row( )
 	x:SetJustifyH( "CENTER", 0, 0 )
 	x:Show( )
 
-	-- usable checkbox
-	x = _G[f .. "Usable"]
-	if x then
-		x:ClearAllPoints( )
-		x:SetWidth( sz )
-		x:SetHeight( sz )
-		x:SetPoint( "LEFT", f .. "C2", "RIGHT", 5, 0 )
-		x:Show( )
-	end
-
 	-- description
 	x = _G[f .. "C3"]
 	x:ClearAllPoints( )
-	local anchor = f .. "C2"
-	if _G[f .. "Usable"] then
-		anchor = f .. "Usable"
-	end
-	x:SetPoint( "LEFT", anchor, "RIGHT", 5, 0 )
+	x:SetPoint( "LEFT", f .. "C2", "RIGHT", 5, 0 )
 	x:SetPoint( "TOP", 0, 0 )
 	x:SetPoint( "BOTTOM", 0, 0 )
 	x:SetPoint( "RIGHT", -5, 0 )
@@ -1515,52 +1522,23 @@ function ArkInventory.Frame_Rules_Table_Row_OnClick( )
 		return false
 	end
 
-
-	if IsShiftKeyDown( ) then
-
-		-- shift click - enable/disable the rule
-		id = tonumber( _G[f .. "Id"]:GetText( ) )
-		if id > 0 then
-
-			if ArkInventory.RuleProfileGetEnabled( id ) then
-
-				ArkInventory.RuleProfileSetEnabled( id, false )
-				ArkInventory.ItemCacheClear( )
-				ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
-
-			else
-
-				d = ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Rule].data[id]
-				d["enabled"] = true
-				ArkInventory.RuleEntryEdit( id, d )
-
-			end
-
-		end
-
-		ArkInventory.Frame_Rules_Table_Refresh( )
-
-	else
-
-		-- normal click - show/hide selected background
-
-		if cs ~= "-1" then
-			_G[parent .. "Row" .. cs .. "Selected"]:Hide( )
-		end
-
-		-- second click removes selection
-		if cs == ns then
-			_G[parent .. "SelectedRow"]:SetText( "-1" )
-			_G[parent .. "SelectedId"]:SetText( "-1" )
-			return
-		end
-
-		_G[parent .. "SelectedRow"]:SetText( ns )
-		_G[parent .. "SelectedId"]:SetText( _G[f .. "Id"]:GetText( ) )
-
-		_G[f .. "Selected"]:Show( )
-
+	-- click always just selects/deselects the row now
+	-- (no special Shift-click behavior)
+	if cs ~= "-1" then
+		_G[parent .. "Row" .. cs .. "Selected"]:Hide( )
 	end
+
+	-- second click removes selection
+	if cs == ns then
+		_G[parent .. "SelectedRow"]:SetText( "-1" )
+		_G[parent .. "SelectedId"]:SetText( "-1" )
+		return
+	end
+
+	_G[parent .. "SelectedRow"]:SetText( ns )
+	_G[parent .. "SelectedId"]:SetText( _G[f .. "Id"]:GetText( ) )
+
+	_G[f .. "Selected"]:Show( )
 
 end
 
@@ -1688,12 +1666,6 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 
 			_G[linename .. "Id"]:SetText( r.id )
 
-			if r.enabled then
-				_G[linename .. "T1"]:SetTexture( "Interface\\Icons\\Spell_ChargePositive" )
-			else
-				_G[linename .. "T1"]:SetTexture( "Interface\\Icons\\Spell_ChargeNegative" )
-			end
-
 			local cb = _G[linename .. "Usable"]
 			if cb then
 				cb:SetChecked( r.usable and true or false )
@@ -1710,9 +1682,25 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 			c = string.format( r.order )
 			_G[linename .. "C2"]:SetText( c )
 
-			c = r.name
-			if not c then c = "<not set>" end
-			_G[linename .. "C3"]:SetText( c )
+			-- name (with bar assignment info similar to bar menu)
+			local baseName = r.name
+			if not baseName or baseName == "" then
+				baseName = "<not set>"
+			end
+			local displayName = baseName
+			local cat_type_rule = ArkInventory.Const.Category.Type.Rule
+			if cat_type_rule then
+				local cat_id = ArkInventory.CategoryCodeJoin( cat_type_rule, r.id )
+				local loc_id = ArkInventory.Const.Location.Bag
+				if loc_id and cat_id then
+					local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat_id )
+					if abs( cat_bar or 0 ) > 0 and not def_bar then
+						local bar_display = abs( cat_bar )
+						displayName = LIGHTYELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
+					end
+				end
+			end
+			_G[linename .. "C3"]:SetText( displayName )
 
 			_G[linename]:Show( )
 
@@ -1986,34 +1974,26 @@ function ArkInventory.Frame_Rules_Button_Modify( t )
 
 	if k ~= "-1" then
 		local d = ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Rule].data[tonumber( k )]
-		d["enabled"] = ArkInventory.RuleProfileGetEnabled( tonumber( k ) )
 		_G[fmd .. "Id"]:SetText( k )
-		_G[fmd .. "Enabled"]:SetChecked( d.enabled )
 		_G[fmd .. "Order"]:SetText( ArkInventory.nilStringEmpty( d.order ) )
 		_G[fmd .. "Description"]:SetText( ArkInventory.nilStringEmpty( d.name ) )
 		_G[fmd .. "ScrollFormula"]:SetText( ArkInventory.nilStringEmpty( d.formula ) )
 	else
 		_G[fmd .. "Id"]:SetText( "<NEW>" )
-		-- new rules start disabled by default
-		_G[fmd .. "Enabled"]:SetChecked( false )
 		_G[fmd .. "Order"]:SetText( "100" )
 		_G[fmd .. "Description"]:SetText( "" )
 		_G[fmd .. "ScrollFormula"]:SetText( "false" )
 	end
 
 	_G[fmd .. "IdLabel"]:SetText( ArkInventory.Localise["RULE"] .. ":"  )
-	_G[fmd .. "EnabledLabel"]:SetText( ArkInventory.Localise["RULE_ENABLED"] .. ":"  )
 	_G[fmd .. "OrderLabel"]:SetText( ArkInventory.Localise["RULE_ORDER"] .. ":"  )
 	_G[fmd .. "DescriptionLabel"]:SetText( ArkInventory.Localise["RULE_DESCRIPTION"] .. ":"  )
 	_G[fmd .. "FormulaLabel"]:SetText( ArkInventory.Localise["RULE_FORMULA"] .. ":" )
 
-	_G[fmd .. "Enabled"]:Show( )
 	_G[fmd .. "Order"]:Show( )
 	_G[fmd .. "Description"]:Show( )
 	_G[fmd .. "ScrollFormula"]:Show( )
 
-	_G[fmd .. "EnabledReadOnly"]:SetChecked( _G[fmd .. "Enabled"]:GetChecked( ) )
-	_G[fmd .. "EnabledReadOnly"]:Hide( )
 	_G[fmd .. "OrderReadOnly"]:SetText( _G[fmd .. "Order"]:GetText( ) )
 	_G[fmd .. "OrderReadOnly"]:Hide( )
 	_G[fmd .. "DescriptionReadOnly"]:SetText( _G[fmd .. "Description"]:GetText( ) )
@@ -2026,10 +2006,6 @@ function ArkInventory.Frame_Rules_Button_Modify( t )
 		if k == "-1" then return end
 
 		_G[fmt .. "Text"]:SetText( string.upper( ArkInventory.Localise["REMOVE"] ) )
-
-		_G[fmd .. "Enabled"]:Hide( )
-		_G[fmd .. "EnabledReadOnly"]:Disable( )
-		_G[fmd .. "EnabledReadOnly"]:Show( )
 
 		_G[fmd .. "Order"]:Hide( )
 		_G[fmd .. "OrderReadOnly"]:Show( )
@@ -2067,7 +2043,6 @@ function ArkInventory.Frame_Rules_Button_Modify_Ok( )
 	local fmd = fm .. "Data"
 
 	local d = { }
-	d["enabled"] = _G[fmd .. "Enabled"]:GetChecked( )
 	d["order"] = _G[fmd .. "Order"]:GetText( )
 	d["name"] = _G[fmd .. "Description"]:GetText( )
 	d["formula"] = _G[fmd .. "ScrollFormula"]:GetText( )

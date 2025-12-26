@@ -217,19 +217,10 @@
               </Anchors>
             </FontString>
 
-            <FontString name="$parentEnabledLabel" inherits="ARKINV_DataEntryLabelFont"
-              text="enabled:" justifyH="RIGHT">
-              <Anchors>
-                <Anchor point="TOPRIGHT" relativeTo="$parentIdLabel" relativePoint="BOTTOMRIGHT">
-                  <Offset x="0" y="-20" />
-                </Anchor>
-              </Anchors>
-            </FontString>
-
             <FontString name="$parentOrderLabel" inherits="ARKINV_DataEntryLabelFont" text="order:"
               justifyH="RIGHT">
               <Anchors>
-                <Anchor point="TOPRIGHT" relativeTo="$parentEnabledLabel"
+                <Anchor point="TOPRIGHT" relativeTo="$parentIdLabel"
                   relativePoint="BOTTOMRIGHT">
                   <Offset x="0" y="-20" />
                 </Anchor>
@@ -299,23 +290,6 @@
         </Layers>
 
         <Frames>
-
-          <CheckButton name="$parentEnabled" inherits="OptionsCheckButtonTemplate" checked="true">
-            <Anchors>
-              <Anchor point="LEFT" relativeTo="$parentEnabledLabel" relativePoint="RIGHT">
-                <Offset x="10" y="0" />
-              </Anchor>
-            </Anchors>
-          </CheckButton>
-
-          <CheckButton name="$parentEnabledReadOnly" inherits="OptionsCheckButtonTemplate"
-            disabled="true" hidden="true">
-            <Anchors>
-              <Anchor point="LEFT" relativeTo="$parentEnabledLabel" relativePoint="RIGHT">
-                <Offset x="10" y="0" />
-              </Anchor>
-            </Anchors>
-          </CheckButton>
 
           <EditBox name="$parentOrder" inherits="ARKINV_TemplateEditBoxNoLabel" letters="4"
             type="numeric">
