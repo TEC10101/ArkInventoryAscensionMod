@@ -1868,13 +1868,6 @@ function ArkInventory.RuleEntryFormat( data )
 	data.formula = zFormula
 	data.compiled = nil  -- purge old data
 
-	-- default flags
-	if data.enabled then
-		data.enabled = true
-	else
-		data.enabled = false
-	end
-
 	return data
 
 end
@@ -1882,10 +1875,20 @@ end
 function ArkInventory.RuleEntryUpdate( rid, data )
 
 	local rid = tonumber( rid )
+	local current_enabled = ArkInventory.RuleProfileGetEnabled( rid )
 	ArkInventory.RuleEntryFormat( data )
 
+	-- preserve existing enabled state unless an explicit enabled flag
+	-- was provided by the caller (eg, via upgrade code). This prevents
+	-- the profile-level enabled flag from being reset to false every
+	-- time the rule is edited via the UI.
+	local enabled = data.enabled
+	if enabled == nil then
+		enabled = current_enabled
+	end
+
 	-- enable/disable the rule at the profile level
-	ArkInventory.RuleProfileSetEnabled( rid, data.enabled )
+	ArkInventory.RuleProfileSetEnabled( rid, enabled )
 	data.enabled = nil
 
 	-- save the rule data at the account level
