@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0400,
-		UIVersion = "3.4.00",
+		Version = 3.0500,
+		UIVersion = "3.05.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -669,7 +669,11 @@ ArkInventory.Const = { -- constants
 			LDB = true,
 			Scripts = {
 				OnClick = function( self )
-					ArkInventory.Frame_Rules_Toggle( )
+					local loc_id
+					if self.GetParent and self:GetParent( ) and self:GetParent( ):GetParent( ) then
+						loc_id = self:GetParent( ):GetParent( ):GetID( )
+					end
+					ArkInventory.Frame_Rules_Toggle( loc_id )
 				end,
 				OnEnter = function( self )
 					ArkInventory.GameTooltipSetText( self, ArkInventory.Localise["CONFIG_RULES"] )
@@ -940,6 +944,11 @@ ArkInventory.Global = { -- globals
 		Vendor = nil,
 		Rule = nil,
 		WOW = { GameTooltip, ShoppingTooltip1, ShoppingTooltip2, ShoppingTooltip3, ItemRefTooltip, ItemRefShoppingTooltip1, ItemRefShoppingTooltip2, ItemRefShoppingTooltip3 }
+	},
+
+	-- rules UI context (which location's bar assignments to display)
+	Rules = {
+		loc_id = ArkInventory.Const.Location.Bag,
 	},
 
 	Category = { }, -- see CategoryGenerate( ) for how this gets populated

@@ -735,7 +735,7 @@
 
         <Scripts>
           <OnLoad>
-            _G[self:GetName( ) .. "Text"]:SetText( string.upper( ArkInventory.Localise["VIEW"] ) )
+            ArkInventory.Frame_Rules_UpdateViewTitle( )
           </OnLoad>
         </Scripts>
 
@@ -803,9 +803,9 @@
 
       </Frame>
 
-      <Frame name="$parentSort" inherits="ARKINV_TemplateFrameBasic">
+      <Frame name="$parentSort" inherits="ARKINV_TemplateFrameBasic" hidden="true">
 
-        <Size x="2" y="30" />
+        <Size x="0" y="0" />
 
         <Anchors>
           <Anchor point="TOP" relativeTo="$parentSearch" relativePoint="BOTTOM" />
@@ -833,11 +833,7 @@
         </Frames>
 
         <Scripts>
-
-          <OnLoad>
-            ArkInventory.Frame_Rules_Build_Sort( )
-          </OnLoad>
-
+          <!-- sort header currently unused/hidden -->
         </Scripts>
 
       </Frame>
@@ -845,7 +841,7 @@
       <Frame name="$parentTable" inherits="ARKINV_TemplateRuleTable">
 
         <Anchors>
-          <Anchor point="TOP" relativeTo="$parentSort" relativePoint="BOTTOM" />
+          <Anchor point="TOP" relativeTo="$parentSearch" relativePoint="BOTTOM" />
           <Anchor point="LEFT" />
           <Anchor point="RIGHT" />
         </Anchors>
@@ -1039,9 +1035,99 @@
 
       </Frame>
 
-      <Frame name="$parentFrame" inherits="ARKINV_TemplateRuleMain">
+      <!-- location tabs for rule bar-assignment context -->
+      <Frame name="$parentTabs" inherits="ARKINV_TemplateFrameBasic">
+        <Size x="2" y="28" />
         <Anchors>
           <Anchor point="TOPLEFT" relativeTo="$parentTitle" relativePoint="BOTTOMLEFT">
+            <Offset x="5" y="-2" />
+          </Anchor>
+          <Anchor point="RIGHT" relativeTo="$parent" relativePoint="RIGHT">
+            <Offset x="-5" y="0" />
+          </Anchor>
+        </Anchors>
+
+        <Frames>
+
+          <Button name="$parentBag" inherits="ARKINV_TemplateRuleButton">
+            <Size x="80" y="22" />
+            <Anchors>
+              <Anchor point="LEFT" relativeTo="$parent" relativePoint="LEFT">
+                <Offset x="5" y="0" />
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.ARK_LocId = ArkInventory.Const.Location.Bag
+                self:SetText( ArkInventory.Global.Location[self.ARK_LocId].Name )
+              </OnLoad>
+              <OnClick>
+                ArkInventory.Frame_Rules_Tab_OnClick( self )
+              </OnClick>
+            </Scripts>
+          </Button>
+
+          <Button name="$parentBank" inherits="ARKINV_TemplateRuleButton">
+            <Size x="80" y="22" />
+            <Anchors>
+              <Anchor point="LEFT" relativeTo="$parentBag" relativePoint="RIGHT">
+                <Offset x="5" y="0" />
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.ARK_LocId = ArkInventory.Const.Location.Bank
+                self:SetText( ArkInventory.Global.Location[self.ARK_LocId].Name )
+              </OnLoad>
+              <OnClick>
+                ArkInventory.Frame_Rules_Tab_OnClick( self )
+              </OnClick>
+            </Scripts>
+          </Button>
+
+          <Button name="$parentVault" inherits="ARKINV_TemplateRuleButton">
+            <Size x="90" y="22" />
+            <Anchors>
+              <Anchor point="LEFT" relativeTo="$parentBank" relativePoint="RIGHT">
+                <Offset x="5" y="0" />
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.ARK_LocId = ArkInventory.Const.Location.Vault
+                self:SetText( ArkInventory.Global.Location[self.ARK_LocId].Name )
+              </OnLoad>
+              <OnClick>
+                ArkInventory.Frame_Rules_Tab_OnClick( self )
+              </OnClick>
+            </Scripts>
+          </Button>
+
+          <Button name="$parentPersonalBank" inherits="ARKINV_TemplateRuleButton">
+            <Size x="110" y="22" />
+            <Anchors>
+              <Anchor point="LEFT" relativeTo="$parentVault" relativePoint="RIGHT">
+                <Offset x="5" y="0" />
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.ARK_LocId = ArkInventory.Const.Location.PersonalBank
+                self:SetText( ArkInventory.Global.Location[self.ARK_LocId].Name )
+              </OnLoad>
+              <OnClick>
+                ArkInventory.Frame_Rules_Tab_OnClick( self )
+              </OnClick>
+            </Scripts>
+          </Button>
+
+        </Frames>
+
+      </Frame>
+
+      <Frame name="$parentFrame" inherits="ARKINV_TemplateRuleMain">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentTabs" relativePoint="BOTTOMLEFT">
             <Offset x="0" y="2" />
           </Anchor>
           <Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" />

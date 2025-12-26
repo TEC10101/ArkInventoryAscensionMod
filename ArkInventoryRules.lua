@@ -9,9 +9,11 @@ local function RuleProfileGet( rid, create )
 	local rp = ArkInventory.db.profile.option.rule[rid]
 	if type( rp ) ~= "table" then
 		local enabled = false
-		local usable = true
+		local usable = false
 		if rp ~= nil then
+			-- legacy boolean: preserve old enabled state and default usable to true
 			enabled = rp and true or false
+			usable = true
 		end
 		rp = { enabled = enabled, usable = usable }
 		if create then
@@ -40,14 +42,19 @@ end
 function ArkInventory.RuleProfileGetUsable( rid )
 	local rp = ArkInventory.db.profile.option.rule[rid]
 	if type( rp ) == "table" then
-		if rp.usable == false then
-			return false
-		else
+		-- if usable is explicitly set, honour it; if it's nil on an
+		-- existing table, treat as legacy (usable = true)
+		if rp.usable == nil then
 			return true
 		end
+		return rp.usable and true or false
+	elseif rp == nil then
+		-- new profile with no record yet: default to unusable
+		return false
+	else
+		-- legacy boolean entry: rule exists, treat as usable
+		return true
 	end
-	-- legacy / default: usable if no explicit flag
-	return true
 end
 
 function ArkInventory.RuleProfileSetUsable( rid, usable )
@@ -1231,18 +1238,79 @@ function ArkInventory.Frame_Rules_Hide( )
 	ARKINV_Rules:Hide( )
 end
 
-function ArkInventory.Frame_Rules_Show( )
-	ARKINV_Rules:Show( )
+function ArkInventory.Frame_Rules_GetLocation( )
+	ArkInventory.Global.Rules = ArkInventory.Global.Rules or { }
+	local loc_id = ArkInventory.Global.Rules.loc_id
+	if not loc_id or not ArkInventory.Global.Location[loc_id] then
+		loc_id = ArkInventory.Const.Location.Bag
+		ArkInventory.Global.Rules.loc_id = loc_id
+	end
+	return loc_id
 end
 
-function ArkInventory.Frame_Rules_Toggle( )
+function ArkInventory.Frame_Rules_UpdateViewTitle( )
+	local loc_id = ArkInventory.Frame_Rules_GetLocation( )
+	local loc = ArkInventory.Global.Location[loc_id]
+	local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
+	local text
+	if loc_name ~= "" then
+		text = string.format( "%s Assignments View", loc_name )
+	else
+		text = ArkInventory.Localise["VIEW"] or "View"
+	end
+	local obj = _G["ARKINV_RulesFrameViewTitleText"]
+	if obj then
+		obj:SetText( text )
+	end
+end
 
+function ArkInventory.Frame_Rules_Tab_Update( )
+	local loc_id = ArkInventory.Frame_Rules_GetLocation( )
+	local tabs = {
+		{ name = "ARKINV_RulesTabsBag", loc = ArkInventory.Const.Location.Bag },
+		{ name = "ARKINV_RulesTabsBank", loc = ArkInventory.Const.Location.Bank },
+		{ name = "ARKINV_RulesTabsVault", loc = ArkInventory.Const.Location.Vault },
+		{ name = "ARKINV_RulesTabsPersonalBank", loc = ArkInventory.Const.Location.PersonalBank },
+	}
+	for _, t in ipairs( tabs ) do
+		local b = _G[t.name]
+		if b then
+			if t.loc == loc_id then
+				b:LockHighlight( )
+			else
+				b:UnlockHighlight( )
+			end
+		end
+	end
+	ArkInventory.Frame_Rules_UpdateViewTitle( )
+end
+
+function ArkInventory.Frame_Rules_Tab_OnClick( self )
+	if not self or not self.ARK_LocId then
+		return
+	end
+	ArkInventory.Global.Rules = ArkInventory.Global.Rules or { }
+	ArkInventory.Global.Rules.loc_id = self.ARK_LocId
+	ArkInventory.Frame_Rules_Tab_Update( )
+	ArkInventory.Frame_Rules_Table_Refresh( "ARKINV_RulesFrame" )
+end
+
+function ArkInventory.Frame_Rules_Show( loc_id )
+	if loc_id and ArkInventory.Global.Location[loc_id] then
+		ArkInventory.Global.Rules = ArkInventory.Global.Rules or { }
+		ArkInventory.Global.Rules.loc_id = loc_id
+	end
+	ARKINV_Rules:Show( )
+	ArkInventory.Frame_Rules_Tab_Update( )
+	ArkInventory.Frame_Rules_Table_Refresh( "ARKINV_RulesFrame" )
+end
+
+function ArkInventory.Frame_Rules_Toggle( loc_id )
 	if ARKINV_Rules:IsVisible( ) then
 		ArkInventory.Frame_Rules_Hide( )
 	else
-		ArkInventory.Frame_Rules_Show( )
+		ArkInventory.Frame_Rules_Show( loc_id )
 	end
-
 end
 
 function ArkInventory.Frame_Rules_Paint( )
@@ -1682,25 +1750,41 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 			c = string.format( r.order )
 			_G[linename .. "C2"]:SetText( c )
 
-			-- name (with bar assignment info similar to bar menu)
+			-- name (with bar assignment info for the selected location)
 			local baseName = r.name
 			if not baseName or baseName == "" then
 				baseName = "<not set>"
 			end
 			local displayName = baseName
+			local assigned = false
 			local cat_type_rule = ArkInventory.Const.Category.Type.Rule
 			if cat_type_rule then
 				local cat_id = ArkInventory.CategoryCodeJoin( cat_type_rule, r.id )
-				local loc_id = ArkInventory.Const.Location.Bag
+				local loc_id = ArkInventory.Frame_Rules_GetLocation( )
 				if loc_id and cat_id then
 					local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat_id )
 					if abs( cat_bar or 0 ) > 0 and not def_bar then
+						assigned = true
 						local bar_display = abs( cat_bar )
-						displayName = LIGHTYELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
+						if r.usable then
+							-- usable & assigned: yellow name with green [bar#]
+							displayName = LIGHTYELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
+						else
+							-- unusable & assigned: golden name with green [bar#]
+							displayName = YELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
+						end
 					end
 				end
 			end
+			if not r.usable and not assigned then
+				-- unusable & unassigned: golden name
+				displayName = YELLOW_FONT_COLOR_CODE .. baseName .. FONT_COLOR_CODE_CLOSE
+			end
 			_G[linename .. "C3"]:SetText( displayName )
+			-- ensure unassigned usable rules appear white
+			if r.usable and not assigned then
+				_G[linename .. "C3"]:SetTextColor( 1, 1, 1, 1 )
+			end
 
 			_G[linename]:Show( )
 
@@ -1918,6 +2002,7 @@ function ArkInventory.RuleEntryAdd( data )
 	end
 
 	ArkInventory.RuleEntryUpdate( v.next, data )
+	ArkInventory.RuleProfileSetUsable( v.next, true )
 
 	return v.next
 

@@ -404,15 +404,11 @@ function ArkInventory.MenuBarOpen( frame )
 
 										if t == "RULE" then
 											local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-											local rp = ArkInventory.db.profile.option.rule[cat_code]
-											local usable = true
-											if type( rp ) == "table" and rp.usable == false then
-												usable = false
-											end
+											local usable = ArkInventory.RuleProfileGetUsable( cat_code )
 											if usable then
 												local ruleData = ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Rule].data[cat_code]
 												local order = ( ruleData and ruleData.order ) or 0
-												table.insert( rule_entries, { cat = cat, cat_bar = cat_bar, order = order } )
+												table.insert( rule_entries, { cat = cat, cat_bar = cat_bar, order = order, rule_id = tonumber( cat_code ) or 0 } )
 											end
 										end
 
@@ -422,7 +418,7 @@ function ArkInventory.MenuBarOpen( frame )
 
 								table.sort( rule_entries, function( a, b )
 									if a.order == b.order then
-										return a.cat.name < b.cat.name
+										return ( a.rule_id or 0 ) < ( b.rule_id or 0 )
 									end
 									return a.order < b.order
 								end )
@@ -455,11 +451,7 @@ function ArkInventory.MenuBarOpen( frame )
 
 										if t == "RULE" then
 											local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-											local rp = ArkInventory.db.profile.option.rule[cat_code]
-											local usable = true
-											if type( rp ) == "table" and rp.usable == false then
-												usable = false
-											end
+											local usable = ArkInventory.RuleProfileGetUsable( cat_code )
 											if not usable then
 												t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
 											end
@@ -529,15 +521,11 @@ function ArkInventory.MenuBarOpen( frame )
 
 									if t == "RULE" then
 										local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-										local rp = ArkInventory.db.profile.option.rule[cat_code]
-										local usable = true
-										if type( rp ) == "table" and rp.usable == false then
-											usable = false
-										end
+										local usable = ArkInventory.RuleProfileGetUsable( cat_code )
 										if usable then
 											local ruleData = ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Rule].data[cat_code]
 											local order = ( ruleData and ruleData.order ) or 0
-											table.insert( rule_entries, { cat = cat, def_bar = def_bar, order = order } )
+											table.insert( rule_entries, { cat = cat, def_bar = def_bar, order = order, rule_id = tonumber( cat_code ) or 0 } )
 										end
 									end
 
@@ -545,7 +533,7 @@ function ArkInventory.MenuBarOpen( frame )
 
 								table.sort( rule_entries, function( a, b )
 									if a.order == b.order then
-										return a.cat.name < b.cat.name
+										return ( a.rule_id or 0 ) < ( b.rule_id or 0 )
 									end
 									return a.order < b.order
 								end )
@@ -585,11 +573,7 @@ function ArkInventory.MenuBarOpen( frame )
 
 									if t == "RULE" then
 										local _, cat_code = ArkInventory.CategoryCodeSplit( cat.id )
-										local rp = ArkInventory.db.profile.option.rule[cat_code]
-										local usable = true
-										if type( rp ) == "table" and rp.usable == false then
-											usable = false
-										end
+										local usable = ArkInventory.RuleProfileGetUsable( cat_code )
 										if not usable then
 											t = "DO_NOT_USE" -- hide rules explicitly marked unusable for this profile
 										end
