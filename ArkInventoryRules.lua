@@ -1968,6 +1968,48 @@ function ArkInventory.RuleEntryIsValid( rid, data )
 
 end
 
+-- evaluate a precompiled rule function against a given item hyperlink
+-- used by the Search window to apply ad-hoc rule expressions
+-- func: Lua chunk created via loadstring("return( " .. expr .. " )")
+-- h:    item hyperlink string
+-- count,q: optional stack count and quality
+-- returns: boolean result, optional error message
+function ArkInventory.RuleEvaluate( func, h, count, q )
+
+	if type( func ) ~= "function" then
+		return false, "invalid rule function"
+	end
+
+	if not h or strtrim( h ) == "" then
+		return false, "invalid hyperlink"
+	end
+
+	local item = {
+		test_rule = true,
+		class = ArkInventory.ObjectStringDecode( h ),
+		bag_id = 0,
+		slot_id = 1,
+		count = count or 1,
+		q = q,
+		sb = false,
+		h = h,
+	}
+
+	Rule.Item = item
+
+	setfenv( func, Rule.Environment )
+	local ok, res = pcall( func )
+	if not ok then
+		if ArkInventory and ArkInventory.OutputError then
+			ArkInventory.OutputError( string.format( "search rule runtime error: %s", tostring( res ) ) )
+		end
+		return false, res
+	end
+
+	return res and true or false, nil
+
+end
+
 function ArkInventory.RuleEntryExists( rid )
 
 	if not rid then

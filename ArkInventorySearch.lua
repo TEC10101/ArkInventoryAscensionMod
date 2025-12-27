@@ -1,10 +1,97 @@
 ﻿ArkInventory.SearchRebuild = true
 ArkInventory.SearchTable = { }
 
+ArkInventory.Search = ArkInventory.Search or { mode = "name" }
+
+function ArkInventory.SearchIsRuleMode( )
+	return ArkInventory.Search and ArkInventory.Search.mode == "rule"
+end
+
+function ArkInventory.SearchSetMode( mode )
+	ArkInventory.Search = ArkInventory.Search or { }
+	if mode == "rule" then
+		ArkInventory.Search.mode = "rule"
+	else
+		ArkInventory.Search.mode = "name"
+	end
+end
+
+-- shared helper: derive the longest syntactically valid rule expression
+-- from the raw search text, used by both the dedicated Search window and
+-- the main bag search when in rule mode.
+function ArkInventory.SearchRuleGetExpression( filter )
+
+	if not filter then
+		return nil
+	end
+
+	local txt = strtrim( filter )
+	if txt == "" then
+		return nil
+	end
+
+	-- only treat the search as a rule expression if it at least
+	-- looks like one (identifier followed by an opening parenthesis
+	-- at the start of the text, eg: tt("foo"), id(6948), type("armor")
+	if not string.match( txt, "^%s*[%a_][%w_]*%s*%(" ) then
+		return nil
+	end
+
+	-- simple heuristic: if the text starts with something like
+	--   fn("partial
+	-- assume a missing closing quote and parenthesis so that
+	-- users can type tt("foo without immediately breaking parsing.
+	--
+	-- however, do NOT treat a bare opening string like tt(" as a
+	-- usable expression; we only start searching once at least one
+	-- character has been typed inside the quotes (eg tt("a ).
+	local fname, arg = string.match( txt, '^%s*([%a_][%w_]*)%s*%(%s*"(.*)$' )
+	if fname and arg and arg ~= "" and not string.match( arg, "^%s*$" ) and not string.find( arg, '"', 1, true ) then
+		local candidate = string.format( '%s("%s")', fname, arg )
+		local ok = loadstring( "return( " .. candidate .. " )" )
+		if ok then
+			return candidate
+		end
+	end
+
+	local function canCompile( s )
+		if not s or s == "" then
+			return false
+		end
+		local ok = loadstring( "return( " .. s .. " )" )
+		return ok and true or false
+	end
+
+	-- try the string as-is first
+	if canCompile( txt ) then
+		return txt
+	end
+
+	-- otherwise, trim from the end until we find the longest
+	-- syntactically valid prefix (or give up). this allows
+	-- partially-typed compound expressions like
+	--   type("armor") and subtype("leather
+	-- to fall back to the last valid prefix.
+	local s = txt
+	while string.len( s ) > 0 do
+		s = string.sub( s, 1, string.len( s ) - 1 )
+		s = strtrim( s )
+		if s == "" then
+			break
+		end
+		if canCompile( s ) then
+			return s
+		end
+	end
+
+	return nil
+
+end
+
 function ArkInventory.Frame_Search_Hide( )
 	ARKINV_Search:Hide( )
 end
-	
+
 function ArkInventory.Frame_Search_Show( )
 	ARKINV_Search:Show( )
 end
@@ -16,31 +103,31 @@ function ArkInventory.Frame_Search_Toggle( )
 	else
 		ArkInventory.Frame_Search_Show( )
 	end
-	
+
 end
 
 
 function ArkInventory.Frame_Search_Paint( )
 
 	local frame = ARKINV_Search
-	
+
 	-- title
 	obj = _G[frame:GetName( ) .. "TitleWho"]
 	if obj then
 		t = string.format( "%s: %s %s", ArkInventory.Localise["CONFIG_SEARCH"], ArkInventory.Const.Program.Name, ArkInventory.Global.Version )
 		obj:SetText( t )
 	end
-	
+
 	-- font
 	ArkInventory.MediaSetFontFrame( frame )
-	
+
 	-- scale
 	frame:SetScale( ArkInventory.db.profile.option.ui.search.scale or 1 )
-	
+
 	local style, file, size, offset, scale, colour
-	
+
 	for _, z in pairs( { frame:GetChildren( ) } ) do
-		
+
 		-- background
 		local obj = _G[z:GetName( ) .. "Background"]
 		if obj then
@@ -53,7 +140,7 @@ function ArkInventory.Frame_Search_Paint( )
 				obj:SetTexture( file )
 			end
 		end
-		
+
 		-- border
 		style = ArkInventory.db.profile.option.ui.search.border.style or ArkInventory.Const.Texture.BorderDefault
 		file = ArkInventory.Lib.SharedMedia:Fetch( ArkInventory.Lib.SharedMedia.MediaType.BORDER, style )
@@ -61,7 +148,7 @@ function ArkInventory.Frame_Search_Paint( )
 		offset = ArkInventory.db.profile.option.ui.search.border.offset or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].offset
 		scale = ArkInventory.db.profile.option.ui.search.border.scale or 1
 		colour = ArkInventory.db.profile.option.ui.search.border.colour or { }
-	
+
 		local obj = _G[z:GetName( ) .. "ArkBorder"]
 		if obj then
 			if ArkInventory.db.profile.option.ui.search.border.style ~= ArkInventory.Const.Texture.BorderNone then
@@ -71,7 +158,7 @@ function ArkInventory.Frame_Search_Paint( )
 				obj:Hide( )
 			end
 		end
-		
+
 		for _, c1 in pairs( { z:GetChildren( ) } ) do
 			if c1:GetName( ) then
 				for _, c2 in pairs( { c1:GetChildren( ) } ) do
@@ -89,18 +176,18 @@ function ArkInventory.Frame_Search_Paint( )
 				end
 			end
 		end
-		
+
 	end
-	
+
 end
 
 function ArkInventory.Frame_Search_Table_Row_Draw( )
 
 	local f = this:GetName( )
-	
+
 	local x
 	local sz = 18
-	
+
 	-- item icon
 	x = _G[f .. "T1"]
 	x:ClearAllPoints( )
@@ -164,14 +251,14 @@ function ArkInventory.Frame_Search_Table_Draw( f )
 		ArkInventory.OutputError( "OOPS: Invalid value at ArkInventory.Frame_Search_Table_Draw( [", f, "] )" )
 		return
 	end
-	
+
 	local maxrows = tonumber( _G[f .. "MaxRows"]:GetText( ) )
 	local rows = maxrows
 	local height = 24
-	
+
 	if rows > maxrows then rows = maxrows end
 	_G[f .. "NumRows"]:SetText( rows )
-	
+
 	if height == 0 then
 		height = tonumber( _G[f .. "RowHeight"]:GetText( ) )
 	end
@@ -191,16 +278,16 @@ function ArkInventory.Frame_Search_Table_Row_OnClick( frame )
 	if HandleModifiedItemClick( h ) then
 		return
 	end
-	
+
 end
 
 function ArkInventory.Frame_Search_Table_Reset( f )
 
 	if not f or type( f ) ~= "string" then f = this:GetName( ) end
 	-- hide and reset all rows
-	
+
 	local t = f .. "Table"
-	
+
 	local h = tonumber( _G[t .. "RowHeight"]:GetText( ) )
 	local r = tonumber( _G[t .. "NumRows"]:GetText( ) )
 
@@ -227,9 +314,9 @@ function ArkInventory.Frame_Search_Table_Refresh_old( f )
 		ArkInventory.OutputError( "OOPS: Invalid widget name at Frame_Search_Table_Refresh( ", f, " )" )
 		return
 	end
-	
+
 	f = f .. "View"
-	
+
 	local ft = f .. "Table"
 	local fs = f .. "Search"
 
@@ -238,7 +325,7 @@ function ArkInventory.Frame_Search_Table_Refresh_old( f )
 
 	local line
 	local lineplusoffset
-	
+
 	ArkInventory.Frame_Search_Table_Reset( f )
 
 	-- collect all valid items
@@ -246,109 +333,109 @@ function ArkInventory.Frame_Search_Table_Refresh_old( f )
 	--ArkInventory.Print( "filter = [" .. filter .. "]" )
 
 	local inv = { }
-	
+
 	local realm = GetRealmName( )
 	local faction = UnitFactionGroup( "player" )
 
-	local apd = ArkInventory.db.realm.player.data	
+	local apd = ArkInventory.db.realm.player.data
 
 	for _, pd in ArkInventory.spairs( apd ) do
 
 		--if pd.info.realm == realm and pd.info.faction == faction then
 		if pd.info.realm == realm then
-			
+
 			local pl = ArkInventory.db.global.cache.realm[pd.info.realm].faction[pd.info.faction].character[pd.info.name]
-			
+
 			if pl and pl.location then
-			
+
 				local me = false
 				if pd.info.player_id == ArkInventory.Global.Me.info.player_id then
 					me = true
 				end
 
 				for l, ld in pairs( pl.location ) do
-				
+
 					if ld.active then
 						for b, bd in pairs( ld.bag ) do
 							for s, sd in pairs( bd.slot ) do
-							
+
 								if sd.h then
-								
+
 									local item_name = string.match( sd.h, "%[(.+)%]" )
 									local ignore = false
-		
+
 									if filter ~= "" then
 										if not string.find( string.lower( item_name or "" ), string.lower( filter ) ) then
 											ignore = true
 										end
 									end
-		
+
 									if not ignore then
-									
+
 										local id = ArkInventory.ObjectIDTooltip( sd.h )
-										
+
 										if not inv[id] then
 											inv[id] = { ["sorted"]=item_name, ["h"]=sd.h }
 --										else
 --											inv[id].count = inv[id].count + sd.count
 										end
-										
+
 									end
-								
+
 								end
 							end
 						end
 					end
-					
+
 				end
-				
+
 			end
-			
+
 		end
-		
+
 	end
 
 
-	
+
 	local t = { }
 	local tc = 0
-	
+
 	for i in pairs( inv ) do
 		tc = tc + 1
 		t[tc] = inv[i]
 	end
-	
-	
+
+
 	--table.insert( t, { ["sorted"]=format( "%s!%s!%04i", pd.info.player_id, item_name, l ), ["h"]=sd.h, ["who"]=pd.info.name, ["loc_id"]=l, ["item_name"]=item_name, ["item_texture"]=item_texture, ["item_count"]=sd.count } )
 	--tc = tc + 1
 
-	
+
 	if tc == 0 then
 		return
 	end
-	
+
 	-- sort them by name
 	table.sort( t, function( a, b ) return a.sorted < b.sorted end )
 
 	FauxScrollFrame_Update( _G[ft .. "Scroll"], tc, rows, height )
-	
+
 	local linename, c, r
-	
+
 	for line = 1, rows do
 
 		linename = ft .. "Row" .. line
-		
+
 		lineplusoffset = line + FauxScrollFrame_GetOffset( _G[ft .. "Scroll"] )
 
 		if lineplusoffset <= tc then
 
 			c = ""
 			r = t[lineplusoffset]
-			
+
 			_G[linename .. "Id"]:SetText( r.h )
 
 			_G[linename .. "T1"]:SetTexture( ArkInventory.ObjectInfoTexture( r.h ) )
-			
+
 			--_G[linename .. "T2"]:SetTexture( ArkInventory.Global.Location[r.loc_id].Texture )
 
 			_G[linename .. "C1"]:SetText( r.h )
@@ -359,98 +446,132 @@ function ArkInventory.Frame_Search_Table_Refresh_old( f )
 			--_G[linename .. "C3"]:SetText( c )
 
 			_G[linename]:Show( )
-			
+
 		else
-		
+
 			_G[linename .. "Id"]:SetText( "" )
 			_G[linename]:Hide( )
-			
+
 		end
 	end
 
 	-- ~~~~ clean table t
-	
+
 end
 
 function ArkInventory.Frame_Search_Table_Refresh( frame )
 
 	local f = frame
-	
+
 	if not f then
 		f = this:GetParent( ):GetParent( ):GetParent( ):GetName( )
 	end
-	
+
 	--ArkInventory.Output( "Frame_Search_Table_Refresh( ", f, " ), ", this:GetName( ) )
-	
+
 	local p = _G[f]
 	if not p then
 		ArkInventory.OutputError( "OOPS: Invalid widget name at Frame_Search_Table_Refresh( ", f, " )" )
 		return
 	end
-	
+
 	f = f .. "View"
-	
+
 	ArkInventory.Frame_Search_Table_Reset( f )
-	
+
 	local filter = _G[f .. "SearchFilter"]:GetText( )
+	local filter_lc = string.lower( filter or "" )
 	--ArkInventory.Print( "filter = [" .. filter .. "]" )
-	
+
+	local rule_expr
+	local rule_func
+	local rule_mode = ArkInventory.SearchIsRuleMode and ArkInventory.SearchIsRuleMode( )
+	if rule_mode and ArkInventory.SearchRuleGetExpression then
+		rule_expr = ArkInventory.SearchRuleGetExpression( filter )
+		if rule_expr then
+			local func, em = loadstring( string.format( "return( %s )", rule_expr ) )
+			if func then
+				rule_func = func
+			else
+				-- invalid expression, emit an error so the user knows the
+				-- rule failed to compile but do not fall back to name search
+				if ArkInventory and ArkInventory.OutputError then
+					ArkInventory.OutputError( string.format( "search rule compile error: %s", tostring( em ) ) )
+				end
+				rule_expr = nil
+			end
+		end
+		-- in rule mode, if we don't have a usable rule function then
+		-- treat the filter as empty so we do not perform name-based
+		-- searching while the user is still typing the rule keyword
+		if not rule_func then
+			filter_lc = ""
+		end
+	end
+
 	local tt = { }
 	ArkInventory.SearchRebuild = false
 
 	local cp = ArkInventory.Global.Me
-	
+
 	for p, pd in ArkInventory.spairs( ArkInventory.db.realm.player.data ) do
-		
+
 		for l, ld in pairs( pd.location ) do
-			
+
 			for b, bd in pairs( ld.bag ) do
-			
+
 				for s, sd in pairs( bd.slot ) do
-					
+
 					if sd.h then
-						
+
 						local item_name = select( 3, ArkInventory.ObjectInfo( sd.h ) ) or ""
-						
+
 						if item_name == "" then
 							ArkInventory.SearchRebuild = true
 						end
-						
+
 						local ignore = false
-						
-						if filter ~= "" and item_name ~= "" then
-							if not string.find( string.lower( item_name or "" ), string.lower( filter ) ) then
+
+						if rule_func then
+							local matched, err = ArkInventory.RuleEvaluate( rule_func, sd.h, sd.count, sd.q )
+							if not matched then
 								ignore = true
 							end
+						else
+							if filter_lc ~= "" and item_name ~= "" then
+								if not string.find( string.lower( item_name or "" ), filter_lc, 1, true ) then
+									ignore = true
+								end
+							end
 						end
-						
+
 						if not ignore then
-							
+
 							local id = ArkInventory.ObjectIDTooltip( sd.h )
-							
+
 							if not tt[id] then
 								local t = select( 4, ArkInventory.ObjectInfo( sd.h ) )
 								tt[id] = { id = id, sorted = item_name, name = item_name, h = sd.h, q = sd.q, t = t }
 							end
-							
+
 						end
-						
+
 					end
-					
+
 				end
-				
+
 			end
-			
+
 		end
-		
+
 	end
-	
+
 	ArkInventory.SearchTable = { }
-	
+
 	for _, v in pairs( tt ) do
 		table.insert( ArkInventory.SearchTable, v )
 	end
-		
+
 	if #ArkInventory.SearchTable > 0 then
 		table.sort( ArkInventory.SearchTable, function( a, b ) return a.sorted < b.sorted end )
 		ArkInventory.Frame_Search_Table_Scroll( frame )
@@ -465,15 +586,15 @@ function ArkInventory.Frame_Search_Table_Scroll( frame )
 	if not f then
 		f = this:GetParent( ):GetParent( ):GetParent( ):GetName( )
 	end
-	
+
 	local p = _G[f]
 	if not p then
 		ArkInventory.OutputError( "OOPS: Invalid widget name at Frame_Search_Table_Refresh( ", f, " )" )
 		return
 	end
-	
+
 	f = f .. "View"
-	
+
 	local ft = f .. "Table"
 	local fs = f .. "Search"
 
@@ -482,43 +603,43 @@ function ArkInventory.Frame_Search_Table_Scroll( frame )
 
 	local line
 	local lineplusoffset
-	
+
 	ArkInventory.Frame_Search_Table_Reset( f )
-	
+
 	local tc = #ArkInventory.SearchTable
-	
+
 	FauxScrollFrame_Update( _G[ft .. "Scroll"], tc, rows, height )
-	
+
 	local linename, c, r
-	
+
 	for line = 1, rows do
 
 		linename = ft .. "Row" .. line
-		
+
 		lineplusoffset = line + FauxScrollFrame_GetOffset( _G[ft .. "Scroll"] )
 
 		if lineplusoffset <= tc then
 
 			c = ""
 			r = ArkInventory.SearchTable[lineplusoffset]
-			
+
 			_G[linename .. "Id"]:SetText( r.h )
 
 			_G[linename .. "T1"]:SetTexture( r.t )
-			
+
 			local cr, cg, cb = GetItemQualityColor( r.q )
 			local cc = ArkInventory.ColourRGBtoCode( cr, cg, cb )
 			_G[linename .. "C1"]:SetText( string.format( "%s%s", cc, r.name ) )
 
 			_G[linename]:Show( )
-			
+
 		else
-		
+
 			_G[linename .. "Id"]:SetText( "" )
 			_G[linename]:Hide( )
-			
+
 		end
-		
+
 	end
 
 end

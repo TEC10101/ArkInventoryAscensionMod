@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0600,
-		UIVersion = "3.06.00",
+		Version = 3.0700,
+		UIVersion = "3.07.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -4577,7 +4577,25 @@ function ArkInventory.Frame_Main_Search( frame )
 	local search = frame .. "Search"
 	local filter = _G[search .. "Filter"]:GetText( )
 
-	ArkInventory.Global.Location[loc_id].filter = strtrim( filter )
+	local txt = strtrim( filter or "" )
+	ArkInventory.Global.Location[loc_id].filter = txt
+	ArkInventory.Global.Location[loc_id].filter_rule_expr = nil
+	ArkInventory.Global.Location[loc_id].filter_rule_func = nil
+
+	if ArkInventory.SearchIsRuleMode and ArkInventory.SearchIsRuleMode( ) and txt ~= "" and ArkInventory.SearchRuleGetExpression then
+		local expr = ArkInventory.SearchRuleGetExpression( txt )
+		if expr then
+			local func, em = loadstring( string.format( "return( %s )", expr ) )
+			if func then
+				ArkInventory.Global.Location[loc_id].filter_rule_expr = expr
+				ArkInventory.Global.Location[loc_id].filter_rule_func = func
+			else
+				if ArkInventory.OutputError then
+					ArkInventory.OutputError( string.format( "search rule compile error: %s", tostring( em ) ) )
+				end
+			end
+		end
+	end
 	ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 
 end
@@ -6084,13 +6102,28 @@ function ArkInventory.Frame_Item_Update_Fade( frame )
 
 	end
 
-	local f = string.lower( strtrim( ArkInventory.Global.Location[loc_id].filter or "" ) )
+	local loc = ArkInventory.Global.Location[loc_id]
+	local f = string.lower( strtrim( loc.filter or "" ) )
+	local rule_mode = ArkInventory.SearchIsRuleMode and ArkInventory.SearchIsRuleMode( )
 	if f ~= "" then
 		local i = ArkInventory.Frame_Item_GetDB( frame ) or { }
-		local n = string.lower( select( 3, ArkInventory.ObjectInfo( i.h ) ) or "" )
-		if not string.find( n, strtrim( f ) ) then
-			-- drop fade to 0.2 for all non matching items
-			fade = 0.2
+		if rule_mode then
+			-- in rule mode we only apply filtering once a compiled
+			-- rule function exists; otherwise we treat the filter as
+			-- empty so that typing just the rule keyword (eg "tt")
+			-- does not trigger a name search
+			if loc.filter_rule_func and i and i.h and ArkInventory.RuleEvaluate then
+				local matched = ArkInventory.RuleEvaluate( loc.filter_rule_func, i.h, i.count, i.q ) and true or false
+				if not matched then
+					fade = 0.2
+				end
+			end
+		else
+			local n = string.lower( select( 3, ArkInventory.ObjectInfo( i.h ) ) or "" )
+			if not string.find( n, strtrim( f ) ) then
+				-- drop fade to 0.2 for all non matching items
+				fade = 0.2
+			end
 		end
 	end
 
