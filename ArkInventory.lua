@@ -4608,6 +4608,18 @@ function ArkInventory.Frame_Main_OnLoad( frame )
 
 	tinsert( UISpecialFrames, framename )
 
+  -- make the main frame movable and allow dragging by the title area
+  frame:SetMovable( true )
+  frame:SetClampedToScreen( true )
+
+  local title = _G[ frame:GetName() .. ArkInventory.Const.Frame.Title.Name ]
+  if title then
+      title:EnableMouse( true )
+      title:RegisterForDrag( "LeftButton" )
+      title:SetScript( "OnDragStart", function( self ) frame:StartMoving() end )
+      title:SetScript( "OnDragStop", function( self ) frame:StopMovingOrSizing(); ArkInventory.Frame_Main_Anchor_Save( frame ) end )
+  end
+
 end
 
 function ArkInventory.Frame_Main_Anchor_Save( frame )
