@@ -20,8 +20,8 @@ if not L then return end
 --	wow skill headers - must match exactly what is in game
 	L["WOW_SKILL_HEADER_PRIMARY"] = "专业技能"
 	L["WOW_SKILL_HEADER_SECONDARY"] = "第二专业"
-	
-	
+
+
 --	wow skill names - must match exactly what is in game
 	L["WOW_SKILL_ALCHEMY"] = "炼金术"
 	L["WOW_SKILL_BLACKSMITHING"] = "锻造"
@@ -38,8 +38,8 @@ if not L then return end
 	L["WOW_SKILL_RIDING"] = "骑乘"
 	L["WOW_SKILL_SKINNING"] = "剥皮"
 	L["WOW_SKILL_TAILORING"] = "裁缝"
-	
-	
+
+
 --	wow class names - must match exactly what is in game and must exist
 	L["WOW_CLASS_DRUID"] = "德鲁伊"
 	L["WOW_CLASS_HUNTER"] = "猎人"
@@ -51,8 +51,8 @@ if not L then return end
 	L["WOW_CLASS_WARLOCK"] = "术士"
 	L["WOW_CLASS_WARRIOR"] = "战士"
 	L["WOW_CLASS_DEATHKNIGHT"] = "死亡骑士"
-	
-	
+
+
 --	wow item types - must match exactly what is in game
 	L["WOW_ITEM_TYPE_ARMOR"] = "护甲"
 	L["WOW_ITEM_TYPE_CONSUMABLE"] = "消耗品"
@@ -100,8 +100,8 @@ if not L then return end
 	L["WOW_ITEM_TYPE_TRADE_GOODS_METAL_AND_STONE"] = "金属和矿石"
 	L["WOW_ITEM_TYPE_TRADE_GOODS_MATERIALS"] = "原料"
 	L["WOW_ITEM_TYPE_TRADE_GOODS_PARTS"] = "零件"
-	
-	
+
+
 --	wow tooltip text - must match exactly what is in game
 	L["WOW_ITEM_TOOLTIP_FOOD"] = "进食时必须保持坐姿"
 	L["WOW_ITEM_TOOLTIP_DRINK"] = "喝水时必须保持坐姿"
@@ -109,8 +109,8 @@ if not L then return end
 	L["WOW_ITEM_TOOLTIP_POTION_MANA"] = "恢复%d+到%d+点法力值"
 	L["WOW_ITEM_TOOLTIP_ELIXIR_BATTLE"] = "战斗药剂"
 	L["WOW_ITEM_TOOLTIP_ELIXIR_GUARDIAN"] = "守护药剂"
-	
-	
+
+
 --	location names
 	L["LOCATION_ALL"] = "全部"
 	L["LOCATION_BAG"] = "背包"
@@ -119,36 +119,36 @@ if not L then return end
 	L["LOCATION_PET"] = "宠物"
 	L["LOCATION_MOUNT"] = "宠物"
 	L["LOCATION_TOKEN"] = "牌子"
-	
-	
+
+
 --	subframe names
 	L["SUBFRAME_NAME_TITLE"] = "隐藏标题"
 	L["SUBFRAME_NAME_SEARCH"] = "隐藏搜索"
 	L["SUBFRAME_NAME_BAGCHANGER"] = "隐藏背包置换框架"
 	L["SUBFRAME_NAME_STATUS"] = "隐藏状态"
-	
-	
+
+
 --	status bar/bag text
 	L["STATUS_OFFLINE"] = "脱机"
 	L["STATUS_NO_DATA"] = "无资料"
 	L["STATUS_FULL"] = "满"
 	L["STATUS_PURCHASE"] = "买"
-	
-	
+
+
 --	restack
 	L["RESTACK"] = "压缩并重新堆栈"
 	L["RESTACK_TEXT"] = "重新堆栈物品以减少物品占用的字段，特殊背包的字段将会优先被使用"
 	L["RESTACK_FAIL_WAIT"] = "堆叠行动已经在进行, 请等待完成"
 	L["RESTACK_FAIL_ACCESS"] = "你没有权限堆叠 %1$s 里的 %2$s 标签 %1$s"
-	
-	
+
+
 --	vault tab tooltips
 	L["VAULT_TAB_ACCESS_NONE"] = "没有权限"
 	L["VAULT_TAB_NAME"] = "标签: |cffffffff%1$s - %2$s|r"
 	L["VAULT_TAB_ACCESS"] = "有权限: |cffffffff%1$s|r"
 	L["VAULT_TAB_REMAINING_WITHDRAWALS"] = "当天剩余提取次数: |cffffffff%1$s|r"
-	
-	
+
+
 --	category "header" descriptions  (does not have to match wow)
 	L["CATEGORY_CLASS"] = "职业"
 	L["CATEGORY_CONSUMABLE"] = "消耗品"
@@ -159,8 +159,8 @@ if not L then return end
 	L["CATEGORY_SKILL"] = "专业"
 	L["CATEGORY_SYSTEM"] = "系统"
 	L["CATEGORY_TRADE_GOODS"] = "商品"
-	
-	
+
+
 --	system category descriptions
 	L["CATEGORY_SYSTEM_CORE_MATS"] = "原始材料"
 	L["CATEGORY_SYSTEM_DEFAULT"] = "预设"
@@ -171,8 +171,8 @@ if not L then return end
 	L["CATEGORY_SYSTEM_SOULSHARD"] = "灵魂碎片"
 	L["CATEGORY_SYSTEM_TRASH"] = "垃圾"
 	L["CATEGORY_SYSTEM_TOKEN"] = "牌子"
-	
-	
+
+
 --	consumable category descriptions
 	L["CATEGORY_CONSUMABLE_DRINK"] = "饮料"
 	L["CATEGORY_CONSUMABLE_FOOD"] = "食物"
@@ -181,8 +181,8 @@ if not L then return end
 	L["CATEGORY_CONSUMABLE_POTION_MANA"] = "法力 (药水/宝石)"
 	L["CATEGORY_CONSUMABLE_ELIXIR_BATTLE"] = "战斗药剂"
 	L["CATEGORY_CONSUMABLE_ELIXIR_GUARDIAN"] = "守护药剂"
-	
-	
+
+
 --	bag names - used to name the empty slots in the status frame
 	L["STATUS_NAME_BAG"] = "背包"
 	L["STATUS_NAME_CRITTER"] = "宠物"
@@ -202,22 +202,22 @@ if not L then return end
 	L["STATUS_NAME_PROJECTILE_BULLET"] = "子弹"
 	L["STATUS_NAME_SOULSHARD"] = "碎片"
 	L["STATUS_NAME_TOKEN"] = "牌子"
-	
-	
+
+
 --	main menu
 	L["MENU"] = "选单"
-	
+
 	L["MENU_CHARACTER_SWITCH"] = "切换角色"
 	L["MENU_CHARACTER_SWITCH_TEXT"] = "切换显示其他角色"
 	L["MENU_CHARACTER_SWITCH_CHOOSE_NONE"] = "没有其他角色数据"
 	L["MENU_CHARACTER_SWITCH_CHOOSE_TEXT"] = "切换显示数据为 %1$s"
 	L["MENU_CHARACTER_SWITCH_ERASE"] = "清除快照资料"
 	L["MENU_CHARACTER_SWITCH_ERASE_TEXT"] = "清除所有 %1$s 的快照数据"
-	
+
 	L["MENU_LOCATION_SWITCH"] = "功能切换菜单"
 	L["MENU_LOCATION_SWITCH_TEXT"] = "切换到 %1$s 窗口"
-	
-	
+
+
 --	actions menu
 	L["MENU_ACTION"] = "动作设置"
 	L["MENU_ACTION_REFRESH"] = "更新"
@@ -227,8 +227,8 @@ if not L then return end
 	L["MENU_ACTION_EDITMODE_TEXT"] = "切换编辑模式，让你指定分组及调整样式"
 	L["MENU_ACTION_BAGCHANGER"] = "开启背包置换"
 	L["MENU_ACTION_BAGCHANGER_TEXT"] = "切换显示背包置换区，以供你替换背包"
-	
-	
+
+
 --	item menu
 	L["MENU_ITEM_TITLE"] = "物品信息"
 	L["MENU_ITEM_ITEM"] = "物品"
@@ -263,12 +263,12 @@ if not L then return end
 	L["MENU_ITEM_DEBUG_PT_TEXT"] = "列出此物品所设置的 PT 类别"
 	L["MENU_ITEM_DEBUG_PT_NONE"] = "此物品当前没有设置任何 PT 类别"
 	L["MENU_ITEM_DEBUG_PT_TITLE"] = "设置此物品的 PT 类别"
-	
-	
---	bar menu
+
+
 	L["MENU_BAR_TITLE"] = "分组 %1$s 选项"
 	L["MENU_BAR_CATEGORY"] = "类别"
 	L["MENU_BAR_CATEGORY_TEXT"] = "指定 %1$s 到此分组"
+	-- L["MENU_BAR_BACKGROUND_DEFAULT_RESET_TEXT"] = ""
 	L["MENU_BAR_CATEGORY_CURRENT"] = "目前使用"
 	L["MENU_BAR_CATEGORY_ASSIGN"] = "可使用类别"
 	L["MENU_BAR_CATEGORY_REMOVE_TEXT"] = "自分组 %2$s 中移除 %1$s，并将它放回预设分组" -- 1 is the category name, 2 is the bar number
@@ -282,8 +282,8 @@ if not L then return end
 --	L["MENU_BAR_MOVE_COMPLETE_TEXT"] = ""
 --	L["MENU_BAR_SORTKEY_TEXT"] = ""
 --	L["MENU_BAR_SORTKEY_DEFAULT_RESET_TEXT"] = ""
-	
-	
+
+
 --	changer bag menu
 	L["MENU_BAG_TITLE"] = "背包设置"
 	L["MENU_BAG_SHOW"] = "显示"
@@ -292,18 +292,18 @@ if not L then return end
 	L["MENU_BAG_ISOLATE_TEXT"] = "只显示此背包容纳物"
 	L["MENU_BAG_SHOWALL"] = "显示所有"
 	L["MENU_BAG_SHOWALL_TEXT"] = "显示此位置所有背包容纳物"
-	
-	
+
+
 --	configuration options
 	L["CONFIG"] = "设置"
 	L["CONFIG_TEXT"] = "设置菜单"
-	
+
 --	configuration options > system
 	L["CONFIG_SYSTEM"] = "系统"
 	L["CONFIG_SYSTEM_TEXT"] = "系统选项"
-	
+
 	L["CONFIG_SYSTEM_FONT_TEXT"] = "设置 %s 的字体"
-	
+
 	L["CONFIG_SYSTEM_TOOLTIP"] = "提示"
 	L["CONFIG_SYSTEM_TOOLTIP_ENABLE_TEXT"] = "是否使用提示"
 	L["CONFIG_SYSTEM_TOOLTIP_EMPTY_ADD"] = "空行"
@@ -325,7 +325,7 @@ if not L then return end
 --	L["CONFIG_SYSTEM_TOOLTIP_FACTION_ONLY"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_FACTION_ONLY_TEXT"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_VAULT_TEXT"] = ""
-	
+
 	L["CONFIG_SYSTEM_BUGFIX"] = "错误修正/绕开"
 	L["CONFIG_SYSTEM_BUGFIX_TEXT"] = "切换代码修正或者绕开这个问题"
 	L["CONFIG_SYSTEM_BUGFIX_FRAMELEVEL"] = "框架级别"
@@ -340,11 +340,11 @@ if not L then return end
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG_TEXT"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG_ALERT_TEXT"] = ""
-	
-	
+
+
 --	configuration options > auto
 	L["CONFIG_AUTO"] = "自动开关"
-	
+
 	L["CONFIG_AUTO_OPEN"] = " %1$s %2$s 将被开启, 当你..."
 	L["CONFIG_AUTO_OPEN_BANK"] = "开启银行"
 	L["CONFIG_AUTO_OPEN_VAULT"] = "开启公会银行"
@@ -352,7 +352,7 @@ if not L then return end
 	L["CONFIG_AUTO_OPEN_MERCHANT"] = "开启一个商人/商店"
 	L["CONFIG_AUTO_OPEN_TRADE"] = "开启一个交易"
 	L["CONFIG_AUTO_OPEN_AUCTION"] = "开启拍卖行"
-	
+
 	L["CONFIG_AUTO_CLOSE"] = "%1$s %2$s 将被关闭, 当你..."
 	L["CONFIG_AUTO_CLOSE_BANK"] = "关闭银行"
 	L["CONFIG_AUTO_CLOSE_VAULT"] = "关闭公会银行"
@@ -361,11 +361,11 @@ if not L then return end
 	L["CONFIG_AUTO_CLOSE_TRADE"] = "关闭交易"
 	L["CONFIG_AUTO_CLOSE_AUCTION"] = "关闭拍卖行"
 	L["CONFIG_AUTO_CLOSE_COMBAT"] = "进入战斗"
-	
-	
+
+
 --	configuration options > control
 	L["CONFIG_CONTROL"] = "控制"
-	
+
 	L["CONFIG_CONTROL_MONITOR"] = "监控"
 	L["CONFIG_CONTROL_MONITOR_TEXT"] = "为此角色(%2$s)对 %1$s 数据建立监控."
 	L["CONFIG_CONTROL_SAVE"] = "离线"
@@ -376,15 +376,15 @@ if not L then return end
 	L["CONFIG_CONTROL_OVERRIDE_TEXT"] = "设定是否取代系统内建背包及银行\n\n停用此项功能的话，你只能在按键设定中设定，才能开启 %1$s"
 	L["CONFIG_CONTROL_ANCHOR_LOCK_TEXT"] = "锁定 %1$s 窗口到当前移动的位置"
 	L["CONFIG_CONTROL_SETTINGS_TEXT"] = "在此窗口应用 %1$s 的设置"
-	
-	
+
+
 --	configuration options > settings
 	L["CONFIG_SETTINGS"] = "设置"
-	
+
 	L["CONFIG_SETTINGS_FRAME"] = "窗口"
-	
+
 --	L["CONFIG_SETTINGS_FRAME_HIDE_TEXT"] = ""
-	
+
 	L["CONFIG_SETTINGS_FRAME_SCALE_TEXT"] = "设定缩放窗口的大小比例"
 	L["CONFIG_SETTINGS_FRAME_PADDING_TEXT"] = "设定窗口边缘至分组的间隔距离"
 	L["CONFIG_SETTINGS_FRAME_WIDTH_TEXT"] = "设定一行所能包含的物品格子数目"
@@ -392,20 +392,20 @@ if not L then return end
 	L["CONFIG_SETTINGS_FRAME_BORDER_SHOW_TEXT"] = "设定主窗口边框是否显示"
 	L["CONFIG_SETTINGS_FRAME_BORDER_STYLE_TEXT"] = "设定主窗口边框的风格"
 	L["CONFIG_SETTINGS_FRAME_BORDER_COLOUR_TEXT"] = "设定主要窗口的边框颜色"
-	
+
 	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT"] = "背包标示颜色"
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT_TEXT"] = ""
 	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT_COLOUR_TEXT"] = "设定标示鼠标目前指向的背包的对应格子颜色"
 	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE"] = "显示数量"
 	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE_TEXT"] = "是否显示空格数量"
 	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE_COLOUR_TEXT"] = "设置空格数量文本颜色"
-	
+
 --	L["CONFIG_SETTINGS_FRAME_STATUS_EMPTY"] = ""
 --	L["CONFIG_SETTINGS_FRAME_STATUS_EMPTY_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME_TITLE_SIZE_NORMAL"] = ""
 --	L["CONFIG_SETTINGS_FRAME_TITLE_SIZE_THIN"] = ""
-	
+
 	L["CONFIG_SETTINGS_BARS"] = "分组"
 	L["CONFIG_SETTINGS_BARS_PER_ROW"] = "横向分组数目"
 	L["CONFIG_SETTINGS_BARS_PER_ROW_TEXT"] = "设定横向所能包含的分组数目"
@@ -423,7 +423,7 @@ if not L then return end
 	L["CONFIG_SETTINGS_BARS_NAME_SHOW_TEXT"] = "是否显示分组名称"
 	L["CONFIG_SETTINGS_BARS_NAME_COLOUR_TEXT"] = "分组外框颜色设置"
 --	L["CONFIG_SETTINGS_BARS_NAME_HEIGHT_TEXT"] = ""
-	
+
 	L["CONFIG_SETTINGS_ITEMS"] = "物品"
 	L["CONFIG_SETTINGS_ITEMS_PADDING_TEXT"] = "设定物品格子的间隔距离"
 	L["CONFIG_SETTINGS_ITEMS_HIDDEN"] = "显示隐藏物品"
@@ -450,12 +450,12 @@ if not L then return end
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_GLOBAL_TEXT"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_COMBAT"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_COMBAT_TEXT"] = ""
-	
+
 	L["CONFIG_SETTINGS_SORTING_OPEN"] = "当窗口打开时"
 	L["CONFIG_SETTINGS_SORTING_OPEN_TEXT"] = "当窗口打开时是否采用"
 	L["CONFIG_SETTINGS_SORTING_INSTANT"] = "实时"
 	L["CONFIG_SETTINGS_SORTING_INSTANT_TEXT"] = "设定是否立即排序\n\n启用: 有改变则立即排序\n\n停用: 只有在窗口开启或手动更新时才排序\n\n注意: 如果背包置换区是开启的, 则会永远使用立即模式"
-	
+
 	L["CONFIG_SETTINGS_EMPTY"] = "空格"
 	L["CONFIG_SETTINGS_EMPTY_ICON"] = "使用图示"
 	L["CONFIG_SETTINGS_EMPTY_ICON_TEXT"] = "切换是否使用图示来表示空格子"
@@ -466,19 +466,19 @@ if not L then return end
 	L["CONFIG_SETTINGS_EMPTY_COLOUR"] = "空格着色"
 	L["CONFIG_SETTINGS_EMPTY_COLOUR_TEXT"] = "设定空 %1$s 格子的边框和背景颜色"
 --	L["CONFIG_SETTINGS_EMPTY_STATUS"] = "display format"
-	
-	
+
+
 -- sorting
 --	L["CONFIG_SORTMETHOD"] = ""
-	
+
 	L["CONFIG_SORTMETHOD_SORT"] = "排序"
-	
+
 --	L["CONFIG_SORTMETHOD_STYLE_TEXT"] = ""
 	L["CONFIG_SORTMETHOD_STYLE_BAGSLOT"] = "依背包/格子"
 	L["CONFIG_SORTMETHOD_STYLE_BAGSLOT_TEXT"] = "依背包/格子编号排序物品"
 	L["CONFIG_SORTMETHOD_STYLE_USER"] = "自定义"
 	L["CONFIG_SORTMETHOD_STYLE_USER_TEXT"] = "排列物品时是否包含自定义排列"
-	
+
 	L["CONFIG_SORTMETHOD_INCLUDE_NAME"] = "物品名称"
 	L["CONFIG_SORTMETHOD_INCLUDE_NAME_TEXT"] = "排列物品时是否包含物品名称"
 	L["CONFIG_SORTMETHOD_INCLUDE_NAME_REVERSE"] = "包括反转(!?)的名称"
@@ -499,53 +499,53 @@ if not L then return end
 	L["CONFIG_SORTMETHOD_INCLUDE_ITEMAGE_TEXT"] = "排列物品时是否包含物品时间."
 	L["CONFIG_SORTMETHOD_INCLUDE_VENDORPRICE"] = "商店价格"
 	L["CONFIG_SORTMETHOD_INCLUDE_VENDORPRICE_TEXT"] = "排列物品时是否参考商店价格（当前堆叠数量价格）."
-	
+
 	L["CONFIG_SORTMETHOD_DIRECTION_TEXT"] = "设置物品升序、降序排列"
 	L["CONFIG_SORTMETHOD_ORDER"] = "分类排序"
 	L["CONFIG_SORTMETHOD_MOVE_UP_TEXT"] = "将 %1$s 在分类排序中上移"
 	L["CONFIG_SORTMETHOD_MOVE_DOWN_TEXT"] = "将 %1$s 在分类排序中下移"
 	L["CONFIG_SORTMETHOD_NOT_INCLUDED"] = "* 没有包含到当前排序 *"
-	
+
 --	L["CONFIG_SORTMETHOD_ADD"] = ""
 --	L["CONFIG_SORTMETHOD_ADD_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_RENAME_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_DELETE_TEXT"] = ""
-	
-	
+
+
 -- search
 	L["CONFIG_SEARCH"] = "搜索"
-	
-	
+
+
 --	rules
 	L["CONFIG_RULES"] = "规则"
 	L["CONFIG_RULES_SHOWDISABLED"] = "显示禁用的规则"
 	L["CONFIG_RULES_SHOWDISABLED_TEXT"] = "禁用规则显示开关"
-	
-	
+
+
 --	configuration options > categories
 	L["CONFIG_CATEGORY"] = "分类"
-	
+
 	L["CONFIG_CATEGORY_CUSTOM"] = "自定义分类"
 --	L["CONFIG_CATEGORY_DELETED"] = ""
-	
+
 --	L["CONFIG_CATEGORY_ADD"] = ""
 --	L["CONFIG_CATEGORY_ADD_TEXT"] = ""
 --	L["CONFIG_CATEGORY_RENAME_TEXT"] = ""
 --	L["CONFIG_CATEGORY_DELETE_TEXT"] = ""
-	
-	
+
+
 --	configuration options > debug
 	L["CONFIG_DEBUG"] = "Debug 模式"
 	L["CONFIG_DEBUG_TEXT"] = "Debug 模式开关"
-	
-	
+
+
 --	configuration options > generic
 --	L["BORDER_SCALE_TEXT"] = ""
 	L["BORDER_TEXTURE_TEXT"] = "物品材质选项"
 	L["BORDER_TEXTURE_FILE_TEXT"] = "用于边框的材质 (改变此设置重置缩放比例为 100%)"
 	L["BORDER_TEXTURE_HEIGHT_TEXT"] = "材质高度 (像素) "
-	
-	
+
+
 --	rules frame
 	L["RULE"] = "规则"
 	L["RULE_ENABLED"] = "启用"
@@ -559,7 +559,7 @@ if not L then return end
 	L["RULE_LIST_ID"] = "规则"
 	L["RULE_LIST_ORDER"] = "排序"
 	L["RULE_LIST_DESCRIPTION"] = "描述"
-	
+
 	L["RULE_DAMAGED"] = "当期规则设置 %s 为损坏的，除非修理不能使用"
 --	L["RULE_FAILED"] = ""
 	L["RULE_FAILED_KEY_NIL"] = "旧的关键字为空"
@@ -571,13 +571,13 @@ if not L then return end
 --	L["RULE_FAILED_ARGUMENT_IS_INVALID"] = ""
 --	L["RULE_FAILED_ARGUMENT_NONE_SPECIFIED"] = ""
 --	L["RULE_FAILED_ADDON_NOT_LOADED"] = ""
-	
-	
+
+
 --	new item indicators
 	L["NEW_ITEM_INCREASE"] = "增"
 	L["NEW_ITEM_DECREASE"] = "减"
-	
-	
+
+
 --	slash commands
 	L["SLASH_UI"] = "UI"
 	L["SLASH_UI_TEXT"] = "UI 设置"
@@ -600,26 +600,26 @@ if not L then return end
 	L["SLASH_CACHE_ERASE_COMPLETE_TEXT"] = "所有缓存数据清除！"
 	L["SLASH_MISC"] = "杂类"
 	L["SLASH_MISC_TEXT"] = "杂类选项"
-	
-	
+
+
 --	misc chat stuff
 	L["UPGRADE_PROFILE"] = "更新配置文件 %1$s 到 %2$.4f"
 	L["UPGRADE_GLOBAL"] = "更新全局配置文件 %1$s 到 v%2$.4f"
 --	L["UPGRADE_CHAR"] = ""
-	
+
 	L["MISC_ALERT"] = "警告!"
 	L["MISC_ALERT_FRAMELEVEL_1"] = "Bug 修正完毕."
 	L["MISC_ALERT_FRAMELEVEL_2"] = "当前 %1$s 窗口界面级别在 %2$s 并且被重置到 %3$s 以确保回收模式.  由于此 bug 修正带来的 lag 现象向您道歉."
-	
-	
+
+
 --	item count tooltip
 	L["TOOLTIP_VENDOR"] = "商人"
 	L["TOOLTIP_ITEMLEVEL"] = "物品等级: %s"
 	L["TOOLTIP_TOTAL"] = "总数"
 	L["TOOLTIP_COUNT_ME"] = ">"
 --	L["TOOLTIP_VAULT_TABS"] = ""
-	
-	
+
+
 --	generic text
 --	L["AUTOMATIC"] = ""
 	L["BOTTOMLEFT"] = "左下角"
@@ -697,8 +697,8 @@ if not L then return end
 --	L["STRING"] = ""
 --	L["COOLDOWN"] = ""
 --	L["FRAMES"] = ""
-	
-	
+
+
 --	libdatabroker
 --	L["LDB"] = ""
 	L["LDB_BAGS_COLOUR_USE"] = "使用颜色"
@@ -727,4 +727,3 @@ if not L then return end
 --	L["LDB_MOUNTS_SUMMON"] = ""
 --	L["LDB_COMPANION_MISSING"] = ""
 --	L["LDB_COMPANION_NONE"] = ""
-	

@@ -213,6 +213,22 @@ function ArkInventory.MenuBarOpen( frame )
 						end
 					)
 
+					local bg_id = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "backgroundid" } )
+					if bg_id then
+						local bg = ArkInventory.BackgroundColourGet( bg_id )
+						local bg_name = bg and bg.name or string.format( "[%04i]", bg_id )
+						ArkInventory.Lib.DewDrop:AddLine(
+							"text", string.format( "%s: %s%s%s", "Background Color", LIGHTYELLOW_FONT_COLOR_CODE, bg_name, FONT_COLOR_CODE_CLOSE ),
+							"tooltipTitle", "Background Color",
+							"tooltipText", string.format( ArkInventory.Localise["MENU_BAR_BACKGROUND_DEFAULT_RESET_TEXT"], bar_id ),
+							"closeWhenClicked", true,
+							"func", function( )
+								ArkInventory.LocationOptionSet( loc_id, { "bar", "data", bar_id, "backgroundid" }, nil )
+								ArkInventory.Frame_Bar_Paint_All( )
+							end
+						)
+					end
+
 					ArkInventory.Lib.DewDrop:AddLine( )
 
 					ArkInventory.Lib.DewDrop:AddLine(
@@ -295,6 +311,12 @@ function ArkInventory.MenuBarOpen( frame )
 					ArkInventory.Lib.DewDrop:AddLine(
 						"text", ArkInventory.Localise["MENU_BAR_OPTIONS"] .. ": ",
 						"isTitle", true
+					)
+
+					ArkInventory.Lib.DewDrop:AddLine(
+						"text", "Background Color",
+						"hasArrow", true,
+						"value", "BACKGROUND_LIST"
 					)
 
 					ArkInventory.Lib.DewDrop:AddLine(
@@ -401,6 +423,48 @@ function ArkInventory.MenuBarOpen( frame )
 							)
 							end
 
+						end
+
+					end
+
+
+					if value == "BACKGROUND_LIST" then
+
+						local current_bg_id = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "backgroundid" } )
+
+						ArkInventory.Lib.DewDrop:AddLine(
+							"text", "Background Color",
+							"isTitle", true,
+							"textHeight", 12
+						)
+
+						ArkInventory.Lib.DewDrop:AddLine( )
+
+						local has_entries = false
+						for id, data in pairs( ArkInventory.db.global.option.background.data ) do
+							if data.used then
+								has_entries = true
+								local n = data.name
+								if not n or n == "" then
+									n = string.format( "[%04i]", id )
+								end
+								ArkInventory.Lib.DewDrop:AddLine(
+									"text", n,
+									"isRadio", id == current_bg_id,
+									"closeWhenClicked", true,
+									"func", function( )
+										ArkInventory.LocationOptionSet( loc_id, { "bar", "data", bar_id, "backgroundid" }, id )
+										ArkInventory.Frame_Bar_Paint_All( )
+									end
+								)
+							end
+						end
+
+						if not has_entries then
+							ArkInventory.Lib.DewDrop:AddLine(
+								"text", ArkInventory.Localise["NONE"],
+								"disabled", true
+							)
 						end
 
 					end

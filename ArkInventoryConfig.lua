@@ -1,5 +1,5 @@
 --[[
-	
+
 	info.options = the options table
 	info[0] = slash command
 	info[1] = first group name
@@ -10,33 +10,33 @@
 	info.option = current option
 	info.uiType
 	info.uiName
-	
+
 	Currently inherited are: set, get, func, confirm, validate, disabled, hidden
-	
+
 ]]--
 
 --to do - shrink table - Use info[#info] to get the leaf node name, info[#info-1] for the parent
 
 local function ConfigGetNode( info, level )
-	
+
 	local level = level or #info - 1
 	if level < 1 then level = 1 end
 	if level > #info then level = #info end
-	
+
 	local node = info.options
-	
+
 	for k = 1, level do
 		node = node.args[info[k]]
 	end
-	
+
 	return node
-	
+
 end
 
 local function ConfigGetNodeArg( info, level )
-	
+
 	local n = ConfigGetNode( info, level )
-	
+
 	if not n or n.arg == nil then
 		local p = ""
 		for k = 1, #info do
@@ -45,9 +45,9 @@ local function ConfigGetNodeArg( info, level )
 		ArkInventory.OutputWarning( "invalid data (level ", level - #info, ") requested from:  ", p )
 		return nil
 	end
-	
+
 	return n.arg
-	
+
 end
 
 local anchorpoints = {
@@ -58,9 +58,9 @@ local anchorpoints = {
 }
 
 function ArkInventory.ConfigBlizzard( )
-	
+
 	local path = ArkInventory.Config.Blizzard
-	
+
 	path.args = {
 		version = {
 			order = 100,
@@ -113,9 +113,9 @@ function ArkInventory.ConfigBlizzard( )
 				ArkInventory.OutputDebugModeSet( not ArkInventory.Const.Debug )
 			end,
 		},
-		
+
 		-- slash commands
-		
+
 		restack = {
 			guiHidden = true,
 			order = 9000,
@@ -126,7 +126,7 @@ function ArkInventory.ConfigBlizzard( )
 				ArkInventory.Restack( )
 			end,
 		},
-		
+
 		cache = {
 			guiHidden = true,
 			order = 9000,
@@ -151,7 +151,7 @@ function ArkInventory.ConfigBlizzard( )
 				},
 			},
 		},
-		
+
 --[[
 		db = {
 			guiHidden = true,
@@ -178,30 +178,30 @@ function ArkInventory.ConfigBlizzard( )
 			},
 		},
 ]]--
-		
+
 	}
-	
+
 end
 
 function ArkInventory.ConfigInternal( )
-	
+
 	local cp = ArkInventory.Global.Me
 	local player_id = cp.info.player_id
 	local path = ArkInventory.Config.Internal
-	
+
 	path.args = {
-		
+
 		version = {
 			cmdHidden = true,
 			order = 100,
 			name = ArkInventory.Global.Version,
 			type = "description",
 		},
-		
+
 		notes = {
 			cmdHidden = true,
 			order = 200,
-			name = function( ) 
+			name = function( )
 				local t = GetAddOnMetadata( ArkInventory.Const.Program.Name, "Notes-" .. GetLocale( ) ) or ""
 				if t == "" then
 					t = GetAddOnMetadata( ArkInventory.Const.Program.Name, "Notes" ) or ""
@@ -210,7 +210,7 @@ function ArkInventory.ConfigInternal( )
 			end,
 			type = "description",
 		},
-		
+
 		system = {
 			cmdHidden = true,
 			order = 300,
@@ -653,7 +653,7 @@ function ArkInventory.ConfigInternal( )
 				},
 			},
 		},
-		
+
 		auto = {
 			cmdHidden = true,
 			order = 400,
@@ -669,7 +669,7 @@ function ArkInventory.ConfigInternal( )
 						bank = {
 							order = 100,
 							name = ArkInventory.Localise["CONFIG_AUTO_OPEN_BANK"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_BANK"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_BANK"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.open.bank
@@ -681,7 +681,7 @@ function ArkInventory.ConfigInternal( )
 						vault = {
 							order = 200,
 							name = ArkInventory.Localise["CONFIG_AUTO_OPEN_VAULT"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_VAULT"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_VAULT"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.open.vault
@@ -693,7 +693,7 @@ function ArkInventory.ConfigInternal( )
 						mail = {
 							order = 300,
 							name = ArkInventory.Localise["CONFIG_AUTO_OPEN_MAIL"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_MAIL"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_MAIL"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.open.mail
@@ -706,7 +706,7 @@ function ArkInventory.ConfigInternal( )
 						merchant = {
 							order = 400,
 							name = ArkInventory.Localise["CONFIG_AUTO_OPEN_MERCHANT"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_MERCHANT"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_MERCHANT"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.open.merchant
@@ -719,7 +719,7 @@ function ArkInventory.ConfigInternal( )
 						trade = {
 							order = 500,
 							name = ArkInventory.Localise["CONFIG_AUTO_OPEN_TRADE"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_TRADE"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_TRADE"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.open.trade
@@ -731,7 +731,7 @@ function ArkInventory.ConfigInternal( )
 						auction = {
 							order = 600,
 							name = ArkInventory.Localise["CONFIG_AUTO_OPEN_AUCTION"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_AUCTION"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_OPEN_AUCTION"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.open.auction
@@ -751,7 +751,7 @@ function ArkInventory.ConfigInternal( )
 						bank = {
 							order = 100,
 							name = ArkInventory.Localise["CONFIG_AUTO_CLOSE_BANK"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_BANK"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_BANK"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.close.bank
@@ -763,7 +763,7 @@ function ArkInventory.ConfigInternal( )
 						vault = {
 							order = 200,
 							name = ArkInventory.Localise["CONFIG_AUTO_CLOSE_VAULT"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_VAULT"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_VAULT"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.close.vault
@@ -775,7 +775,7 @@ function ArkInventory.ConfigInternal( )
 						mail = {
 							order = 300,
 							name = ArkInventory.Localise["CONFIG_AUTO_CLOSE_MAIL"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_MAIL"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_MAIL"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.close.mail
@@ -787,7 +787,7 @@ function ArkInventory.ConfigInternal( )
 						merchant = {
 							order = 400,
 							name = ArkInventory.Localise["CONFIG_AUTO_CLOSE_MERCHANT"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_MERCHANT"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_MERCHANT"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.close.merchant
@@ -799,7 +799,7 @@ function ArkInventory.ConfigInternal( )
 						trade = {
 							order = 500,
 							name = ArkInventory.Localise["CONFIG_AUTO_CLOSE_TRADE"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_TRADE"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_TRADE"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.close.trade
@@ -811,7 +811,7 @@ function ArkInventory.ConfigInternal( )
 						auction = {
 							order = 600,
 							name = ArkInventory.Localise["CONFIG_AUTO_CLOSE_AUCTION"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_AUCTION"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_AUCTION"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.close.auction
@@ -823,7 +823,7 @@ function ArkInventory.ConfigInternal( )
 						combat = {
 							order = 700,
 							name = ArkInventory.Localise["CONFIG_AUTO_CLOSE_COMBAT"],
-							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_COMBAT"] ), 
+							desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE"], ArkInventory.Const.Program.Name, ArkInventory.Localise["LOCATION_BAG"], ArkInventory.Localise["CONFIG_AUTO_CLOSE_COMBAT"] ),
 							type = "toggle",
 							get = function( info )
 								return ArkInventory.db.global.option.auto.close.combat
@@ -836,7 +836,7 @@ function ArkInventory.ConfigInternal( )
 				},
 			},
 		},
-		
+
 		sorting = {
 			cmdHidden = true,
 			order = 500,
@@ -845,7 +845,7 @@ function ArkInventory.ConfigInternal( )
 			childGroups = "tab",
 			args = { },
 		},
-		
+
 		settings = {
 			cmdHidden = true,
 			order = 600,
@@ -854,16 +854,16 @@ function ArkInventory.ConfigInternal( )
 			childGroups = "tab",
 			args = { }, -- computed
 		},
-		
+
 		control = {
 			cmdHidden = true,
 			order = 700,
 			name = ArkInventory.Localise["CONFIG_CONTROL"],
 			type = "group",
 			childGroups = "tab",
-			args = { }, -- computed 
+			args = { }, -- computed
 		},
-		
+
 		categories = {
 			cmdHidden = true,
 			order = 800,
@@ -872,7 +872,14 @@ function ArkInventory.ConfigInternal( )
 			childGroups = "tab",
 			args = { },
 		},
-		
+		background = {
+			cmdHidden = true,
+			order = 850,
+			name = "Background Colors",
+			type = "group",
+			args = { },
+		},
+
 		search = {
 			cmdHidden = true,
 			order = 900,
@@ -973,16 +980,16 @@ function ArkInventory.ConfigInternal( )
 							end,
 							set = function( info, v )
 								if ArkInventory.db.profile.option.ui.search.border.style ~= v then
-									
+
 									ArkInventory.db.profile.option.ui.search.border.style = v
-									
+
 									local sd = ArkInventory.Const.Texture.Border[v] or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault]
 									ArkInventory.db.profile.option.ui.search.border.size = sd.size
 									ArkInventory.db.profile.option.ui.search.border.offset = sd.offset
 									ArkInventory.db.profile.option.ui.search.border.scale = sd.scale
-									
+
 									ArkInventory.Frame_Search_Paint( )
-									
+
 								end
 							end,
 						},
@@ -1071,7 +1078,7 @@ function ArkInventory.ConfigInternal( )
 				},
 			},
 		},
-		
+
 		rules = {
 			cmdHidden = true,
 			order = 1000,
@@ -1172,16 +1179,16 @@ function ArkInventory.ConfigInternal( )
 							end,
 							set = function( info, v )
 								if v ~= ArkInventory.db.profile.option.ui.rules.border.style then
-									
+
 									ArkInventory.db.profile.option.ui.rules.border.style = v
-									
+
 									local sd = ArkInventory.Const.Texture.Border[v] or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault]
 									ArkInventory.db.profile.option.ui.rules.border.size = sd.size
 									ArkInventory.db.profile.option.ui.rules.border.offset = sd.offset
 									ArkInventory.db.profile.option.ui.rules.border.scale = sd.scale
 
 									ArkInventory.Frame_Rules_Paint( )
-									
+
 								end
 							end,
 						},
@@ -1270,7 +1277,7 @@ function ArkInventory.ConfigInternal( )
 				},
 			},
 		},
-		
+
 		enabled = {
 			cmdHidden = true,
 			order = 1100,
@@ -1287,7 +1294,7 @@ function ArkInventory.ConfigInternal( )
 				end
 			end,
 		},
-		
+
 		debug = {
 			cmdHidden = true,
 			order = 1200,
@@ -1300,25 +1307,26 @@ function ArkInventory.ConfigInternal( )
 				ArkInventory.OutputDebugModeSet( not ArkInventory.Const.Debug )
 			end,
 		},
-		
+
 		profiles = LibStub( "AceDBOptions-3.0" ):GetOptionsTable( ArkInventory.db ),
-		
+
 	}
-	
+
 	path.args.profiles.order = 1100
-	
+
 	ArkInventory.ConfigInternalControlSettings( path.args.control.args )
-	
+
 	ArkInventory.ConfigInternalSettings( path.args.settings.args )
-	
+
 	ArkInventory.ConfigInternalSorting( )
-	
+
 	ArkInventory.ConfigInternalCategory( )
-	
+	ArkInventory.ConfigInternalBackground( )
+
 end
- 
+
 function ArkInventory.ConfigInternalControlSettings( path )
-	
+
 	local args1 = {
 		monitor = {
 			order = 100,
@@ -1469,7 +1477,7 @@ function ArkInventory.ConfigInternalControlSettings( path )
 			end,
 		},
 	}
-	
+
 	for loc_id, data in pairs( ArkInventory.Global.Location ) do
 		path[string.format( "%i", loc_id )] = {
 			cmdHidden = true,
@@ -1480,11 +1488,11 @@ function ArkInventory.ConfigInternalControlSettings( path )
 			args = args1,
 		}
 	end
-	
+
  end
- 
+
 function ArkInventory.ConfigInternalSettings( path )
-	
+
 	-- items > empty > colour
 	local args2 = { }
 	for k, v in pairs( ArkInventory.Const.Slot.Data ) do
@@ -1513,10 +1521,10 @@ function ArkInventory.ConfigInternalSettings( path )
 			}
 		end
 	end
-	
-	
+
+
 	local args1 = {
-		
+
 		window = {
 			order = 100,
 			name = ArkInventory.Localise["CONFIG_SETTINGS_FRAME"],
@@ -1710,7 +1718,7 @@ function ArkInventory.ConfigInternalSettings( path )
 							end,
 						},
 					},
-				},	
+				},
 				border = {
 					order = 600,
 					name = ArkInventory.Localise["BORDER"],
@@ -1731,16 +1739,16 @@ function ArkInventory.ConfigInternalSettings( path )
 							set = function( info, v )
 								local loc_id = ConfigGetNodeArg( info, #info - 3 )
 								if ArkInventory.LocationOptionGetReal( loc_id, { "window", "border", "style" } ) ~= v then
-									
+
 									ArkInventory.LocationOptionSetReal( loc_id, { "window", "border", "style" }, v )
-									
+
 									local sd = ArkInventory.Const.Texture.Border[v] or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault]
 									ArkInventory.LocationOptionSetReal( loc_id, { "window", "border", "size" }, sd.size )
 									ArkInventory.LocationOptionSetReal( loc_id, { "window", "border", "offset" }, sd.offset )
 									ArkInventory.LocationOptionSetReal( loc_id, { "window", "border", "scale" }, sd.scale )
 
 									ArkInventory.Frame_Main_Paint_All( )
-									
+
 								end
 							end,
 						},
@@ -1999,7 +2007,7 @@ function ArkInventory.ConfigInternalSettings( path )
 												ArkInventory.LocationOptionSetReal( loc_id, { "changer", "highlight", "colour", "g" }, g )
 												ArkInventory.LocationOptionSetReal( loc_id, { "changer", "highlight", "colour", "b" }, b )
 												ArkInventory.Frame_Main_Paint_All( )
-											end,	
+											end,
 										},
 							},
 						},
@@ -2168,7 +2176,7 @@ function ArkInventory.ConfigInternalSettings( path )
 				},
 			},
 		},
-		
+
 		bars = {
 			order = 200,
 			name = ArkInventory.Localise["CONFIG_SETTINGS_BARS"],
@@ -2354,7 +2362,7 @@ function ArkInventory.ConfigInternalSettings( path )
 							end,
 						},
 					},
-				},	
+				},
 				border = {
 					order = 700,
 					name = ArkInventory.Localise["BORDER"],
@@ -2375,16 +2383,16 @@ function ArkInventory.ConfigInternalSettings( path )
 							set = function( info, v )
 								local loc_id = ConfigGetNodeArg( info, #info - 3 )
 								if v ~= ArkInventory.LocationOptionGetReal( loc_id, { "bar", "border", "style" } ) then
-									
+
 									ArkInventory.LocationOptionSetReal( loc_id, { "bar", "border", "style" }, v )
-									
+
 									local sd = ArkInventory.Const.Texture.Border[v] or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault]
 									ArkInventory.LocationOptionSetReal( loc_id, { "bar", "border", "size" }, sd.size )
 									ArkInventory.LocationOptionSetReal( loc_id, { "bar", "border", "offset" }, sd.offset )
 									ArkInventory.LocationOptionSetReal( loc_id, { "bar", "border", "scale" }, sd.scale )
 
 									ArkInventory.Frame_Bar_Paint_All( )
-									
+
 								end
 							end,
 						},
@@ -2590,7 +2598,7 @@ function ArkInventory.ConfigInternalSettings( path )
 				},
 			},
 		},
-		
+
 		items = {
 			order = 300,
 			name = ArkInventory.Localise["CONFIG_SETTINGS_ITEMS"],
@@ -2684,7 +2692,7 @@ function ArkInventory.ConfigInternalSettings( path )
 						ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
 					end,
 				},
-				
+
 				cooldown = {
 					order = 550,
 					name = ArkInventory.Localise["COOLDOWN"],
@@ -2775,16 +2783,16 @@ function ArkInventory.ConfigInternalSettings( path )
 							set = function( info, v )
 								local loc_id = ConfigGetNodeArg( info, #info - 3 )
 								if v ~= ArkInventory.LocationOptionGetReal( loc_id, { "slot", "border", "style" } ) then
-									
+
 									ArkInventory.LocationOptionSetReal( loc_id, { "slot", "border", "style" }, v )
-									
+
 									local sd = ArkInventory.Const.Texture.Border[v] or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault]
 									ArkInventory.LocationOptionSetReal( loc_id, { "slot", "border", "size" }, sd.size )
 									ArkInventory.LocationOptionSetReal( loc_id, { "slot", "border", "offset" }, sd.offset )
 									ArkInventory.LocationOptionSetReal( loc_id, { "slot", "border", "scale" }, sd.scale )
-									
+
 									ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
-									
+
 								end
 							end,
 						},
@@ -3066,13 +3074,13 @@ function ArkInventory.ConfigInternalSettings( path )
 				},
 			},
 		},
-		
+
 	}
-	
-	
-	
+
+
+
 	for id, data in pairs( ArkInventory.Global.Location ) do
-		
+
 		if data.canView then
 
 			path[string.format( "%i", id )] = {
@@ -3083,17 +3091,17 @@ function ArkInventory.ConfigInternalSettings( path )
 				name = data.Name,
 				args = args1,
 			}
-			
+
 		end
-		
+
 	end
-	
+
  end
- 
+
 function ArkInventory.ConfigInternalCategory( )
-	
+
 	local path = ArkInventory.Config.Internal.args.categories.args
-	
+
 	path.custom = {
 		type = "group",
 		name = ArkInventory.Localise["CONFIG_CATEGORY_CUSTOM"],
@@ -3139,15 +3147,108 @@ function ArkInventory.ConfigInternalCategory( )
 			},
 		},
 	}
-	
+
 	ArkInventory.ConfigInternalCategoryCustom( path.custom.args )
-	
+
+end
+
+function ArkInventory.ConfigInternalBackground( )
+
+	local root = ArkInventory.Config.Internal.args.background
+	local path = root.args
+
+	-- clear any old manage group if it exists
+	path.manage = nil
+
+	path.add = {
+		order = 100,
+		name = "Add Color",
+		desc = "Add a new Background Color preset.",
+		type = "input",
+		get = function( )
+			return ""
+		end,
+		set = function( info, v )
+			ArkInventory.BackgroundColourCustomAdd( v )
+			ArkInventory.ConfigInternalBackground( )
+		end,
+	}
+
+	local args_entry = {
+		name = {
+			order = 100,
+			name = ArkInventory.Localise["RENAME"],
+			type = "input",
+			get = function( info )
+				local id = ConfigGetNodeArg( info, #info - 1 )
+				local bg = ArkInventory.db.global.option.background.data[id]
+				return ( bg and bg.name ) or ""
+			end,
+			set = function( info, v )
+				local id = ConfigGetNodeArg( info, #info - 1 )
+				ArkInventory.BackgroundColourCustomRename( id, v )
+				ArkInventory.ConfigInternalBackground( )
+			end,
+		},
+		colour = {
+			order = 200,
+			name = "Color",
+			type = "color",
+			hasAlpha = true,
+			get = function( info )
+				local id = ConfigGetNodeArg( info, #info - 1 )
+				local bg = ArkInventory.db.global.option.background.data[id]
+				if not bg or not bg.colour then
+					return 0, 0, 0.4, 0.4
+				end
+				return bg.colour.r, bg.colour.g, bg.colour.b, bg.colour.a
+			end,
+			set = function( info, r, g, b, a )
+				local id = ConfigGetNodeArg( info, #info - 1 )
+				local bg = ArkInventory.db.global.option.background.data[id]
+				if not bg then
+					return
+				end
+				bg.colour.r = r
+				bg.colour.g = g
+				bg.colour.b = b
+				bg.colour.a = a
+				ArkInventory.Frame_Bar_Paint_All( )
+			end,
+		},
+		delete = {
+			order = 300,
+			name = ArkInventory.Localise["DELETE"],
+			type = "execute",
+			func = function( info )
+				local id = ConfigGetNodeArg( info, #info - 1 )
+				ArkInventory.BackgroundColourCustomDelete( id )
+				ArkInventory.ConfigInternalBackground( )
+			end,
+		},
+	}
+
+	for id, data in pairs( ArkInventory.db.global.option.background.data ) do
+		if data.used then
+			local n = string.format( "%s [%04i]", data.name ~= "" and data.name or ArkInventory.Localise["UNKNOWN"], id )
+			path[string.format( "%i", id )] = {
+				order = 200,
+				name = n,
+				arg = id,
+				type = "group",
+				args = args_entry,
+			}
+		else
+			path[string.format( "%i", id )] = nil
+		end
+	end
+
 end
 
 function ArkInventory.ConfigInternalCategoryCustom( path )
-	
+
 	local args1 = {
-		ren = { 
+		ren = {
 			order = 100,
 			name = ArkInventory.Localise["RENAME"],
 			desc = ArkInventory.Localise["CONFIG_CATEGORY_RENAME_TEXT"],
@@ -3162,7 +3263,7 @@ function ArkInventory.ConfigInternalCategoryCustom( path )
 				ArkInventory.ConfigInternalCategory( )
 			end,
 		},
-		del = { 
+		del = {
 			order = 200,
 			name = ArkInventory.Localise["DELETE"],
 			desc = ArkInventory.Localise["CONFIG_CATEGORY_DELETE_TEXT"],
@@ -3174,18 +3275,18 @@ function ArkInventory.ConfigInternalCategoryCustom( path )
 			end,
 		},
 	}
-	
+
 	for k, cat in pairs( ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Custom].data ) do
-		
+
 		if cat.used then
-			
+
 			local n = ""
 			if ArkInventory.Global.Options.CustomCategorySort then
 				n = string.format( "%s [%04i]", cat.name, k )
 			else
 				n = string.format( "[%04i] %s", k, cat.name )
 			end
-			
+
 			path[string.format( "%i", k )] = {
 				order = 100,
 				name = n,
@@ -3193,17 +3294,17 @@ function ArkInventory.ConfigInternalCategoryCustom( path )
 				type = "group",
 				args = args1,
 			}
-			
+
 		end
-		
+
 	end
-	
+
 end
-	
+
 function ArkInventory.ConfigInternalSorting( )
 
 	local path = ArkInventory.Config.Internal.args.sorting.args
-	
+
 	path.custom = {
 		type = "group",
 		name = ArkInventory.Localise["CONFIG_SORTMETHOD"],
@@ -3248,13 +3349,13 @@ function ArkInventory.ConfigInternalSorting( )
 			},
 		},
 	}
-	
+
 	ArkInventory.ConfigInternalSortingCustom( path.custom.args )
-	
+
 end
 
 function ArkInventory.ConfigInternalSortingCustom( path )
-	
+
 	local args3 = {
 		enabled = {
 			order = 100,
@@ -3341,29 +3442,29 @@ function ArkInventory.ConfigInternalSortingCustom( path )
 			end,
 		},
 	}
-	
-	
+
+
 	local args2 = { }
 	for sortkey, active in pairs( ArkInventory.Const.SortKeys ) do
-		
+
 		if active then
-			
+
 			args2[sortkey] = {
 				order = function( info )
-					
+
 					local p = 9000
 					local id = ConfigGetNodeArg( info, #info - 2 )
 					local t = ArkInventory.db.global.option.sort.data[id].order
-					
+
 					for k, v in ipairs( t ) do
 						if info[#info] == v then
 							p = k
 							break
 						end
 					end
-					
+
 					return p
-					
+
 				end,
 				name = "",
 				type = "group",
@@ -3374,8 +3475,8 @@ function ArkInventory.ConfigInternalSortingCustom( path )
 			}
 		end
 	end
-	
-	
+
+
 	local args1 = {
 		ren = {
 			order = 100,
@@ -3396,7 +3497,7 @@ function ArkInventory.ConfigInternalSortingCustom( path )
 				ArkInventory.ConfigInternalSorting( )
 			end,
 		},
-		del = { 
+		del = {
 			order = 200,
 			name = ArkInventory.Localise["DELETE"],
 			desc = ArkInventory.Localise["CONFIG_SORTMETHOD_DELETE_TEXT"],
@@ -3521,19 +3622,19 @@ function ArkInventory.ConfigInternalSortingCustom( path )
 			end,
 		},
 	}
-	
-	
+
+
 	for id, data in pairs( ArkInventory.db.global.option.sort.data ) do
-		
+
 		if data.used then
-			
+
 			local n = ""
 			if ArkInventory.Global.Options.CustomSortKeySort then
 				n = string.format( "%s%s [%04i]", n, data.name or ArkInventory.Localise["UNKNOWN"], id )
 			else
 				n = string.format( "[%04i] %s%s", id, n, data.name or ArkInventory.Localise["UNKNOWN"] )
 			end
-			
+
 			path[string.format( "%i", id )] = {
 				order = 500,
 				arg = id,
@@ -3541,25 +3642,25 @@ function ArkInventory.ConfigInternalSortingCustom( path )
 				type = "group",
 				args = args1,
 			}
-			
+
 		end
-		
+
 	end
-	
+
 end
-	
+
 function ArkInventory.Frame_Config_Hide( )
 	ArkInventory.Lib.Dialog:Close( ArkInventory.Const.Frame.Config.Internal )
 end
-	
+
 function ArkInventory.Frame_Config_Show( )
-	
+
 	if not ArkInventory.Config.Internal.args then
 		ArkInventory.ConfigInternal( )
 	end
-	
+
 	ArkInventory.Lib.Dialog:Open( ArkInventory.Const.Frame.Config.Internal )
-	
+
 end
 
 function ArkInventory.Frame_Config_Toggle( )
@@ -3569,5 +3670,5 @@ function ArkInventory.Frame_Config_Toggle( )
 --	else
 		ArkInventory.Frame_Config_Show( )
 --	end
-	
+
 end

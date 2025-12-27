@@ -20,8 +20,8 @@ if not L then return end
 --	wow skill headers - must match exactly what is in game
 	L["WOW_SKILL_HEADER_PRIMARY"] = "Profesiones"
 	L["WOW_SKILL_HEADER_SECONDARY"] = "Habilidades secundarias"
-	
-	
+
+
 --	wow skill names - must match exactly what is in game
 	L["WOW_SKILL_ALCHEMY"] = "Alquimia"
 	L["WOW_SKILL_BLACKSMITHING"] = "Herrer\195\173a"
@@ -38,8 +38,8 @@ if not L then return end
 	L["WOW_SKILL_RIDING"] = "Equitaci\195\179n"
 	L["WOW_SKILL_SKINNING"] = "Desollar" -- was Desuello
 	L["WOW_SKILL_TAILORING"] = "Sastrer\195\173a"
-	
-	
+
+
 --	wow class names - must match exactly what is in game and must exist
 	L["WOW_CLASS_DRUID"] = "Druida"
 	L["WOW_CLASS_HUNTER"] = "Cazador"
@@ -51,8 +51,8 @@ if not L then return end
 	L["WOW_CLASS_WARLOCK"] = "Brujo"
 	L["WOW_CLASS_WARRIOR"] = "Guerrero"
 --	L["WOW_CLASS_DEATHKNIGHT"] = ""
-	
-	
+
+
 --	wow item types - must match exactly what is in game
 	L["WOW_ITEM_TYPE_ARMOR"] = "Armadura"
 	L["WOW_ITEM_TYPE_CONSUMABLE"] = "Consumible"
@@ -100,8 +100,8 @@ if not L then return end
 --	L["WOW_ITEM_TYPE_TRADE_GOODS_MEAT"] = ""
 --	L["WOW_ITEM_TYPE_TRADE_GOODS_METAL_AND_STONE"] = ""
 --	L["WOW_ITEM_TYPE_TRADE_GOODS_PARTS"] = ""
-	
-	
+
+
 --	wow tooltip text - must match exactly what is in game
 	L["WOW_ITEM_TOOLTIP_FOOD"] = "Debes permanecer sentado mientras comes"
 	L["WOW_ITEM_TOOLTIP_DRINK"] = "Debes permanecer sentado mientras bebes"
@@ -109,8 +109,8 @@ if not L then return end
 	L["WOW_ITEM_TOOLTIP_POTION_MANA"] = "Restaura %d+ a %d+ p. de man\195\161"
 --	L["WOW_ITEM_TOOLTIP_ELIXIR_BATTLE"] = ""
 --	L["WOW_ITEM_TOOLTIP_ELIXIR_GUARDIAN"] = ""
-	
-	
+
+
 --	location names
 --	L["LOCATION_ALL"] = ""
 	L["LOCATION_BAG"] = "Bolsas"
@@ -119,36 +119,36 @@ if not L then return end
 --	L["LOCATION_PET"] = ""
 --	L["LOCATION_MOUNT"] = ""
 --	L["LOCATION_TOKEN"] = ""
-	
-	
+
+
 --	subframe names
 --	L["SUBFRAME_NAME_TITLE"] = ""
 --	L["SUBFRAME_NAME_SEARCH"] = ""
 --	L["SUBFRAME_NAME_BAGCHANGER"] = ""
 --	L["SUBFRAME_NAME_STATUS"] = ""
-	
-	
+
+
 --	status bar/bag text
 	L["STATUS_OFFLINE"] = "Desconectado"
 	L["STATUS_NO_DATA"] = "SIN DATOS"
 	L["STATUS_FULL"] = "LLENO"
 --	L["STATUS_PURCHASE"] = ""
-	
-	
+
+
 --	restack
 --	L["RESTACK"] = ""
 --	L["RESTACK_TEXT"] = ""
 --	L["RESTACK_FAIL_WAIT"] = ""
 --	L["RESTACK_FAIL_ACCESS"] = ""
-	
-	
+
+
 --	vault tab tooltips
 --	L["VAULT_TAB_ACCESS_NONE"] = ""
 --	L["VAULT_TAB_NAME"] = ""
 --	L["VAULT_TAB_ACCESS"] = ""
 --	L["VAULT_TAB_REMAINING_WITHDRAWALS"] = ""
-	
-	
+
+
 --	category "header" descriptions  (does not have to match wow)
 	L["CATEGORY_CLASS"] = "CLASE"
 	L["CATEGORY_CONSUMABLE"] = "CONSUMIBLE"
@@ -159,8 +159,8 @@ if not L then return end
 	L["CATEGORY_SKILL"] = "PROFESI\195\147N"
 	L["CATEGORY_SYSTEM"] = "SISTEMA"
 --	L["CATEGORY_TRADE_GOODS"] = ""
-	
-	
+
+
 --	system category descriptions
 	L["CATEGORY_SYSTEM_CORE_MATS"] = "MATERIAS PRIMAS"
 	L["CATEGORY_SYSTEM_DEFAULT"] = "POR DEFECTO"
@@ -171,8 +171,8 @@ if not L then return end
 	L["CATEGORY_SYSTEM_SOULSHARD"] = "FRAGMENTO DE ALMA"
 --	L["CATEGORY_SYSTEM_TOKEN"] = ""
 	L["CATEGORY_SYSTEM_TRASH"] = "BASURA"
-	
-	
+
+
 --	consumable category descriptions
 	L["CATEGORY_CONSUMABLE_DRINK"] = "BEBIDA"
 	L["CATEGORY_CONSUMABLE_FOOD"] = "COMIDA"
@@ -181,8 +181,8 @@ if not L then return end
 	L["CATEGORY_CONSUMABLE_POTION_HEAL"] = "SALUD (POCI\195\147N/PIEDRA)"
 --	L["CATEGORY_CONSUMABLE_ELIXIR_BATTLE"] = ""
 --	L["CATEGORY_CONSUMABLE_ELIXIR_GUARDIAN"] = ""
-	
-	
+
+
 --	bag names - used to name the empty slots in the status frame
 	L["STATUS_NAME_BAG"] = "Bolsa"
 --	L["STATUS_NAME_CRITTER"] = ""
@@ -202,22 +202,22 @@ if not L then return end
 	L["STATUS_NAME_PROJECTILE_BULLET"] = "Bala"
 	L["STATUS_NAME_SOULSHARD"] = "Alma"
 --	L["STATUS_NAME_TOKEN"] = ""
-	
-	
+
+
 --	main menu
 --	L["MENU"] = ""
-	
+
 --	L["MENU_CHARACTER_SWITCH"] = ""
 --	L["MENU_CHARACTER_SWITCH_TEXT"] = ""
 --	L["MENU_CHARACTER_SWITCH_CHOOSE_NONE"] = ""
 --	L["MENU_CHARACTER_SWITCH_CHOOSE_TEXT"] = ""
 --	L["MENU_CHARACTER_SWITCH_ERASE"] = ""
 --	L["MENU_CHARACTER_SWITCH_ERASE_TEXT"] = ""
-	
+
 --	L["MENU_LOCATION_SWITCH"] = ""
 --	L["MENU_LOCATION_SWITCH_TEXT"] = ""
-	
-	
+
+
 --	actions menu
 --	L["MENU_ACTION"] = ""
 --	L["MENU_ACTION_REFRESH"] = ""
@@ -227,8 +227,8 @@ if not L then return end
 --	L["MENU_ACTION_EDITMODE_TEXT"] = ""
 --	L["MENU_ACTION_BAGCHANGER"] = ""
 --	L["MENU_ACTION_BAGCHANGER_TEXT"] = ""
-	
-	
+
+
 --	item menu
 	L["MENU_ITEM_TITLE"] = "OPCIONES DE OBJETO"
 --	L["MENU_ITEM_ITEM"] = ""
@@ -263,8 +263,8 @@ if not L then return end
 --	L["MENU_ITEM_DEBUG_PT_TEXT"] = ""
 --	L["MENU_ITEM_DEBUG_PT_NONE"] = ""
 --	L["MENU_ITEM_DEBUG_PT_TITLE"] = ""
-	
-	
+
+
 --	bar menu
 --	L["MENU_BAR_TITLE"] = ""
 --	L["MENU_BAR_CATEGORY"] = ""
@@ -280,10 +280,7 @@ if not L then return end
 --	L["MENU_BAR_MOVE_TEXT"] = ""
 --	L["MENU_BAR_MOVE_START_TEXT"] = ""
 --	L["MENU_BAR_MOVE_COMPLETE_TEXT"] = ""
---	L["MENU_BAR_SORTKEY_TEXT"] = ""
---	L["MENU_BAR_SORTKEY_DEFAULT_RESET_TEXT"] = ""
-	
-	
+	-- L["MENU_BAR_BACKGROUND_DEFAULT_RESET_TEXT"] = ""
 --	changer bag menu
 --	L["MENU_BAG_TITLE"] = ""
 --	L["MENU_BAG_SHOW"] = ""
@@ -292,18 +289,18 @@ if not L then return end
 --	L["MENU_BAG_ISOLATE_TEXT"] = ""
 --	L["MENU_BAG_SHOWALL"] = ""
 --	L["MENU_BAG_SHOWALL_TEXT"] = ""
-	
-	
+
+
 --	configuration options
 --	L["CONFIG"] = ""
 --	L["CONFIG_TEXT"] = ""
-	
+
 --	configuration options > system
 --	L["CONFIG_SYSTEM"] = ""
 --	L["CONFIG_SYSTEM_TEXT"] = ""
-	
+
 --	L["CONFIG_SYSTEM_FONT_TEXT"] = ""
-	
+
 --	L["CONFIG_SYSTEM_TOOLTIP"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_ENABLE_TEXT"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_EMPTY_ADD"] = ""
@@ -325,7 +322,7 @@ if not L then return end
 --	L["CONFIG_SYSTEM_TOOLTIP_FACTION_ONLY"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_FACTION_ONLY_TEXT"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_VAULT_TEXT"] = ""
-	
+
 --	L["CONFIG_SYSTEM_BUGFIX"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_TEXT"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_FRAMELEVEL"] = ""
@@ -340,11 +337,11 @@ if not L then return end
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG_TEXT"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG_ALERT_TEXT"] = ""
-	
-	
+
+
 --	configuration options > auto
 --	L["CONFIG_AUTO"] = ""
-	
+
 --	L["CONFIG_AUTO_OPEN"] = ""
 --	L["CONFIG_AUTO_OPEN_BANK"] = ""
 --	L["CONFIG_AUTO_OPEN_VAULT"] = ""
@@ -352,7 +349,7 @@ if not L then return end
 --	L["CONFIG_AUTO_OPEN_MERCHANT"] = ""
 --	L["CONFIG_AUTO_OPEN_TRADE"] = ""
 --	L["CONFIG_AUTO_OPEN_AUCTION"] = ""
-	
+
 --	L["CONFIG_AUTO_CLOSE"] = ""
 --	L["CONFIG_AUTO_CLOSE_BANK"] = ""
 --	L["CONFIG_AUTO_CLOSE_VAULT"] = ""
@@ -361,11 +358,11 @@ if not L then return end
 --	L["CONFIG_AUTO_CLOSE_TRADE"] = ""
 --	L["CONFIG_AUTO_CLOSE_AUCTION"] = ""
 --	L["CONFIG_AUTO_CLOSE_COMBAT"] = ""
-	
-	
+
+
 --	configuration options > control
 --	L["CONFIG_CONTROL"] = ""
-	
+
 --	L["CONFIG_CONTROL_MONITOR"] = ""
 --	L["CONFIG_CONTROL_MONITOR_TEXT"] = ""
 --	L["CONFIG_CONTROL_SAVE"] = ""
@@ -376,15 +373,15 @@ if not L then return end
 --	L["CONFIG_CONTROL_OVERRIDE_TEXT"] = ""
 --	L["CONFIG_CONTROL_ANCHOR_LOCK_TEXT"] = ""
 --	L["CONFIG_CONTROL_SETTINGS_TEXT"] = ""
-	
-	
+
+
 --	configuration options > settings
 --	L["CONFIG_SETTINGS"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME_HIDE_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME_SCALE_TEXT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_PADDING_TEXT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_WIDTH_TEXT"] = ""
@@ -392,20 +389,20 @@ if not L then return end
 --	L["CONFIG_SETTINGS_FRAME_BORDER_SHOW_TEXT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_BORDER_STYLE_TEXT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_BORDER_COLOUR_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT_COLOUR_TEXT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT_TEXT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE"] = ""
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE_TEXT"] = ""
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE_COLOUR_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME_STATUS_EMPTY"] = ""
 --	L["CONFIG_SETTINGS_FRAME_STATUS_EMPTY_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME_TITLE_SIZE_NORMAL"] = ""
 --	L["CONFIG_SETTINGS_FRAME_TITLE_SIZE_THIN"] = ""
-	
+
 --	L["CONFIG_SETTINGS_BARS"] = ""
 --	L["CONFIG_SETTINGS_BARS_PER_ROW"] = ""
 --	L["CONFIG_SETTINGS_BARS_PER_ROW_TEXT"] = ""
@@ -423,7 +420,7 @@ if not L then return end
 --	L["CONFIG_SETTINGS_BARS_NAME_SHOW_TEXT"] = ""
 --	L["CONFIG_SETTINGS_BARS_NAME_COLOUR_TEXT"] = ""
 --	L["CONFIG_SETTINGS_BARS_NAME_HEIGHT_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_ITEMS"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_PADDING_TEXT"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_HIDDEN"] = ""
@@ -450,12 +447,12 @@ if not L then return end
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_GLOBAL_TEXT"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_COMBAT"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_COMBAT_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_SORTING_OPEN"] = ""
 --	L["CONFIG_SETTINGS_SORTING_OPEN_TEXT"] = ""
 --	L["CONFIG_SETTINGS_SORTING_INSTANT"] = ""
 --	L["CONFIG_SETTINGS_SORTING_INSTANT_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_EMPTY"] = ""
 --	L["CONFIG_SETTINGS_EMPTY_ICON"] = ""
 --	L["CONFIG_SETTINGS_EMPTY_ICON_TEXT"] = ""
@@ -466,19 +463,19 @@ if not L then return end
 --	L["CONFIG_SETTINGS_EMPTY_COLOUR"] = ""
 --	L["CONFIG_SETTINGS_EMPTY_COLOUR_TEXT"] = ""
 --	L["CONFIG_SETTINGS_EMPTY_STATUS"] = ""
-	
-	
+
+
 -- sorting
 --	L["CONFIG_SORTMETHOD"] = ""
-	
+
 --	L["CONFIG_SORTMETHOD_SORT"] = ""
-	
+
 --	L["CONFIG_SORTMETHOD_STYLE_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_STYLE_BAGSLOT"] = ""
 --	L["CONFIG_SORTMETHOD_STYLE_BAGSLOT_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_STYLE_USER"] = ""
 --	L["CONFIG_SORTMETHOD_STYLE_USER_TEXT"] = ""
-	
+
 --	L["CONFIG_SORTMETHOD_INCLUDE_NAME"] = ""
 --	L["CONFIG_SORTMETHOD_INCLUDE_NAME_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_INCLUDE_NAME_REVERSE"] = ""
@@ -499,53 +496,53 @@ if not L then return end
 --	L["CONFIG_SORTMETHOD_INCLUDE_ITEMAGE_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_INCLUDE_VENDORPRICE"] = ""
 --	L["CONFIG_SORTMETHOD_INCLUDE_VENDORPRICE_TEXT"] = ""
-	
+
 --	L["CONFIG_SORTMETHOD_DIRECTION_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_ORDER"] = ""
 --	L["CONFIG_SORTMETHOD_MOVE_UP_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_MOVE_DOWN_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_NOT_INCLUDED"] = ""
-	
+
 --	L["CONFIG_SORTMETHOD_ADD"] = ""
 --	L["CONFIG_SORTMETHOD_ADD_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_RENAME_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_DELETE_TEXT"] = ""
-	
-	
+
+
 -- search
 --	L["CONFIG_SEARCH"] = ""
-	
-	
+
+
 --	rules
 --	L["CONFIG_RULES"] = ""
 --	L["CONFIG_RULES_SHOWDISABLED"] = ""
 --	L["CONFIG_RULES_SHOWDISABLED_TEXT"] = ""
-	
-	
+
+
 --	configuration options > categories
 --	L["CONFIG_CATEGORY"] = ""
-	
+
 --	L["CONFIG_CATEGORY_CUSTOM"] = ""
 --	L["CONFIG_CATEGORY_DELETED"] = ""
-	
+
 --	L["CONFIG_CATEGORY_ADD"] = ""
 --	L["CONFIG_CATEGORY_ADD_TEXT"] = ""
 --	L["CONFIG_CATEGORY_RENAME_TEXT"] = ""
 --	L["CONFIG_CATEGORY_DELETE_TEXT"] = ""
-	
-	
+
+
 --	configuration options > debug
 --	L["CONFIG_DEBUG"] = ""
 --	L["CONFIG_DEBUG_TEXT"] = ""
-	
-	
+
+
 --	configuration options > generic
 --	L["BORDER_SCALE_TEXT"] = ""
 --	L["BORDER_TEXTURE_TEXT"] = ""
 --	L["BORDER_TEXTURE_FILE_TEXT"] = ""
 --	L["BORDER_TEXTURE_HEIGHT_TEXT"] = ""
-	
-	
+
+
 --	rules frame
 --	L["RULE"] = ""
 --	L["RULE_ENABLED"] = ""
@@ -559,7 +556,7 @@ if not L then return end
 --	L["RULE_LIST_ID"] = ""
 --	L["RULE_LIST_ORDER"] = ""
 --	L["RULE_LIST_DESCRIPTION"] = ""
-	
+
 --	L["RULE_DAMAGED"] = ""
 --	L["RULE_FAILED"] = ""
 --	L["RULE_FAILED_KEY_NIL"] = ""
@@ -572,12 +569,12 @@ if not L then return end
 --	L["RULE_FAILED_ARGUMENT_NONE_SPECIFIED"] = ""
 --	L["RULE_FAILED_ADDON_NOT_LOADED"] = ""
 
-	
+
 --	new item indicators
 --	L["NEW_ITEM_INCREASE"] = ""
 --	L["NEW_ITEM_DECREASE"] = ""
-	
-	
+
+
 --	slash commands
 --	L["SLASH_UI"] = ""
 --	L["SLASH_UI_TEXT"] = ""
@@ -600,26 +597,26 @@ if not L then return end
 --	L["SLASH_CACHE_ERASE_COMPLETE_TEXT"] = ""
 --	L["SLASH_MISC"] = ""
 --	L["SLASH_MISC_TEXT"] = ""
-	
-	
+
+
 --	misc chat stuff
 --	L["UPGRADE_PROFILE"] = ""
 --	L["UPGRADE_GLOBAL"] = ""
 --	L["UPGRADE_CHAR"] = ""
-	
+
 --	L["MISC_ALERT"] = ""
 --	L["MISC_ALERT_FRAMELEVEL_1"] = ""
 --	L["MISC_ALERT_FRAMELEVEL_2"] = ""
-	
-	
+
+
 --	item count tooltip
 --	L["TOOLTIP_VENDOR"] = ""
 --	L["TOOLTIP_ITEMLEVEL"] = ""
 --	L["TOOLTIP_TOTAL"] = ""
 --	L["TOOLTIP_COUNT_ME"] = ""
 --	L["TOOLTIP_VAULT_TABS"] = ""
-	
-	
+
+
 --	generic text
 --	L["AUTOMATIC"] = ""
 --	L["BOTTOMLEFT"] = ""
@@ -697,8 +694,8 @@ if not L then return end
 --	L["STRING"] = ""
 --	L["COOLDOWN"] = ""
 --	L["FRAMES"] = ""
-	
-	
+
+
 -- libdatabroker
 --	L["LDB"] = ""
 --	L["LDB_BAGS_COLOUR_USE"] = ""
@@ -727,4 +724,3 @@ if not L then return end
 --	L["LDB_MOUNTS_SUMMON"] = ""
 --	L["LDB_COMPANION_MISSING"] = ""
 --	L["LDB_COMPANION_NONE"] = ""
-	

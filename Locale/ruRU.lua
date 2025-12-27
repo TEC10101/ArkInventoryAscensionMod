@@ -20,8 +20,8 @@ if not L then return end
 --	wow skill headers - must match exactly what is in game
 	L["WOW_SKILL_HEADER_PRIMARY"] = "Профессии"
 	L["WOW_SKILL_HEADER_SECONDARY"] = "Дополнительные профессии"
-	
-	
+
+
 --	wow skill names - must match exactly what is in game
 	L["WOW_SKILL_ALCHEMY"] = "Алхимия"
 	L["WOW_SKILL_BLACKSMITHING"] = "Кузнечное дело"
@@ -38,8 +38,8 @@ if not L then return end
 	L["WOW_SKILL_RIDING"] = "Верховая езда"
 	L["WOW_SKILL_SKINNING"] = "Снятие шкур"
 	L["WOW_SKILL_TAILORING"] = "Портняжное дело"
-	
-	
+
+
 --	wow class names - must match exactly what is in game and must exist
 	L["WOW_CLASS_DRUID"] = "Друид"
 	L["WOW_CLASS_HUNTER"] = "Охотник"
@@ -51,8 +51,8 @@ if not L then return end
 	L["WOW_CLASS_WARLOCK"] = "Чернокнижник"
 	L["WOW_CLASS_WARRIOR"] = "Воин"
 	L["WOW_CLASS_DEATHKNIGHT"] = "Рыцарь смерти"
-	
-	
+
+
 --	wow item types - must match exactly what is in game
 	L["WOW_ITEM_TYPE_ARMOR"] = "Доспехи"
 	L["WOW_ITEM_TYPE_CONSUMABLE"] = "Расходуемые"
@@ -100,8 +100,8 @@ if not L then return end
 	L["WOW_ITEM_TYPE_TRADE_GOODS_METAL_AND_STONE"] = "Металл и камень"
 	L["WOW_ITEM_TYPE_TRADE_GOODS_MATERIALS"] = "Материалы"
 	L["WOW_ITEM_TYPE_TRADE_GOODS_PARTS"] = "Детали"
-	
-	
+
+
 --	wow tooltip text - must match exactly what is in game
 	L["WOW_ITEM_TOOLTIP_FOOD"] = "Действие эффекта прерывается, если персонаж встает с места"
 	L["WOW_ITEM_TOOLTIP_DRINK"] = "Действие эффекта прерывается, если персонаж встает с места"
@@ -109,8 +109,8 @@ if not L then return end
 	L["WOW_ITEM_TOOLTIP_POTION_MANA"] = "Восполнение %d+ - %d+ ед. маны"
 	L["WOW_ITEM_TOOLTIP_ELIXIR_BATTLE"] = "Боевой эликсир"
 	L["WOW_ITEM_TOOLTIP_ELIXIR_GUARDIAN"] = "Охранный эликсир"
-	
-	
+
+
 --	location names
 	L["LOCATION_ALL"] = "Все"
 	L["LOCATION_BAG"] = "Сумка"
@@ -119,36 +119,36 @@ if not L then return end
 --	L["LOCATION_PET"] = ""
 --	L["LOCATION_MOUNT"] = ""
 --	L["LOCATION_TOKEN"] = ""
-	
-	
+
+
 --	subframe names
 	L["SUBFRAME_NAME_TITLE"] = "Заголовочный"
 --	L["SUBFRAME_NAME_SEARCH"] = ""
 	L["SUBFRAME_NAME_BAGCHANGER"] = "Сумки"
 	L["SUBFRAME_NAME_STATUS"] = "Статус"
-	
-	
+
+
 --	status bar/bag text
 	L["STATUS_OFFLINE"] = "Оффлайн"
 	L["STATUS_NO_DATA"] = "???"
 	L["STATUS_FULL"] = "ПОЛН"
 	L["STATUS_PURCHASE"] = "КУП"
-	
-	
+
+
 --	restack
 	L["RESTACK"] = "Сжать и собрать"
 	L["RESTACK_TEXT"] = "собрать предметы в как можно меньшее количество стэков, используя по возможности слоты специальных сумок"
 	L["RESTACK_FAIL_WAIT"] = "Операция пересборки уже выполняется, пожалуйста подождите"
 	L["RESTACK_FAIL_ACCESS"] = "У вас недостаточно прав, чтобы пересобрать закладку %2$s в %1$s" -- 1 = guild bank, 2 = tab number
-	
-	
+
+
 --	vault tab tooltips
 --	L["VAULT_TAB_ACCESS_NONE"] = ""
 --	L["VAULT_TAB_NAME"] = ""
 --	L["VAULT_TAB_ACCESS"] = ""
 --	L["VAULT_TAB_REMAINING_WITHDRAWALS"] = ""
-	
-	
+
+
 --	category "header" descriptions  (does not have to match wow)
 	L["CATEGORY_CLASS"] = "Класс"
 	L["CATEGORY_CONSUMABLE"] = "Расходуемые"
@@ -159,8 +159,8 @@ if not L then return end
 	L["CATEGORY_SKILL"] = "Умения"
 	L["CATEGORY_SYSTEM"] = "Системное"
 	L["CATEGORY_TRADE_GOODS"] = "Хозяйственные товары"
-	
-	
+
+
 --	system category descriptions
 	L["CATEGORY_SYSTEM_CORE_MATS"] = "Материалы"
 	L["CATEGORY_SYSTEM_DEFAULT"] = "По умолчанию"
@@ -171,8 +171,8 @@ if not L then return end
 	L["CATEGORY_SYSTEM_SOULSHARD"] = "Осколок души"
 --	L["CATEGORY_SYSTEM_TOKEN"] = ""
 	L["CATEGORY_SYSTEM_TRASH"] = "Мусор"
-	
-	
+
+
 --	consumable category descriptions
 	L["CATEGORY_CONSUMABLE_DRINK"] = "Напитки"
 	L["CATEGORY_CONSUMABLE_FOOD"] = "Еда"
@@ -181,8 +181,8 @@ if not L then return end
 	L["CATEGORY_CONSUMABLE_POTION_MANA"] = "Мана (зелье/камень)"
 	L["CATEGORY_CONSUMABLE_ELIXIR_BATTLE"] = "Эликсир (боевой)"
 	L["CATEGORY_CONSUMABLE_ELIXIR_GUARDIAN"] = "Эликсир (охранный)"
-	
-	
+
+
 --	bag names - used to name the empty slots in the status frame
 	L["STATUS_NAME_BAG"] = "Сумка"
 --	L["STATUS_NAME_CRITTER"] = ""
@@ -202,22 +202,22 @@ if not L then return end
 	L["STATUS_NAME_PROJECTILE_BULLET"] = "Пуля"
 	L["STATUS_NAME_SOULSHARD"] = "Душа"
 --	L["STATUS_NAME_TOKEN"] = ""
-	
-	
+
+
 --	main menu
 	L["MENU"] = "Меню"
-	
+
 	L["MENU_CHARACTER_SWITCH"] = "Сменить персонажа"
 	L["MENU_CHARACTER_SWITCH_TEXT"] = "Изменяет, вещи какого персонажа отображать"
 	L["MENU_CHARACTER_SWITCH_CHOOSE_NONE"] = "нет данных о персонажах"
 	L["MENU_CHARACTER_SWITCH_CHOOSE_TEXT"] = "Изменяет отображаемые данные на %1$s"
 	L["MENU_CHARACTER_SWITCH_ERASE"] = "Удалить данные %s"
 	L["MENU_CHARACTER_SWITCH_ERASE_TEXT"] = "Удаляет данные %1$s для %2$s"
-	
+
 	L["MENU_LOCATION_SWITCH"] = "Отобразить окно"
 	L["MENU_LOCATION_SWITCH_TEXT"] = "отображает или скрывает окно %1$s"
-	
-	
+
+
 --	actions menu
 	L["MENU_ACTION"] = "Действия"
 	L["MENU_ACTION_REFRESH"] = "Обновить"
@@ -227,9 +227,8 @@ if not L then return end
 	L["MENU_ACTION_EDITMODE_TEXT"] = "включает и выключает режим редактирования для изменения настроек наборов ячеек."
 	L["MENU_ACTION_BAGCHANGER"] = "Сумки"
 	L["MENU_ACTION_BAGCHANGER_TEXT"] = "показать/скрыть фрейм сумок, в котором Вы можете добавлять или менять сумки"
-	
-	
---	item menu
+
+
 	L["MENU_ITEM_TITLE"] = "Информация о предмете"
 	L["MENU_ITEM_ITEM"] = "Предмет"
 	L["MENU_ITEM_DEFAULT_RESET"] = "Назначить по умолчанию"
@@ -241,8 +240,7 @@ if not L then return end
 	L["MENU_ITEM_RULE_NEW"] = "Создать новое правило"
 	L["MENU_ITEM_RULE_ADD"] = "Добавить предмет в правило"
 	L["MENU_ITEM_CUSTOM_NEW"] = "Создать новую пользовательскую категорию"
-	L["MENU_ITEM_DEBUG"] = "Отладочная информация"
-	L["MENU_ITEM_DEBUG_BAG"] = "Сумка"
+	-- L["MENU_BAR_BACKGROUND_DEFAULT_RESET_TEXT"] = ""
 	L["MENU_ITEM_DEBUG_SLOT"] = "Ячейка"
 	L["MENU_ITEM_DEBUG_BAG_TYPE"] = "Тип"
 	L["MENU_ITEM_DEBUG_AI_ID_SHORT"] = "Короткий ID"
@@ -263,8 +261,8 @@ if not L then return end
 	L["MENU_ITEM_DEBUG_PT_TEXT"] = "Показывает в каких PT сетах находится этот предмет"
 	L["MENU_ITEM_DEBUG_PT_NONE"] = "этот предмет не состоит ни в одном PT сете"
 	L["MENU_ITEM_DEBUG_PT_TITLE"] = "PT сеты, в которых есть этот предмет"
-	
-	
+
+
 --	bar menu
 	L["MENU_BAR_TITLE"] = "Настройки набора %1$s"
 	L["MENU_BAR_CATEGORY"] = "Категория"
@@ -282,8 +280,8 @@ if not L then return end
 --	L["MENU_BAR_MOVE_COMPLETE_TEXT"] = ""
 --	L["MENU_BAR_SORTKEY_TEXT"] = ""
 --	L["MENU_BAR_SORTKEY_DEFAULT_RESET_TEXT"] = ""
-	
-	
+
+
 --	changer bag menu
 	L["MENU_BAG_TITLE"] = "Настройки сумки"
 	L["MENU_BAG_SHOW"] = "Показывать"
@@ -292,18 +290,18 @@ if not L then return end
 	L["MENU_BAG_ISOLATE_TEXT"] = "показывать содержимое только этой сумки"
 	L["MENU_BAG_SHOWALL"] = "Показывать всё"
 	L["MENU_BAG_SHOWALL_TEXT"] = "показывать содержимое всех сумок в этом окне"
-	
-	
+
+
 --	configuration options
 	L["CONFIG"] = "Опции"
 	L["CONFIG_TEXT"] = "Меню опций"
-	
+
 --	configuration options > system
 	L["CONFIG_SYSTEM"] = "Системные"
 	L["CONFIG_SYSTEM_TEXT"] = "Системные опции"
-	
+
 	L["CONFIG_SYSTEM_FONT_TEXT"] = "задает шрифт для %s"
-	
+
 	L["CONFIG_SYSTEM_TOOLTIP"] = "Тултипы"
 	L["CONFIG_SYSTEM_TOOLTIP_ENABLE_TEXT"] = "включить тултипы"
 	L["CONFIG_SYSTEM_TOOLTIP_EMPTY_ADD"] = "Пустая строка"
@@ -325,7 +323,7 @@ if not L then return end
 --	L["CONFIG_SYSTEM_TOOLTIP_FACTION_ONLY"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_FACTION_ONLY_TEXT"] = ""
 --	L["CONFIG_SYSTEM_TOOLTIP_VAULT_TEXT"] = ""
-	
+
 --	L["CONFIG_SYSTEM_BUGFIX"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_TEXT"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_FRAMELEVEL"] = ""
@@ -340,11 +338,11 @@ if not L then return end
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG_TEXT"] = ""
 --	L["CONFIG_SYSTEM_BUGFIX_ZEROSIZEBAG_ALERT_TEXT"] = ""
-	
-	
+
+
 --	configuration options > auto
 	L["CONFIG_AUTO"] = "Автоматически открывать/закрывать"
-	
+
 	L["CONFIG_AUTO_OPEN"] = "Открывать сумку %1$s, когда вы %3$s" -- program, bag, action
 	L["CONFIG_AUTO_OPEN_BANK"] = "открываете банк"
 	L["CONFIG_AUTO_OPEN_VAULT"] = "открываете банк гильдии"
@@ -352,7 +350,7 @@ if not L then return end
 	L["CONFIG_AUTO_OPEN_MERCHANT"] = "открываете окно продавца"
 	L["CONFIG_AUTO_OPEN_TRADE"] = "открываете окно обмена"
 	L["CONFIG_AUTO_OPEN_AUCTION"] = "открываете аукцион"
-	
+
 	L["CONFIG_AUTO_CLOSE"] = "Закрывать сумку %1$s, кода вы %3$s"
 	L["CONFIG_AUTO_CLOSE_BANK"] = "закрываете банк"
 	L["CONFIG_AUTO_CLOSE_VAULT"] = "закрываете банк гильдии"
@@ -361,11 +359,11 @@ if not L then return end
 	L["CONFIG_AUTO_CLOSE_TRADE"] = "закрываете окно обмена"
 	L["CONFIG_AUTO_CLOSE_AUCTION"] = "закрываете аукцион"
 	L["CONFIG_AUTO_CLOSE_COMBAT"] = "вступаете в бой"
-	
-	
+
+
 --	configuration options > control
 	L["CONFIG_CONTROL"] = "Статус"
-	
+
 	L["CONFIG_CONTROL_MONITOR"] = "Следить"
 	L["CONFIG_CONTROL_MONITOR_TEXT"] = "отслеживать ли изменения в данных %1$s для этого персонажа (%2$s)?"
 	L["CONFIG_CONTROL_SAVE"] = "Оффлайн"
@@ -375,16 +373,16 @@ if not L then return end
 --	L["CONFIG_CONTROL_OVERRIDE"] = ""
 	L["CONFIG_CONTROL_OVERRIDE_TEXT"] = "скрыть стандартный интерфейс %2$s чтобы окно %1$s могло обрабатывать его действия.\n\nОтключение этой опции вернёт функционал стандартного %2$s.\n\nВы всё ещё сможете открыть %1$s %2$s когда эта опция выключена, но только используя специально назначенную клавишу"
 	L["CONFIG_CONTROL_ANCHOR_LOCK_TEXT"] = "фиксирует положение окна %1$s"
-	L["CONFIG_CONTROL_SETTINGS_TEXT"] = "выбрать, какие настройки использовать при создании окна %1$s"	
-	
-	
+	L["CONFIG_CONTROL_SETTINGS_TEXT"] = "выбрать, какие настройки использовать при создании окна %1$s"
+
+
 --	configuration options > settings
 	L["CONFIG_SETTINGS"] = "Настройки"
-	
+
 	L["CONFIG_SETTINGS_FRAME"] = "Окно"
-	
+
 --	L["CONFIG_SETTINGS_FRAME_HIDE_TEXT"] = ""
-	
+
 	L["CONFIG_SETTINGS_FRAME_SCALE_TEXT"] = "устанавливает масштаб, делая окно меньше или больше"
 	L["CONFIG_SETTINGS_FRAME_PADDING_TEXT"] = "устанавливает зазор между краем окна и наборами ячеек"
 	L["CONFIG_SETTINGS_FRAME_WIDTH_TEXT"] = "устанавливает количество столбцов для отображения"
@@ -392,20 +390,20 @@ if not L then return end
 	L["CONFIG_SETTINGS_FRAME_BORDER_SHOW_TEXT"] = "показать или скрыть кромку главного окна"
 	L["CONFIG_SETTINGS_FRAME_BORDER_STYLE_TEXT"] = "стиль кромки главного окна"
 	L["CONFIG_SETTINGS_FRAME_BORDER_COLOUR_TEXT"] = "устанавливает цвет кромки главного окна"
-	
+
 	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT"] = "Цвет подсветки сумок"
 --	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT_TEXT"] = ""
 	L["CONFIG_SETTINGS_FRAME_CHANGER_HIGHLIGHT_COLOUR_TEXT"] = "Устанавливает цвет, который используется для подсветки ячеек сумки, над которой курсор мыши"
 	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE"] = "Показывать количество"
 	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE_TEXT"] = "отображать ли количество пустых ячеек на иконке сумки"
 	L["CONFIG_SETTINGS_FRAME_CHANGER_FREE_COLOUR_TEXT"] = "задает цвет текста для количества пустых ячеек"
-	
+
 --	L["CONFIG_SETTINGS_FRAME_STATUS_EMPTY"] = ""
 --	L["CONFIG_SETTINGS_FRAME_STATUS_EMPTY_TEXT"] = ""
-	
+
 --	L["CONFIG_SETTINGS_FRAME_TITLE_SIZE_NORMAL"] = ""
 --	L["CONFIG_SETTINGS_FRAME_TITLE_SIZE_THIN"] = ""
-	
+
 	L["CONFIG_SETTINGS_BARS"] = "Наборы ячеек"
 	L["CONFIG_SETTINGS_BARS_PER_ROW"] = "В ряду"
 	L["CONFIG_SETTINGS_BARS_PER_ROW_TEXT"] = "задает количество наборов ячеек в каждом ряду"
@@ -423,7 +421,7 @@ if not L then return end
 	L["CONFIG_SETTINGS_BARS_NAME_SHOW_TEXT"] = "отображать или нет названия наборов ячеек"
 	L["CONFIG_SETTINGS_BARS_NAME_COLOUR_TEXT"] = "задает цвет кромки наборов ячеек"
 --	L["CONFIG_SETTINGS_BARS_NAME_HEIGHT_TEXT"] = ""
-	
+
 	L["CONFIG_SETTINGS_ITEMS"] = "Ячейки"
 	L["CONFIG_SETTINGS_ITEMS_PADDING_TEXT"] = "задает расстояние медлу ячейками"
 	L["CONFIG_SETTINGS_ITEMS_HIDDEN"] = "Показывать скрытые"
@@ -450,12 +448,12 @@ if not L then return end
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_GLOBAL_TEXT"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_COMBAT"] = ""
 --	L["CONFIG_SETTINGS_ITEMS_COOLDOWN_COMBAT_TEXT"] = ""
-	
+
 	L["CONFIG_SETTINGS_SORTING_OPEN"] = "При открытии окна"
 	L["CONFIG_SETTINGS_SORTING_OPEN_TEXT"] = "производить ли сортировку при открытии окна"
 	L["CONFIG_SETTINGS_SORTING_INSTANT"] = "Моментально"
 	L["CONFIG_SETTINGS_SORTING_INSTANT_TEXT"] = "производить ли сортировку незамедлительно.\n\nвключено: сортировка происходит как только что-либо меняется\n\nвыключено: сортировка происходит только при открытии окна или при ручном обновлении"
-	
+
 	L["CONFIG_SETTINGS_EMPTY"] = "Пустые ячейки"
 	L["CONFIG_SETTINGS_EMPTY_ICON"] = "Использовать иконку"
 	L["CONFIG_SETTINGS_EMPTY_ICON_TEXT"] = "использовать иконку или сплошной цвет в качестве фона пустой ячейки?"
@@ -466,19 +464,19 @@ if not L then return end
 	L["CONFIG_SETTINGS_EMPTY_COLOUR"] = "Цвета ячеек"
 	L["CONFIG_SETTINGS_EMPTY_COLOUR_TEXT"] = "устанавливает цвет кромки и фона для пустых %1$s ячеек"
 --	L["CONFIG_SETTINGS_EMPTY_STATUS"] = "display format"
-	
-	
+
+
 -- sorting
 --	L["CONFIG_SORTMETHOD"] = ""
-	
+
 	L["CONFIG_SORTMETHOD_SORT"] = "Сортировка"
-	
+
 --	L["CONFIG_SORTMETHOD_STYLE_TEXT"] = ""
 	L["CONFIG_SORTMETHOD_STYLE_BAGSLOT"] = "Сумка / Ячейка"
 	L["CONFIG_SORTMETHOD_STYLE_BAGSLOT_TEXT"] = "сортирует инвентарь по номеру сумки и ячейки"
 	L["CONFIG_SORTMETHOD_STYLE_USER"] = "Ручная"
 	L["CONFIG_SORTMETHOD_STYLE_USER_TEXT"] = "сортирует инвентарь тем способом, который выберите Вы"
-	
+
 	L["CONFIG_SORTMETHOD_INCLUDE_NAME"] = "название предмета"
 	L["CONFIG_SORTMETHOD_INCLUDE_NAME_TEXT"] = "использовать ли имя предмета при сортировке"
 	L["CONFIG_SORTMETHOD_INCLUDE_NAME_REVERSE"] = "Обратить названия"
@@ -499,53 +497,53 @@ if not L then return end
 --	L["CONFIG_SORTMETHOD_INCLUDE_ITEMAGE_TEXT"] = ""
 	L["CONFIG_SORTMETHOD_INCLUDE_VENDORPRICE"] = "цена продажи"
 	L["CONFIG_SORTMETHOD_INCLUDE_VENDORPRICE_TEXT"] = "использовать ли цену продажи предмета NPC-торговцу при сортировке"
-	
+
 	L["CONFIG_SORTMETHOD_DIRECTION_TEXT"] = "производить сортировку в порядке увеличения или убывания?"
 	L["CONFIG_SORTMETHOD_ORDER"] = "Порядок сортировки"
 	L["CONFIG_SORTMETHOD_MOVE_UP_TEXT"] = "перемещает %1$s вверх в порядке сортировки"
 	L["CONFIG_SORTMETHOD_MOVE_DOWN_TEXT"] = "перемещает %1$s вниз в порядке сортировки"
 	L["CONFIG_SORTMETHOD_NOT_INCLUDED"] = "* не включено в сортировку *"
-	
+
 --	L["CONFIG_SORTMETHOD_ADD"] = ""
 --	L["CONFIG_SORTMETHOD_ADD_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_RENAME_TEXT"] = ""
 --	L["CONFIG_SORTMETHOD_DELETE_TEXT"] = ""
-	
-	
+
+
 -- search
 	L["CONFIG_SEARCH"] = "Поиск"
 
-	
+
 --	rules
 	L["CONFIG_RULES"] = "Правила"
 	L["CONFIG_RULES_SHOWDISABLED"] = "Показывать отключенные правила"
 	L["CONFIG_RULES_SHOWDISABLED_TEXT"] = "отображать ли отключенные правила?"
-	
-	
+
+
 --	configuration options > categories
 --	L["CONFIG_CATEGORY"] = ""
-	
+
 	L["CONFIG_CATEGORY_CUSTOM"] = "Пользовательские категории"
 --	L["CONFIG_CATEGORY_DELETED"] = ""
-	
+
 --	L["CONFIG_CATEGORY_ADD"] = ""
 --	L["CONFIG_CATEGORY_ADD_TEXT"] = ""
 --	L["CONFIG_CATEGORY_RENAME_TEXT"] = ""
 --	L["CONFIG_CATEGORY_DELETE_TEXT"] = ""
-	
-	
+
+
 --	configuration options > debug
 	L["CONFIG_DEBUG"] = "Режим отладки"
 	L["CONFIG_DEBUG_TEXT"] = "использовать ли код режима отладки?"
-	
-	
+
+
 --	configuration options > generic
 --	L["BORDER_SCALE_TEXT"] = ""
 	L["BORDER_TEXTURE_TEXT"] = "настройки текстуры кромки"
 	L["BORDER_TEXTURE_FILE_TEXT"] = "текстура, для использования на кромке (изменение этого параметра сбросит масштаб на 100%)"
 	L["BORDER_TEXTURE_HEIGHT_TEXT"] = "высота (в пикселах) текстуры"
-	
-	
+
+
 --	rules frame
 	L["RULE"] = "Правило"
 	L["RULE_ENABLED"] = "Активно"
@@ -559,7 +557,7 @@ if not L then return end
 	L["RULE_LIST_ID"] = "Правило"
 	L["RULE_LIST_ORDER"] = "Порядок"
 	L["RULE_LIST_DESCRIPTION"] = "Описание"
-	
+
 	L["RULE_DAMAGED"] = "Правило %s помечено как повреждённое и более не будет работать, пока Вы его не исправите."
 --	L["RULE_FAILED"] = ""
 	L["RULE_FAILED_KEY_NIL"] = "нет ключа"
@@ -571,13 +569,13 @@ if not L then return end
 --	L["RULE_FAILED_ARGUMENT_IS_INVALID"] = ""
 --	L["RULE_FAILED_ARGUMENT_NONE_SPECIFIED"] = ""
 --	L["RULE_FAILED_ADDON_NOT_LOADED"] = ""
-	
-	
+
+
 --	new item indicators
 --	L["NEW_ITEM_INCREASE"] = ""
 --	L["NEW_ITEM_DECREASE"] = ""
-	
-	
+
+
 --	slash commands
 --	L["SLASH_UI"] = ""
 --	L["SLASH_UI_TEXT"] = ""
@@ -600,26 +598,26 @@ if not L then return end
 	L["SLASH_CACHE_ERASE_COMPLETE_TEXT"] = "Сбросить все данные для всех персонажей"
 --	L["SLASH_MISC"] = ""
 --	L["SLASH_MISC_TEXT"] = ""
-	
-	
+
+
 --	misc chat stuff
 	L["UPGRADE_PROFILE"] = "Обновление профиля [%1$s] до %2$.2f"
 	L["UPGRADE_GLOBAL"] = "Обновление общей %1$s информации до v%2$.4f"
 --	L["UPGRADE_CHAR"] = ""
-	
+
 	L["MISC_ALERT"] = "Внимание!"
 	L["MISC_ALERT_FRAMELEVEL_1"] = "Выполнен багфикс."
 	L["MISC_ALERT_FRAMELEVEL_2"] = "FrameLevel для окна %1$s был равен %2$s и сброшен до %3$s для уверенной работоспособности. Извините за небольшой лаг, вызванный этим фиксом."
-	
-	
+
+
 --	item count tooltip
 	L["TOOLTIP_VENDOR"] = "Торговец"
 --	L["TOOLTIP_ITEMLEVEL"] = "iLvl: %s"
 	L["TOOLTIP_TOTAL"] = "Всего"
 --	L["TOOLTIP_COUNT_ME"] = ""
 --	L["TOOLTIP_VAULT_TABS"] = ""
-	
-	
+
+
 --	generic menu text
 --	L["AUTOMATIC"] = ""
 	L["BOTTOMLEFT"] = "Снизу слева"
@@ -697,8 +695,8 @@ if not L then return end
 --	L["STRING"] = ""
 --	L["COOLDOWN"] = ""
 --	L["FRAMES"] = ""
-	
-	
+
+
 -- libdatabroker
 --	L["LDB"] = ""
 --	L["LDB_BAGS_COLOUR_USE"] = ""
@@ -727,4 +725,3 @@ if not L then return end
 --	L["LDB_MOUNTS_SUMMON"] = ""
 --	L["LDB_COMPANION_MISSING"] = ""
 --	L["LDB_COMPANION_NONE"] = ""
-	

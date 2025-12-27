@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0505,
-		UIVersion = "3.05.05",
+		Version = 3.0600,
+		UIVersion = "3.06.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -1254,6 +1254,21 @@ ArkInventory.Const.DatabaseDefaults.global = {
 				["next"] = 0,
 			},
 		},
+		["background"] = {
+			["data"] = {
+				["*"] = {
+					["used"] = false,
+					["name"] = "",
+					["colour"] = {
+						["r"] = 0,
+						["g"] = 0,
+						["b"] = 0.4,
+						["a"] = 0.4,
+					},
+				},
+			},
+			["next"] = 0,
+		},
 		["sort"] = {
 			["data"] = {
 				[9999] = {
@@ -1528,6 +1543,7 @@ ArkInventory.Const.DatabaseDefaults.profile = {
 						["*"] = {
 							-- label
 							-- sortorder
+							-- backgroundid
 						},
 					},
 				},
@@ -2893,6 +2909,94 @@ function ArkInventory.CategoryGetNext( v )
 		end
 
 	end
+
+end
+
+function ArkInventory.BackgroundColourGetNext( v )
+
+	if not v.next then
+		v.next = 1
+	else
+		if v.next < 1 then
+			v.next = 1
+		end
+	end
+
+	local max = ArkInventory.Const.Category.Max
+	local c = 0
+
+	while true do
+
+		v.next = v.next + 1
+
+		if v.next > max then
+			c = c + 1
+			v.next = 1
+		end
+
+		if c > 1 then
+			return -1
+		end
+
+		if not v.data[v.next] then
+			v.data[v.next] = { }
+		end
+
+		if not v.data[v.next].used then
+			return v.next
+		end
+
+	end
+
+end
+
+function ArkInventory.BackgroundColourCustomAdd( name )
+
+	local v = ArkInventory.db.global.option.background
+
+	local n = ArkInventory.BackgroundColourGetNext( v )
+
+	if n == -1 then
+		ArkInventory.OutputError( "background colour limit reached" )
+		return
+	end
+
+	v.data[v.next].used = true
+	v.data[v.next].name = strtrim( name )
+
+end
+
+function ArkInventory.BackgroundColourCustomDelete( id )
+
+	local bg = ArkInventory.db.global.option.background.data
+	if bg and bg[id] then
+		bg[id].used = false
+		bg[id].name = ""
+	end
+
+end
+
+function ArkInventory.BackgroundColourCustomRename( id, name )
+
+	local bg = ArkInventory.db.global.option.background.data
+	if bg and bg[id] then
+		bg[id].name = strtrim( name )
+	end
+
+end
+
+function ArkInventory.BackgroundColourGet( id )
+
+	if not id then
+		return
+	end
+
+	local bg = ArkInventory.db.global.option.background.data
+	if not bg or not bg[id] or not bg[id].used then
+		return
+	end
+
+	return bg[id]
 
 end
 
@@ -5319,7 +5423,22 @@ function ArkInventory.Frame_Bar_Paint( frame )
 
 	else
 
-		local colour = ArkInventory.LocationOptionGet( loc_id, { "bar", "background", "colour" } )
+		local colour
+		local bar_id = frame.ARK_Data.bar_id
+		if bar_id then
+			local bg_id = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "backgroundid" } )
+			if bg_id then
+				local bg = ArkInventory.BackgroundColourGet( bg_id )
+				if bg and bg.colour then
+					colour = bg.colour
+				end
+			end
+		end
+
+		if not colour then
+			colour = ArkInventory.LocationOptionGet( loc_id, { "bar", "background", "colour" } )
+		end
+
 		_G[frame:GetName( ) .. "Background"]:SetTexture( colour.r, colour.g, colour.b, colour.a )
 		_G[frame:GetName( ) .. "Edit"]:Hide( )
 
