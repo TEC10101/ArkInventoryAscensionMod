@@ -5481,12 +5481,14 @@ function ArkInventory.Frame_Bar_Label( frame )
 	local bar_id = frame.ARK_Data.bar_id
 
 	local obj = _G[frame:GetName( ) .. "Label"]
+	local hit = _G[frame:GetName( ) .. "LabelHit"]
 
 	if obj then
 
 		local txt = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "label" } )
+		local showname = ArkInventory.LocationOptionGet( loc_id, { "bar", "name", "show" } )
 
-		if txt and txt ~= "" and ArkInventory.LocationOptionGet( loc_id, { "bar", "name", "show" } ) then
+		if txt and txt ~= "" and showname then
 
 			local anchor = ArkInventory.LocationOptionGet( loc_id, { "bar", "name", "anchor" } )
 			if anchor == ArkInventory.Const.Anchor.Automatic then
@@ -5512,10 +5514,16 @@ function ArkInventory.Frame_Bar_Label( frame )
 			obj:SetTextColor( colour.r, colour.g, colour.b )
 
 			obj:Show( )
+			if hit then
+				hit:Show( )
+			end
 
 		else
 
 			obj:Hide( )
+			if hit then
+				hit:Hide( )
+			end
 
 		end
 
@@ -5683,6 +5691,27 @@ function ArkInventory.Frame_Bar_OnLoad( frame )
 	frame:SetID( bar_id )
 
 	ArkInventory.MediaSetFontFrame( frame )
+
+end
+
+
+function ArkInventory.Frame_Bar_OnEnter( frame )
+
+	if not frame or not frame.ARK_Data then
+		return
+	end
+
+	local loc_id = frame.ARK_Data.loc_id
+	local bar_id = frame.ARK_Data.bar_id
+
+	local text = string.format( ArkInventory.Localise["MENU_BAR_TITLE"], bar_id )
+	local label = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "label" } )
+
+	if label and label ~= "" then
+		text = string.format( "%s %s", text, label )
+	end
+
+	ArkInventory.GameTooltipSetText( frame, text )
 
 end
 

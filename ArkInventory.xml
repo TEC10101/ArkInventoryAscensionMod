@@ -408,8 +408,7 @@
       </OnLoad>
 
       <OnEnter>
-        ArkInventory.GameTooltipSetText( self, string.format(
-        ArkInventory.Localise["MENU_BAR_TITLE"], self:GetID( ) ) )
+        ArkInventory.Frame_Bar_OnEnter( self )
       </OnEnter>
 
       <OnDragStart>
@@ -629,6 +628,27 @@
 
     <Frames>
       <Button name="$parentEdit" inherits="ARKINV_TemplateButtonBarEdit" hidden="true" />
+      <!-- Invisible hitbox exactly over the bar label for name tooltip in non-edit mode -->
+      <Button name="$parentLabelHit" hidden="true">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentLabel" relativePoint="TOPLEFT">
+            <Offset x="0" y="0" />
+          </Anchor>
+          <Anchor point="BOTTOMRIGHT" relativeTo="$parentLabel" relativePoint="BOTTOMRIGHT">
+            <Offset x="0" y="0" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnEnter>
+            if not ArkInventory.Global.Mode.Edit then
+            ArkInventory.Frame_Bar_OnEnter( self:GetParent( ) )
+            end
+          </OnEnter>
+          <OnLeave>
+            ArkInventory.GameTooltipHide( )
+          </OnLeave>
+        </Scripts>
+      </Button>
     </Frames>
 
     <Scripts>
