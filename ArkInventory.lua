@@ -1887,7 +1887,7 @@ function ArkInventory.OnEnable( )
 	ArkInventory:RegisterEvent( "PLAYER_REGEN_DISABLED", "LISTEN_COMBAT_ENTER" ) -- player about to enter combat
 	ArkInventory:RegisterEvent( "PLAYER_REGEN_ENABLED", "LISTEN_COMBAT_LEAVE" ) -- player left combat
 
-	local bucket1 = ArkInventory.db.global.option.bucket[ArkInventory.Const.Location.Bag] or 0.5
+	local bucket1 = ArkInventory.db.global.option.bucket[ArkInventory.Const.Location.Bag] or 0.1
 
 	ArkInventory:RegisterBucketMessage( "LISTEN_BAG_UPDATE_BUCKET", bucket1 )
 	ArkInventory:RegisterEvent( "BAG_UPDATE", "LISTEN_BAG_UPDATE" )
@@ -2708,6 +2708,12 @@ function ArkInventory.CategoryLocationSet( loc_id, cat_id, bar_id )
 				ArkInventory.db.profile.option.rule[cat_code] = rp
 			end
 		end
+
+		-- changing where a rule is assigned can change which
+		-- items match that rule in each location. clear the
+		-- rule category cache so items no longer report stale
+		-- rule assignments after bar changes.
+		ArkInventory.ItemCacheClear( )
 	end
 
 end
@@ -3470,8 +3476,24 @@ function ArkInventory.ItemCategoryGetRule( i, bt, bag_id, slot_id )
 	for rid in ArkInventory.spairs( r, function(a,b) return ( r[a].order or 0 ) < ( r[b].order or 0 ) end ) do
 
 		if r[rid].used then
-
-			local a, em = ArkInventory.RuleAppliesToItem( rid, i )
+			-- only consider this rule if it is actually assigned to
+			-- some bar in the current location. this ensures that
+			-- rules are effectively per-location: a rule assigned to
+			-- a bag bar does not run when evaluating items in the
+			-- bank (unless it is also assigned to a bank bar).
+			local skip = false
+			local loc_id = i.loc_id
+			if loc_id then
+				local cat_id = ArkInventory.CategoryCodeJoin( t, rid )
+				local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat_id )
+				if not ( abs( cat_bar or 0 ) > 0 and not def_bar ) then
+					-- rule is not assigned to any bar in this location
+					-- so skip evaluating it for this item
+					skip = true
+				end
+			end
+			if not skip then
+				local a, em = ArkInventory.RuleAppliesToItem( rid, i )
 
 			if em == nil then
 
@@ -3489,6 +3511,7 @@ function ArkInventory.ItemCategoryGetRule( i, bt, bag_id, slot_id )
 
 			end
 
+			end
 		end
 
 	end
