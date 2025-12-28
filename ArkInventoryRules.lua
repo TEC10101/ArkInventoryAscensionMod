@@ -87,40 +87,6 @@ function ArkInventory.RuleAppliesToItem( rid, i )
 		return false, nil
 	end
 
-	-- special handling for rules that reference transmog/xmog:
-	-- automatically restrict evaluation to non-jewelry armor/weapon items,
-	-- equivalent to implicitly wrapping the user's formula in
-	--   type("armor","weapon") and not equip("neck","finger","trinket")
-	local formula_text = ra.formula or ""
-	if type( formula_text ) == "string" then
-		local f_lower = string.lower( formula_text )
-		if string.find( f_lower, "transmog", 1, true ) or string.find( f_lower, "xmog", 1, true ) then
-			if not i.h then
-				return false, nil
-			end
-
-			local _, _, _, _, _, itemType, _, _, equipLoc = GetItemInfo( i.h )
-			itemType = string.lower( itemType or "" )
-			equipLoc = equipLoc or ""
-
-			-- if we can't determine the item type, be conservative and
-			-- treat the rule as not matching for this item
-			if itemType == "" then
-				return false, nil
-			end
-
-			-- only consider armor and weapon for any transmog-based rule
-			if itemType ~= "armor" and itemType ~= "weapon" then
-				return false, nil
-			end
-
-			-- and never consider jewelry (neck/finger/trinket) slots
-			if equipLoc == "INVTYPE_NECK" or equipLoc == "INVTYPE_FINGER" or equipLoc == "INVTYPE_TRINKET" then
-				return false, nil
-			end
-		end
-	end
-
 	local p, eor = loadstring( string.format( "return( %s )", ra.formula ) )
 
 	if not p then
@@ -1232,108 +1198,6 @@ function Rule.Execute.unwearable( ignore_level )
 	return Rule_Internal_WearableCheck( false, ignore_level )
 end
 
-function Rule.Execute.transmog( ... )
-
-	if not Rule.Item.h or Rule.Item.class ~= "item" then
-		return false
-	end
-
-	-- only transmog-check equippable items
-	if not Rule.Execute.equip( ) then
-		return false
-	end
-
-	-- jewellery (neck, finger, trinket) never has an appearance on Ascension
-	local equipLoc = select( 9, GetItemInfo( Rule.Item.h ) ) or ""
-	if equipLoc == "INVTYPE_NECK" or equipLoc == "INVTYPE_FINGER" or equipLoc == "INVTYPE_TRINKET" then
-		return false
-	end
-
-	local fn = "transmog"
-
-	local ac = select( '#', ... )
-	local rule_secondary = false
-
-	if ac > 0 then
-		local arg1 = ...
-		if arg1 == nil then
-			-- ignore explicit nil, just treat as no secondary flag
-		elseif type( arg1 ) ~= "boolean" then
-			error( string.format( ArkInventory.Localise["RULE_FAILED_ARGUMENT_IS_INVALID"], fn, 1, ArkInventory.Localise["BOOLEAN"] ), 0 )
-		else
-			rule_secondary = not not arg1
-		end
-	end
-
-	-- prefer a helper function if it exists (future/backported versions)
-	if ArkInventory and ArkInventory.ItemTransmogStateCharacter then
-		return not not ArkInventory.ItemTransmogStateCharacter( Rule.Item.h, Rule.Item.sb, Rule.Item.loc_id, true, rule_secondary )
-	end
-
-	-- fallback: look for appearance-known style text in the tooltip.
-	-- Ascension appears to add its transmog lines only to the main
-	-- GameTooltip, not to hidden scan tooltips, so we must query
-	-- GameTooltip directly here.
-	if Rule.Item.test_rule then
-		return false
-	end
-
-	if ArkInventory.Global.Location[Rule.Item.loc_id] and ArkInventory.Global.Location[Rule.Item.loc_id].isOffline then
-		-- transmog state is character-specific and not available offline
-		return false
-	end
-
-	local tooltip = GameTooltip
-	tooltip:SetOwner( UIParent, "ANCHOR_NONE" )
-	tooltip:ClearLines( )
-
-	local bliz_id = ArkInventory.BagID_Blizzard( Rule.Item.loc_id, Rule.Item.bag_id )
-	tooltip:SetBagItem( bliz_id, Rule.Item.slot_id )
-
-	-- debug aid: toggle this to true temporarily to dump all
-	-- tooltip lines seen by transmog() into chat.
-	local debugTransmog = false
-	if debugTransmog and ArkInventory and ArkInventory.Output then
-		ArkInventory.Output( "[AI transmog] item=", Rule.Item.h )
-		for i = 1, ArkInventory.TooltipNumLines( tooltip ) do
-			local l, r = ArkInventory.TooltipGetLine( tooltip, i )
-			if ( l and l ~= "" ) or ( r and r ~= "" ) then
-				ArkInventory.Output( string.format( "[AI transmog] %d: '%s' || '%s'", i, l or "", r or "" ) )
-			end
-		end
-	end
-
-	-- Ascension tooltips use explicit lines for transmog states, e.g.:
-	--   You haven't collected this appearance
-	--   You've collected this appearance
-	-- We treat only the collected text as a positive match.
-
-	local negative_phrases = {
-		"you haven't collected this appearance",
-		"you have not collected this appearance",
-	}
-
-	for _, text in ipairs( negative_phrases ) do
-		if ArkInventory.TooltipContains( tooltip, text, nil, nil, false ) then
-			return false
-		end
-	end
-
-	local positive_phrases = {
-		"you've collected this appearance",
-		"you have collected this appearance",
-	}
-
-	for _, text in ipairs( positive_phrases ) do
-		if ArkInventory.TooltipContains( tooltip, text, nil, nil, false ) then
-			return true
-		end
-	end
-
-	return false
-
-end
-
 function Rule.Execute.count( ... )
 
 	if not Rule.Item.h then
@@ -1462,9 +1326,6 @@ Rule.Environment = {
 	usable = Rule.Execute.usable,
 	use = Rule.Execute.usable,
 	useable = Rule.Execute.usable,
-
-	transmog = Rule.Execute.transmog,
-	xmog = Rule.Execute.transmog,
 
 	wearable = Rule.Execute.wearable,
 	unwearable = Rule.Execute.unwearable,
