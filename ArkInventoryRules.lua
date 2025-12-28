@@ -478,6 +478,69 @@ function Rule.Execute.itemleveluse( ... )
 
 end
 
+function Rule.Execute.itemstat( ... )
+
+	if not Rule.Item.h or Rule.Item.class ~= "item" then
+		return false
+	end
+
+	local fn = "itemstat"
+
+	local ac = select( '#', ... )
+
+	if ac == 0 then
+		error( string.format( ArkInventory.Localise["RULE_FAILED_ARGUMENT_NONE_SPECIFIED"], fn ), 0 )
+	end
+
+	-- build a tooltip for this item (online or offline)
+	if Rule.Item.test_rule then
+		ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Rule, Rule.Item.h )
+	else
+		if ArkInventory.Global.Location[Rule.Item.loc_id].isOffline then
+			ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Rule, Rule.Item.h )
+		else
+			local bliz_id = ArkInventory.BagID_Blizzard( Rule.Item.loc_id, Rule.Item.bag_id )
+			ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Rule, bliz_id, Rule.Item.slot_id )
+		end
+	end
+
+	local tooltip = ArkInventory.Global.Tooltip.Rule
+	local numLines = ArkInventory.TooltipNumLines( tooltip )
+
+	for ax = 1, ac do
+
+		local arg = select( ax, ... )
+
+		if not arg then
+			error( string.format( ArkInventory.Localise["RULE_FAILED_ARGUMENT_IS_NIL"], fn, ax ), 0 )
+		end
+
+		if type( arg ) ~= "string" then
+			error( string.format( ArkInventory.Localise["RULE_FAILED_ARGUMENT_IS_INVALID"], fn, ax, ArkInventory.Localise["STRING"] ), 0 )
+		end
+
+		local statName = string.lower( strtrim( arg ) )
+		if statName ~= "" then
+			for line = 2, numLines do
+				local leftText = _G[tooltip:GetName( ) .. "TextLeft" .. line]
+				if leftText and leftText:IsShown( ) then
+					local txt = leftText:GetText( ) or ""
+					if txt ~= "" and string.find( txt, "%d" ) then
+						local txtLower = string.lower( txt )
+						if string.find( txtLower, statName, 1, true ) then
+							return true
+						end
+					end
+				end
+			end
+		end
+
+	end
+
+	return false
+
+end
+
 function Rule.Execute.periodictable( ... )
 
 	if not Rule.Item.h or Rule.Item.class ~= "item" then
@@ -1097,6 +1160,39 @@ function Rule.Execute.usable( )
 
 end
 
+local function Rule_Internal_WearableCheck( wearable, ignore_level )
+
+	if not Rule.Item.h or Rule.Item.class ~= "item" then
+		return false
+	end
+
+	-- first ensure the item is equippable at all
+	if not Rule.Execute.equip( ) then
+		return false
+	end
+
+	-- build a tooltip for usability; the older TooltipCanUse helper
+	-- does not distinguish level vs. other restrictions, so the
+	-- ignore_level flag is currently accepted but not applied.
+	ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Rule, Rule.Item.h )
+	local canUse = ArkInventory.TooltipCanUse( ArkInventory.Global.Tooltip.Rule )
+
+	if wearable then
+		return canUse
+	else
+		return not canUse
+	end
+
+end
+
+function Rule.Execute.wearable( ignore_level )
+	return Rule_Internal_WearableCheck( true, ignore_level )
+end
+
+function Rule.Execute.unwearable( ignore_level )
+	return Rule_Internal_WearableCheck( false, ignore_level )
+end
+
 function Rule.Execute.count( ... )
 
 	if not Rule.Item.h then
@@ -1209,6 +1305,8 @@ Rule.Environment = {
 	ireq = Rule.Execute.itemleveluse,
 	uselevel = Rule.Execute.itemleveluse,
 
+	itemstat = Rule.Execute.itemstat,
+
 	clr = Rule.Execute.characterlevelrange,
 
 	vpu = Rule.Execute.vendorpriceunder,
@@ -1223,6 +1321,9 @@ Rule.Environment = {
 	usable = Rule.Execute.usable,
 	use = Rule.Execute.usable,
 	useable = Rule.Execute.usable,
+
+	wearable = Rule.Execute.wearable,
+	unwearable = Rule.Execute.unwearable,
 
 	count = Rule.Execute.count,
 
