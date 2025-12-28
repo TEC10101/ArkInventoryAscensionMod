@@ -832,7 +832,7 @@
             if ArkInventory and ArkInventory.SearchIsRuleMode then
             self:SetChecked( ArkInventory.SearchIsRuleMode( ) )
             end
-            self.tooltipText = "Check to do a rule-based search"
+            self.tooltipText = "Check to search using rules-syntax, uncheck to search by name."
           </OnLoad>
           <OnClick>
             if self:GetChecked( ) then
