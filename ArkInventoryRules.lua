@@ -484,6 +484,11 @@ function Rule.Execute.itemstat( ... )
 		return false
 	end
 
+	-- only apply to items that are equippable
+	if not Rule.Execute.equip( ) then
+		return false
+	end
+
 	local fn = "itemstat"
 
 	local ac = select( '#', ... )
