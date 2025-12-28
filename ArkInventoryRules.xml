@@ -767,7 +767,7 @@
 
             <Anchors>
               <Anchor point="LEFT" relativeTo="$parent" relativePoint="LEFT">
-                <Offset x="80" y="0" />
+                <Offset x="110" y="0" />
               </Anchor>
               <Anchor point="RIGHT" relativeTo="$parentClear" relativePoint="LEFT">
                 <Offset x="-2" y="0" />

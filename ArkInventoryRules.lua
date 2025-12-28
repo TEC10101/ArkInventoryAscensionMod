@@ -1864,20 +1864,23 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 			local displayName = baseName
 			local assigned = false
 			local cat_type_rule = ArkInventory.Const.Category.Type.Rule
+			local cat_id
+			local loc_id = ArkInventory.Frame_Rules_GetLocation( )
 			if cat_type_rule then
-				local cat_id = ArkInventory.CategoryCodeJoin( cat_type_rule, r.id )
-				local loc_id = ArkInventory.Frame_Rules_GetLocation( )
+				cat_id = ArkInventory.CategoryCodeJoin( cat_type_rule, r.id )
 				if loc_id and cat_id then
 					local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat_id )
 					if abs( cat_bar or 0 ) > 0 and not def_bar then
 						assigned = true
 						local bar_display = abs( cat_bar )
+						local loc = ArkInventory.Global.Location and ArkInventory.Global.Location[loc_id]
+						local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
 						if r.usable then
-							-- usable & assigned: yellow name with green [bar#]
-							displayName = LIGHTYELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
+							-- usable & assigned: yellow name with green [Location bar]
+							displayName = LIGHTYELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. loc_name .. " " .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
 						else
-							-- unusable & assigned: golden name with green [bar#]
-							displayName = YELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
+							-- unusable & assigned: golden name with green [Location bar]
+							displayName = YELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. loc_name .. " " .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
 						end
 					end
 				end
@@ -1886,7 +1889,55 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 				-- unusable & unassigned: golden name
 				displayName = YELLOW_FONT_COLOR_CODE .. baseName .. FONT_COLOR_CODE_CLOSE
 			end
+
+			-- append other-location bar hints: [Location bar, Location2 bar, ...]
+			if cat_id and ArkInventory.Global and ArkInventory.Global.Location then
+				local others = { }
+				for l_id in pairs( ArkInventory.Global.Location ) do
+					if not loc_id or l_id ~= loc_id then
+						local cat_bar, def_bar = ArkInventory.CategoryLocationGet( l_id, cat_id )
+						if abs( cat_bar or 0 ) > 0 and not def_bar then
+							local loc = ArkInventory.Global.Location[l_id]
+							local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
+							table.insert( others, string.format( "%s %s", loc_name, abs( cat_bar ) ) )
+						end
+					end
+				end
+				if #others > 0 then
+					-- add a space before the new bracket group and keep it yellow
+					displayName = string.format( "%s %s[%s]%s", displayName, YELLOW_FONT_COLOR_CODE, table.concat( others, ", " ), FONT_COLOR_CODE_CLOSE )
+				end
+			end
 			_G[linename .. "C3"]:SetText( displayName )
+
+			-- disable usable checkbox if this rule is assigned to a bar in any
+			-- location for this profile, and provide a tooltip explaining why
+			local cb = _G[linename .. "Usable"]
+			if cb then
+				local assigned_anywhere = false
+				local cat_type_rule = ArkInventory.Const.Category.Type.Rule
+				if cat_type_rule and ArkInventory.Global and ArkInventory.Global.Location then
+					local cat_id = ArkInventory.CategoryCodeJoin( cat_type_rule, r.id )
+					if cat_id then
+						for l_id in pairs( ArkInventory.Global.Location ) do
+							local ok, cats = pcall( ArkInventory.LocationOptionGet, l_id, { "category" } )
+							if ok and cats and cats[cat_id] ~= nil then
+								assigned_anywhere = true
+								break
+							end
+						end
+					end
+				end
+				if assigned_anywhere then
+					cb:Disable( )
+					cb:SetScript( "OnEnter", ArkInventory.Frame_Rules_Table_Usable_OnEnter )
+					cb:SetScript( "OnLeave", ArkInventory.Frame_Rules_Table_Usable_OnLeave )
+				else
+					cb:Enable( )
+					cb:SetScript( "OnEnter", nil )
+					cb:SetScript( "OnLeave", nil )
+				end
+			end
 			-- ensure unassigned usable rules appear white
 			if r.usable and not assigned then
 				_G[linename .. "C3"]:SetTextColor( 1, 1, 1, 1 )
@@ -1932,6 +1983,78 @@ function ArkInventory.Frame_Rules_Table_Usable_OnClick( self )
 
 	local f = self:GetParent( ):GetParent( ):GetParent( ):GetParent( ):GetName( )
 	ArkInventory.Frame_Rules_Table_Refresh( f )
+
+end
+
+function ArkInventory.Frame_Rules_Table_Usable_OnEnter( self )
+
+	if not self then
+		self = this
+	end
+
+	local row = self:GetParent( ):GetName( )
+	local id = tonumber( _G[row .. "Id"]:GetText( ) )
+	if not id or id <= 0 then
+		return
+	end
+
+	local cat_type_rule = ArkInventory.Const.Category.Type.Rule
+	local cat_id
+	if cat_type_rule then
+		cat_id = ArkInventory.CategoryCodeJoin( cat_type_rule, id )
+	end
+	if not cat_id then
+		return
+	end
+
+	local loc_id_display
+	local bar_display
+
+	-- prefer the current rules location if the rule is assigned there
+	local loc_current = ArkInventory.Frame_Rules_GetLocation( )
+	if loc_current then
+		local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_current, cat_id )
+		if abs( cat_bar or 0 ) > 0 and not def_bar then
+			loc_id_display = loc_current
+			bar_display = abs( cat_bar )
+		end
+	end
+
+	-- if not assigned in the current location, look for any other location
+	if not loc_id_display and ArkInventory.Global and ArkInventory.Global.Location then
+		for l_id in pairs( ArkInventory.Global.Location ) do
+			local ok, cats = pcall( ArkInventory.LocationOptionGet, l_id, { "category" } )
+			if ok and cats then
+				local bar = cats[cat_id]
+				if bar ~= nil then
+					loc_id_display = l_id
+					bar_display = abs( bar )
+					break
+				end
+			end
+		end
+	end
+
+	if not loc_id_display or not bar_display then
+		return
+	end
+
+	local loc = ArkInventory.Global.Location[loc_id_display]
+	local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
+
+	GameTooltip:SetOwner( self, "ANCHOR_RIGHT" )
+	GameTooltip:SetText( string.format( "Remove Bar %s assignment for %s location", bar_display, loc_name ), 1, 1, 1 )
+	GameTooltip:Show( )
+
+end
+
+function ArkInventory.Frame_Rules_Table_Usable_OnLeave( self )
+
+	if not self then
+		self = this
+	end
+
+	GameTooltip:Hide( )
 
 end
 
