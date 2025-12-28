@@ -5294,6 +5294,9 @@ function ArkInventory.Frame_Container_Draw( frame )
 
 				obj:Show( )
 
+				-- repaint the bar now that it has the correct logical bar id
+				ArkInventory.Frame_Bar_Paint( obj )
+
 			end
 
 			if ArkInventory.Global.Location[loc_id].drawState <= ArkInventory.Const.Window.Draw.Refresh then
