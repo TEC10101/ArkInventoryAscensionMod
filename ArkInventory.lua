@@ -6347,7 +6347,12 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 	--ArkInventory.Output( "item=[", i.h, "]" )
 	local usedmycode = false
 
-	if ArkInventory.Global.Mode.Edit or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
+	-- Use ArkInventory's own tooltip path for special locations and
+	-- offline/edit viewing, but let bag items (loc_id == Bag) always
+	-- go through the default ContainerFrameItemButton_OnEnter path so
+	-- Ascension's container tooltip hooks apply consistently in both
+	-- normal and edit modes.
+	if ( ArkInventory.Global.Mode.Edit and loc_id ~= ArkInventory.Const.Location.Bag ) or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
 
 		usedmycode = true -- edit mode, offline, bank, keyring, vault, mail, pet, token
 
