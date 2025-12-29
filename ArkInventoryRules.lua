@@ -1176,11 +1176,75 @@ local function Rule_Internal_WearableCheck( wearable, ignore_level )
 		return false
 	end
 
-	-- build a tooltip for usability; the older TooltipCanUse helper
-	-- does not distinguish level vs. other restrictions, so the
-	-- ignore_level flag is currently accepted but not applied.
+	-- build a tooltip for usability and inspect red lines so we can
+	-- distinguish level-only restrictions from other unusable reasons.
 	ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Rule, Rule.Item.h )
-	local canUse = ArkInventory.TooltipCanUse( ArkInventory.Global.Tooltip.Rule )
+	local tooltip = ArkInventory.Global.Tooltip.Rule
+
+	-- default behaviour if caller does not specify:
+	--   wearable()  -> respect level restriction (ignore_level = false)
+	--   unwearable() -> ignore level-only restriction (ignore_level = true)
+	local ignoreLevel = ignore_level
+	if ignoreLevel == nil then
+		ignoreLevel = not wearable
+	end
+
+	local hasNonLevelRestriction = false
+	local hasLevelRestriction = false
+
+	local sides = { "TextLeft", "TextRight" }
+	for i = 2, ArkInventory.TooltipNumLines( tooltip ) do
+		for _, side in ipairs( sides ) do
+			local obj = _G[tooltip:GetName( ) .. side .. i]
+			if obj and obj:IsShown( ) then
+				local txt = obj:GetText( )
+				local r, g, b = obj:GetTextColor( )
+				local c = string.format( "%02x%02x%02x", r * 255, g * 255, b * 255 )
+				if c == "fe1f1f" then
+					-- any red line except the special disenchant text is a
+					-- restriction; classify it as level-only vs. other.
+					if txt ~= ITEM_DISENCHANT_NOT_DISENCHANTABLE then
+						local txtLower = string.lower( txt or "" )
+						local isLevelLine = false
+
+						-- try to use the localized ITEM_MIN_LEVEL pattern if available
+						if ITEM_MIN_LEVEL then
+							local pat = string.lower( ITEM_MIN_LEVEL )
+							pat = pat:gsub( "%%d", "" )
+							pat = strtrim( pat )
+							if pat ~= "" and string.find( txtLower, pat, 1, true ) then
+								isLevelLine = true
+							end
+						end
+
+						-- fallback for servers where ITEM_MIN_LEVEL is not set
+						if not isLevelLine and string.find( txtLower, "requires level", 1, true ) then
+							isLevelLine = true
+						end
+
+						if isLevelLine then
+							hasLevelRestriction = true
+						else
+							hasNonLevelRestriction = true
+						end
+					end
+				end
+			end
+		end
+	end
+
+	local canUse
+	if hasNonLevelRestriction then
+		-- some non-level restriction is present: treat as unusable
+		canUse = false
+	elseif hasLevelRestriction and not ignoreLevel then
+		-- only level restriction and we are respecting level
+		canUse = false
+	else
+		-- either no restrictions, or only level restriction and we are
+		-- explicitly ignoring it
+		canUse = true
+	end
 
 	if wearable then
 		return canUse
