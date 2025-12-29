@@ -6472,7 +6472,7 @@ function ArkInventory.Frame_Item_OnDrag( frame )
 
 end
 
-function ArkInventory.Frame_Item_OnMouseUp( frame, arg1 )
+function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 
 	if ArkInventory.ValidFrame( frame, true ) == false then
 		return
@@ -6485,14 +6485,22 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, arg1 )
 
 		if IsModifierKeyDown( ) then
 
-			if i.h then
+			if i and i.h then
 				HandleModifiedItemClick( i.h )
 			end
 
 		else
 
 			if ArkInventory.Global.Mode.Edit then
-				ArkInventory.MenuItemOpen( frame )
+
+				if button == "RightButton" then
+					ArkInventory.MenuItemOpen( frame )
+				elseif button == "LeftButton" then
+					if ArkInventory.Lib and ArkInventory.Lib.DewDrop and ArkInventory.Lib.DewDrop:IsOpen( ) then
+						ArkInventory.Lib.DewDrop:Close( )
+					end
+				end
+
 			end
 
 		end
