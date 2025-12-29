@@ -405,6 +405,7 @@
         ArkInventory.Frame_Bar_OnLoad( self )
         SetItemButtonTexture( self, [[Interface\Buttons\WHITE8X8]] )
         SetItemButtonTextureVertexColor( self, 0.5, 0.1, 0.1, 0.3 )
+        self:RegisterForClicks( "LeftButtonUp", "RightButtonUp" )
       </OnLoad>
 
       <OnEnter>
@@ -436,7 +437,13 @@
       </OnShow>
 
       <OnClick>
+        if arg1 == "RightButton" then
         ArkInventory.MenuBarOpen( )
+        elseif arg1 == "LeftButton" then
+        if ArkInventory.Lib and ArkInventory.Lib.DewDrop and ArkInventory.Lib.DewDrop:IsOpen( ) then
+        ArkInventory.Lib.DewDrop:Close( )
+        end
+        end
       </OnClick>
 
     </Scripts>
