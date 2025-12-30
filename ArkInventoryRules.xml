@@ -1039,11 +1039,13 @@
       <Frame name="$parentTabs" inherits="ARKINV_TemplateFrameBasic">
         <Size x="2" y="28" />
         <Anchors>
+          <!-- align left with title frame and keep vertical gap small -->
           <Anchor point="TOPLEFT" relativeTo="$parentTitle" relativePoint="BOTTOMLEFT">
-            <Offset x="5" y="-2" />
+            <Offset x="0" y="2" />
           </Anchor>
+          <!-- widen to align with right edge of surrounding frames -->
           <Anchor point="RIGHT" relativeTo="$parent" relativePoint="RIGHT">
-            <Offset x="-5" y="0" />
+            <Offset x="0" y="0" />
           </Anchor>
         </Anchors>
 

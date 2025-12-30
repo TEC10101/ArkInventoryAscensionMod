@@ -1605,35 +1605,39 @@ function ArkInventory.Frame_Rules_Build_Sort( )
 	x:SetText( ArkInventory.Localise["RULE_LIST_DAMAGED"] )
 	x:Show( )
 
-	-- id
-	x = _G[f .. "_C1"]
-	x:ClearAllPoints( )
-	x:SetWidth( 50 )
-	x:SetPoint( "LEFT", f .. "_T2", "RIGHT", 5, 0 )
-	x:SetPoint( "TOP", 0, 0 )
-	x:SetPoint( "BOTTOM", 0, 0 )
-	x:SetText( ArkInventory.Localise["RULE_LIST_ID"] )
-	x:Show( )
-
-	-- order
+	-- order (move to far right)
 	x = _G[f .. "_C2"]
 	x:ClearAllPoints( )
 	x:SetWidth( 50 )
-	x:SetPoint( "LEFT", f .. "_C1", "RIGHT", 5, 0 )
+	x:SetPoint( "RIGHT", -5, 0 )
 	x:SetPoint( "TOP", 0, 0 )
 	x:SetPoint( "BOTTOM", 0, 0 )
 	x:SetText( ArkInventory.Localise["RULE_LIST_ORDER"] )
 	x:Show( )
 
-	-- description
-	x = _G[f .. "_C3"]
+	-- rule name (id + name + bar info) filling the middle
+	x = _G[f .. "_C1"]
 	x:ClearAllPoints( )
-	x:SetPoint( "LEFT", f .. "_C2", "RIGHT", 5, 0 )
+	if _G[f .. "_T2"] then
+		x:SetPoint( "LEFT", f .. "_T2", "RIGHT", 12, 0 )
+	else
+		x:SetPoint( "LEFT", 17, 0 )
+	end
+	x:SetPoint( "RIGHT", f .. "_C2", "LEFT", -5, 0 )
 	x:SetPoint( "TOP", 0, 0 )
 	x:SetPoint( "BOTTOM", 0, 0 )
-	x:SetPoint( "RIGHT", -35, 0 )
 	x:SetText( ArkInventory.Localise["RULE_LIST_DESCRIPTION"] )
 	x:Show( )
+
+	-- hide unused third text column
+	x = _G[f .. "_C3"]
+	x:ClearAllPoints( )
+	x:SetWidth( 1 )
+	x:SetPoint( "LEFT", f .. "_C1", "RIGHT", 0, 0 )
+	x:SetPoint( "TOP", 0, 0 )
+	x:SetPoint( "BOTTOM", 0, 0 )
+	x:SetText( "" )
+	x:Hide( )
 
 end
 
@@ -1677,41 +1681,41 @@ function ArkInventory.Frame_Rules_Build_Row( )
 		x:Show( )
 	end
 
-	-- id
-	x = _G[f .. "C1"]
+	-- order (far right column)
+	x = _G[f .. "C2"]
 	x:ClearAllPoints( )
 	x:SetWidth( 50 )
+	x:SetPoint( "RIGHT", -5, 0 )
+	x:SetPoint( "TOP", 0, 0 )
+	x:SetPoint( "BOTTOM", 0, 0 )
+	x:SetTextColor( 1, 1, 1, 1 )
+	x:SetJustifyH( "CENTER", 0, 0 )
+	x:Show( )
+
+	-- rule name column (id + name + bar info)
+	x = _G[f .. "C1"]
+	x:ClearAllPoints( )
 	if _G[f .. "T2"] then
 		x:SetPoint( "LEFT", f .. "T2", "RIGHT", 12, 0 )
 	else
 		x:SetPoint( "LEFT", 17, 0 )
 	end
+	x:SetPoint( "RIGHT", f .. "C2", "LEFT", -5, 0 )
 	x:SetPoint( "TOP", 0, 0 )
 	x:SetPoint( "BOTTOM", 0, 0 )
 	x:SetTextColor( 1, 1, 1, 1 )
-	x:SetJustifyH( "CENTER", 0, 0 )
-	x:Show( )
-
-	-- order
-	x = _G[f .. "C2"]
-	x:ClearAllPoints( )
-	x:SetWidth( 50 )
-	x:SetPoint( "LEFT", f .. "C1", "RIGHT", 5, 0 )
-	x:SetPoint( "TOP", 0, 0 )
-	x:SetPoint( "BOTTOM", 0, 0 )
-	x:SetTextColor( 1, 1, 1, 1 )
-	x:SetJustifyH( "CENTER", 0, 0 )
-	x:Show( )
-
-	-- description
-	x = _G[f .. "C3"]
-	x:ClearAllPoints( )
-	x:SetPoint( "LEFT", f .. "C2", "RIGHT", 5, 0 )
-	x:SetPoint( "TOP", 0, 0 )
-	x:SetPoint( "BOTTOM", 0, 0 )
-	x:SetPoint( "RIGHT", -5, 0 )
 	x:SetJustifyH( "LEFT", 0, 0 )
 	x:Show( )
+
+	-- hide unused third text column
+	x = _G[f .. "C3"]
+	x:ClearAllPoints( )
+	x:SetWidth( 1 )
+	x:SetPoint( "LEFT", f .. "C1", "RIGHT", 0, 0 )
+	x:SetPoint( "TOP", 0, 0 )
+	x:SetPoint( "BOTTOM", 0, 0 )
+	x:SetText( "" )
+	x:Hide( )
 
 end
 
@@ -1915,64 +1919,85 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 				_G[linename .. "T2"]:SetTexture( 0, 0, 0, 0 )
 			end
 
-			_G[linename .. "C1"]:SetText( r.id )
-
+			-- order value (rightmost column)
 			c = string.format( r.order )
 			_G[linename .. "C2"]:SetText( c )
 
-			-- name (with bar assignment info for the selected location)
+			-- build rule name: "<ruleId>. <rule name> [<loc bar>] [<otherLoc1 bar, otherLoc2 bar, ...>]"
 			local baseName = r.name
 			if not baseName or baseName == "" then
 				baseName = "<not set>"
 			end
-			local displayName = baseName
-			local assigned = false
+
+			local textCore = string.format( "%d. %s", r.id, baseName )
+			local displayName
+
 			local cat_type_rule = ArkInventory.Const.Category.Type.Rule
 			local cat_id
 			local loc_id = ArkInventory.Frame_Rules_GetLocation( )
+			local current_bracket_text
+			local others_bracket_text
+
 			if cat_type_rule then
 				cat_id = ArkInventory.CategoryCodeJoin( cat_type_rule, r.id )
 				if loc_id and cat_id then
 					local cat_bar, def_bar = ArkInventory.CategoryLocationGet( loc_id, cat_id )
-					if abs( cat_bar or 0 ) > 0 and not def_bar then
-						assigned = true
-						local bar_display = abs( cat_bar )
-						local loc = ArkInventory.Global.Location and ArkInventory.Global.Location[loc_id]
-						local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
-						if r.usable then
-							-- usable & assigned: yellow name with green [Location bar]
-							displayName = LIGHTYELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. loc_name .. " " .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
-						else
-							-- unusable & assigned: golden name with green [Location bar]
-							displayName = YELLOW_FONT_COLOR_CODE .. baseName .. GREEN_FONT_COLOR_CODE .. "  [" .. loc_name .. " " .. bar_display .. "]" .. FONT_COLOR_CODE_CLOSE
-						end
+					if cat_bar and cat_bar ~= 0 and not def_bar then
+						current_bracket_text = string.format( " [%d]", abs( cat_bar ) )
 					end
 				end
 			end
-			if not r.usable and not assigned then
-				-- unusable & unassigned: golden name
-				displayName = YELLOW_FONT_COLOR_CODE .. baseName .. FONT_COLOR_CODE_CLOSE
-			end
 
-			-- append other-location bar hints: [Location bar, Location2 bar, ...]
+			-- collect bar assignments for other locations, with location names
 			if cat_id and ArkInventory.Global and ArkInventory.Global.Location then
 				local others = { }
 				for l_id in pairs( ArkInventory.Global.Location ) do
 					if not loc_id or l_id ~= loc_id then
 						local cat_bar, def_bar = ArkInventory.CategoryLocationGet( l_id, cat_id )
-						if abs( cat_bar or 0 ) > 0 and not def_bar then
+						if cat_bar and cat_bar ~= 0 and not def_bar then
 							local loc = ArkInventory.Global.Location[l_id]
 							local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
-							table.insert( others, string.format( "%s %s", loc_name, abs( cat_bar ) ) )
+							table.insert( others, string.format( "%s %d", loc_name, abs( cat_bar ) ) )
 						end
 					end
 				end
 				if #others > 0 then
-					-- add a space before the new bracket group and keep it yellow
-					displayName = string.format( "%s %s[%s]%s", displayName, YELLOW_FONT_COLOR_CODE, table.concat( others, ", " ), FONT_COLOR_CODE_CLOSE )
+					table.sort( others )
+					others_bracket_text = " [" .. table.concat( others, ", " ) .. "]"
 				end
 			end
-			_G[linename .. "C3"]:SetText( displayName )
+
+			local has_any_assignment = ( current_bracket_text ~= nil ) or ( others_bracket_text ~= nil )
+
+			-- colour rules:
+			-- 1) unusable -> whole rule text gray
+			-- 2) usable and unassigned anywhere -> white
+			-- 3) usable and assigned -> id+name light gold, current bar green, others yellow
+			if not r.usable then
+				-- unusable: entire line gray (id, name, and any brackets)
+				displayName = GRAY_FONT_COLOR_CODE .. textCore .. FONT_COLOR_CODE_CLOSE
+				if current_bracket_text then
+					displayName = displayName .. GRAY_FONT_COLOR_CODE .. current_bracket_text .. FONT_COLOR_CODE_CLOSE
+				end
+				if others_bracket_text then
+					displayName = displayName .. GRAY_FONT_COLOR_CODE .. others_bracket_text .. FONT_COLOR_CODE_CLOSE
+				end
+			elseif not has_any_assignment then
+				-- usable but unassigned anywhere: plain white text (no colour codes)
+				displayName = textCore
+			else
+				local mainColour = LIGHTYELLOW_FONT_COLOR_CODE
+				displayName = mainColour .. textCore .. FONT_COLOR_CODE_CLOSE
+				if current_bracket_text then
+					displayName = displayName .. GREEN_FONT_COLOR_CODE .. current_bracket_text .. FONT_COLOR_CODE_CLOSE
+				end
+				if others_bracket_text then
+					displayName = displayName .. YELLOW_FONT_COLOR_CODE .. others_bracket_text .. FONT_COLOR_CODE_CLOSE
+				end
+			end
+
+			_G[linename .. "C1"]:SetText( displayName )
+			_G[linename .. "C1"]:SetTextColor( 1, 1, 1, 1 )
 
 			-- disable usable checkbox if this rule is assigned to a bar in any
 			-- location for this profile, and provide a tooltip explaining why
@@ -2001,10 +2026,6 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 					cb:SetScript( "OnEnter", nil )
 					cb:SetScript( "OnLeave", nil )
 				end
-			end
-			-- ensure unassigned usable rules appear white
-			if r.usable and not assigned then
-				_G[linename .. "C3"]:SetTextColor( 1, 1, 1, 1 )
 			end
 
 			_G[linename]:Show( )
