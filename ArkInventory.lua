@@ -8475,6 +8475,13 @@ end
 
 function ArkInventory.ToggleEditMode( )
 	ArkInventory.Global.Mode.Edit = not ArkInventory.Global.Mode.Edit
+
+	-- if an item/bar edit menu is open via Dewdrop, close it when
+	-- leaving edit mode so the UI returns to a clean non-edit state
+	if not ArkInventory.Global.Mode.Edit and ArkInventory.Lib and ArkInventory.Lib.DewDrop and ArkInventory.Lib.DewDrop:IsOpen( ) then
+		ArkInventory.Lib.DewDrop:Close( )
+	end
+
 	ArkInventory.Frame_Bar_Paint_All( )
 	ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
 end
