@@ -6347,16 +6347,41 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 	--ArkInventory.Output( "item=[", i.h, "]" )
 	local usedmycode = false
 
-	-- Let live bag items use Blizzard/Ascension's default
-	-- ContainerFrameItemButton_OnEnter (so their custom tooltip hook
-	-- still runs and positions in the normal spot). Use
-	-- ArkInventory's own tooltip path for all other locations and for
-	-- offline viewing.
-	if ArkInventory.Global.Location[loc_id].isOffline or loc_id == ArkInventory.Const.Location.Bank or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
+	-- Use ArkInventory's own tooltip path for special locations and
+	-- offline/edit viewing, but let bag items (loc_id == Bag) always
+	-- go through the default ContainerFrameItemButton_OnEnter path so
+	-- Ascension's container tooltip hooks apply consistently in both
+	-- normal and edit modes.
+	if ( ArkInventory.Global.Mode.Edit and loc_id ~= ArkInventory.Const.Location.Bag ) or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
 
-		usedmycode = true -- non-bag locations plus offline, keyring, vault, mail, pet, token
+		usedmycode = true -- edit mode, offline, bank, keyring, vault, mail, pet, token
 
-		if i.h then
+		-- if the cached hyperlink is missing but we're online, try to
+		-- recover it from the live API for this specific slot so the
+		-- tooltip can still be shown and future categorisation sees the
+		-- real item link.
+		if i and not i.h and not ArkInventory.Global.Location[loc_id].isOffline then
+			if loc_id == ArkInventory.Const.Location.Bank then
+				local link
+				if bliz_id == BANK_CONTAINER then
+					link = GetContainerItemLink( BANK_CONTAINER, i.slot_id )
+				else
+					link = GetContainerItemLink( bliz_id, i.slot_id )
+				end
+				if link then
+					i.h = link
+					ArkInventory.ItemCacheClear( )
+				end
+			elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+				local link = GetGuildBankItemLink( i.bag_id, i.slot_id )
+				if link then
+					i.h = link
+					ArkInventory.ItemCacheClear( )
+				end
+			end
+		end
+
+		if i and i.h then
 
 			ArkInventory.GameTooltipSetPosition( frame )
 
@@ -8456,10 +8481,12 @@ end
 
 function ArkInventory.GameTooltipSetPosition( frame, bottom )
 
-	-- Use the default game tooltip anchoring logic so tooltips behave like standard tooltips
-	-- (follows cursor/owner and is clamped to the screen). The optional `bottom` flag
-	-- is intentionally ignored because the default anchor already handles flipping.
-	GameTooltip_SetDefaultAnchor( GameTooltip, frame )
+	-- Anchor the tooltip directly to the item frame so that all
+	-- ArkInventory locations (bank, vault, mail, etc.) show the
+	-- tooltip at the slot you are hovering over, instead of the
+	-- default screen corner. Use TOPLEFT/BOTTOMLEFT so the tooltip
+	-- hugs the left edge of the item.
+	GameTooltip:SetOwner( frame, bottom and "ANCHOR_BOTTOMLEFT" or "ANCHOR_TOPLEFT" )
 
 end
 
