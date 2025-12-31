@@ -1171,6 +1171,17 @@ local function Rule_Internal_WearableCheck( wearable, ignore_level )
 		return false
 	end
 
+	-- containers (bags) are never considered wearable; they should always
+	-- return false for wearable() and true for unwearable().
+	local itemType = string.lower( select( 6, GetItemInfo( Rule.Item.h ) ) or "" )
+	if itemType == "container" then
+		if wearable then
+			return false
+		else
+			return true
+		end
+	end
+
 	-- first ensure the item is equippable at all
 	if not Rule.Execute.equip( ) then
 		return false
