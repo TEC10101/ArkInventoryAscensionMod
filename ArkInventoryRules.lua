@@ -1178,7 +1178,8 @@ local function Rule_Internal_WearableCheck( wearable, ignore_level )
 		if wearable then
 			return false
 		else
-			return true
+      -- When unwearable() is called on a bag, return also false to avoid treating bags as unwearable items.
+			return false
 		end
 	end
 
