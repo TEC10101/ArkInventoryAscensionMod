@@ -412,6 +412,68 @@ local function RestackRun( loc_id )
 	
 end
 
+
+function ArkInventory.BagEmpty( loc_id, bag_id )
+
+	-- only applicable to normal bags and bank bags
+	if not ( loc_id == ArkInventory.Const.Location.Bag or loc_id == ArkInventory.Const.Location.Bank ) then
+		return
+	end
+
+	-- if we're at the bank, make sure it's actually open
+	if loc_id == ArkInventory.Const.Location.Bank and not ArkInventory.Global.Mode.Bank then
+		return
+	end
+
+	local src_bag = ArkInventory.BagID_Blizzard( loc_id, bag_id )
+	if not src_bag then
+		return
+	end
+
+	local src_numslots = GetContainerNumSlots( src_bag )
+	if not src_numslots or src_numslots == 0 then
+		return
+	end
+
+	-- build a list of destination empty slots in other bags
+	local dest = { }
+	for _, other_bag_id in pairs( ArkInventory.Global.Location[loc_id].Bags ) do
+		if other_bag_id ~= bag_id then
+			local bliz_id = ArkInventory.BagID_Blizzard( loc_id, other_bag_id )
+			if bliz_id then
+				local numslots = GetContainerNumSlots( bliz_id )
+				for slot = 1, numslots do
+					local texture, _, locked = GetContainerItemInfo( bliz_id, slot )
+					if not locked and not texture then
+						table.insert( dest, { bag = bliz_id, slot = slot } )
+					end
+				end
+			end
+		end
+	end
+
+	if #dest == 0 then
+		return
+	end
+
+	-- move items out of the source bag into the collected empty slots
+	for slot = 1, src_numslots do
+		if #dest == 0 then
+			break
+		end
+
+		local texture, _, locked = GetContainerItemInfo( src_bag, slot )
+		if texture and not locked then
+			local target = table.remove( dest, 1 )
+			ClearCursor( )
+			PickupContainerItem( src_bag, slot )
+			PickupContainerItem( target.bag, target.slot )
+			ClearCursor( )
+		end
+	end
+
+end
+
 function ArkInventory.RestackResume( loc_id )
 
 	--ArkInventory.OutputDebug( "RestackResume ", loc_id )

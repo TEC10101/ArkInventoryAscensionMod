@@ -1268,6 +1268,17 @@ function ArkInventory.MenuBagOpen( frame )
 						end
 					)
 
+					ArkInventory.Lib.DewDrop:AddLine(
+						"text", ArkInventory.Localise["MENU_BAG_EMPTY"],
+						"tooltipTitle", ArkInventory.Localise["MENU_BAG_EMPTY"],
+						"tooltipText", ArkInventory.Localise["MENU_BAG_EMPTY_TEXT"],
+						"func", function( )
+							ArkInventory.BagEmpty( loc_id, bag_id )
+							ArkInventory.Lib.DewDrop:Close( )
+							ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
+						end
+					)
+
 				end
 
 			end

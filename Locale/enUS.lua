@@ -293,6 +293,8 @@ if not L then return end
 	L["MENU_BAG_ISOLATE_TEXT"] = "only display the contents of this bag"
 	L["MENU_BAG_SHOWALL"] = "Display All"
 	L["MENU_BAG_SHOWALL_TEXT"] = "display the contents of all bags for this location"
+	L["MENU_BAG_EMPTY"] = "Empty Bag"
+	L["MENU_BAG_EMPTY_TEXT"] = "move all items from this bag into other bags"
 
 
 --	configuration options
