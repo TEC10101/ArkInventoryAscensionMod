@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0805,
-		UIVersion = "3.08.05",
+		Version = 3.0806,
+		UIVersion = "3.08.06",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -4326,12 +4326,6 @@ function ArkInventory.Frame_Main_Draw( frame )
 	end
 
 
-	-- edit mode
-	if ArkInventory.Global.Mode.Edit then
-		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
-	end
-
-
 	-- bag data has changed
 	if ArkInventory.Global.Location[loc_id].changed then
 
@@ -6678,6 +6672,36 @@ function ArkInventory.Frame_Item_Update_Clickable( frame )
 
 end
 
+function ArkInventory.Frame_Item_Update_Clickable_All( )
+
+	-- Refresh click/drag registration for all visible item buttons so
+	-- changes to edit/offline/view-only state take effect without
+	-- requiring a full layout recalculate.
+
+	for loc_id, loc_data in ipairs( ArkInventory.Global.Location ) do
+
+		local frame = _G[ArkInventory.Const.Frame.Main.Name .. loc_id .. ArkInventory.Const.Frame.Container.Name]
+		if frame and frame:IsVisible( ) then
+
+			if loc_data.Bags and loc_data.maxSlot then
+				for bag_id in pairs( loc_data.Bags ) do
+					local maxSlot = loc_data.maxSlot[bag_id] or 0
+					for slot_id = 1, maxSlot do
+						local itemframename = ArkInventory.ContainerItemNameGet( loc_id, bag_id, slot_id )
+						local itemframe = _G[itemframename]
+						if itemframe then
+							ArkInventory.Frame_Item_Update_Clickable( itemframe )
+						end
+					end
+				end
+			end
+
+		end
+
+	end
+
+end
+
 function ArkInventory.Frame_Item_OnLoad( frame )
 
 	local framename = frame:GetName( )
@@ -8483,7 +8507,13 @@ function ArkInventory.ToggleEditMode( )
 	end
 
 	ArkInventory.Frame_Bar_Paint_All( )
-	ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
+	-- Toggling edit mode should update visuals (bar highlights,
+	-- edit icons, etc.) but must not trigger a resort/recalculate
+	-- of item positions. Use Refresh so the window repaints without
+	-- rebuilding layout or sort keys, then refresh clickability so
+	-- item buttons pick up the new edit/offline behaviour.
+	ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
+	ArkInventory.Frame_Item_Update_Clickable_All( )
 end
 
 function ArkInventory.GameTooltipSetPosition( frame, bottom )
