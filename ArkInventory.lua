@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0900,
-		UIVersion = "3.09.00",
+		Version = 3.0901,
+		UIVersion = "3.09.01",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -938,6 +938,9 @@ ArkInventory.Global = { -- globals
 		Edit = false,
 		Combat = false,
 	},
+
+	-- used to trigger a resort once bag updates have been processed
+	EmptyBagResortPending = false,
 
 	Tooltip = {
 		Scan = nil,

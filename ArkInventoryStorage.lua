@@ -392,6 +392,12 @@ function ArkInventory:LISTEN_BAG_UPDATE_BUCKET( arg1 )
 	ArkInventory.LDB.Bags:Update( )
 	ArkInventory.LDB.Ammo:Update( )
 
+	-- if an Empty Bag action requested a resort, do it now
+	if ArkInventory.Global.EmptyBagResortPending then
+		ArkInventory.Global.EmptyBagResortPending = false
+		ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Resort )
+	end
+
 end
 
 function ArkInventory:LISTEN_BAG_UPDATE( event, arg1 )

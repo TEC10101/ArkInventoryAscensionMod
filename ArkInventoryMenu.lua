@@ -1275,8 +1275,8 @@ function ArkInventory.MenuBagOpen( frame )
 						"tooltipText", ArkInventory.Localise["MENU_BAG_EMPTY_TEXT"],
 						"func", function( )
 							ArkInventory.BagEmpty( loc_id, bag_id )
+							ArkInventory.Global.EmptyBagResortPending = true
 							ArkInventory.Lib.DewDrop:Close( )
-							ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 						end
 					)
 
