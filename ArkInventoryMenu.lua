@@ -326,7 +326,7 @@ function ArkInventory.MenuBarOpen( frame )
 						"closeWhenClicked", true,
 						"func", function( )
 							ArkInventory.Frame_Bar_Clear( loc_id, bar_id )
-							ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
+							ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 						end
 					)
 					ArkInventory.Lib.DewDrop:AddLine(
@@ -336,9 +336,10 @@ function ArkInventory.MenuBarOpen( frame )
 						"closeWhenClicked", true,
 						"func", function( )
 							ArkInventory.Frame_Bar_Insert( loc_id, bar_id )
-							ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
+							ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 						end
 					)
+
 					ArkInventory.Lib.DewDrop:AddLine(
 						"text", ArkInventory.Localise["REMOVE"],
 						"tooltipTitle", ArkInventory.Localise["REMOVE"],
@@ -346,7 +347,7 @@ function ArkInventory.MenuBarOpen( frame )
 						"closeWhenClicked", true,
 						"func", function( )
 							ArkInventory.Frame_Bar_Remove( loc_id, bar_id )
-							ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
+							ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 						end
 					)
 
@@ -375,7 +376,7 @@ function ArkInventory.MenuBarOpen( frame )
 								ArkInventory.Global.Options.BarMoveLocation = nil
 								ArkInventory.Global.Options.BarMoveSource = nil
 								ArkInventory.Global.Options.BarMoveDestination = nil
-								ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
+								ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 							end
 						)
 					end

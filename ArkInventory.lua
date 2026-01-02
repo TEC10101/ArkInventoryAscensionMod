@@ -4854,17 +4854,41 @@ function ArkInventory.Frame_Container_CalculateBars( frame, Layout )
 	end
 
 
-	-- get highest used bar
+	-- determine highest "used" bar index from categories and explicit bar data
+	local used = Layout.bar_count
+
 	local cats = ArkInventory.LocationOptionGet( loc_id, { "category" } )
 	for _, bar_id in pairs( cats ) do
-		if bar_id > Layout.bar_count then
-			Layout.bar_count = bar_id
+		bar_id = abs( bar_id )
+		if bar_id > used then
+			used = bar_id
 		end
 	end
 
-	-- round up to a full number of bars per row
+	local bdata = ArkInventory.LocationOptionGet( loc_id, { "bar", "data" } )
+	if bdata then
+		for k, v in pairs( bdata ) do
+			if type( k ) == "number" and type( v ) == "table" and next( v ) ~= nil and k > used then
+				-- only count bars that have at least one option set (eg, name, background, sort order)
+				used = k
+			end
+		end
+	end
+
 	local bpr = ArkInventory.LocationOptionGet( loc_id, { "bar", "per" } ) or 1
-	Layout.bar_count = ceil( Layout.bar_count / bpr ) * bpr
+
+	if ArkInventory.Global.Mode.Edit then
+		-- in edit mode: fill the current row with implicit bars;
+		-- if that row is exactly full, add another full row of implicit bars
+		if used % bpr == 0 then
+			Layout.bar_count = used + bpr
+		else
+			Layout.bar_count = ceil( used / bpr ) * bpr
+		end
+	else
+		-- normal mode: just round up to a full row
+		Layout.bar_count = ceil( used / bpr ) * bpr
+	end
 
 	-- update the maximum number of bar frames used so far
 	if Layout.bar_count > ArkInventory.Global.Location[loc_id].maxBar then
@@ -5679,18 +5703,25 @@ end
 
 function ArkInventory.Frame_Bar_Insert( loc_id, bar_id )
 
-	-- move bar data
-	local t = { [bar_id] = { } }
-
-	for k, v in pairs( ArkInventory.LocationOptionGet( loc_id, { "bar", "data" } ) ) do
-		if k >= bar_id then
-			t[k + 1] = v
+	-- move bar data: insert a new empty bar at bar_id and
+	-- shift all existing bar configurations at or above bar_id up by one
+	local bar = ArkInventory.LocationOptionGet( loc_id, { "bar", "data" } ) or { }
+	local maxbar = 0
+	for k in pairs( bar ) do
+		if type( k ) == "number" and k > maxbar then
+			maxbar = k
 		end
 	end
 
-	for k, v in pairs( t ) do
-		ArkInventory.LocationOptionSet( loc_id, { "bar", "data", k }, v )
+	for k = maxbar, bar_id, -1 do
+		local v = bar[k]
+		if v ~= nil then
+			ArkInventory.LocationOptionSet( loc_id, { "bar", "data", k + 1 }, v )
+		end
 	end
+
+	-- initialise the new bar with an empty configuration table
+	ArkInventory.LocationOptionSet( loc_id, { "bar", "data", bar_id }, { } )
 
 
 	-- move category data (bar numbers can be negative)
@@ -5708,23 +5739,22 @@ end
 
 function ArkInventory.Frame_Bar_Remove( loc_id, bar_id )
 
-	-- move bar data
-	local t = { }
+	-- move bar data: remove bar_id and shift higher bars down
+	local bar = ArkInventory.LocationOptionGet( loc_id, { "bar", "data" } ) or { }
 	local maxbar = 0
-
-	for k, v in pairs( ArkInventory.LocationOptionGet( loc_id, { "bar", "data" } ) ) do
-		if k > bar_id then
-			t[k - 1] = v
-			if k > maxbar then
-				maxbar = k
-			end
+	for k in pairs( bar ) do
+		if type( k ) == "number" and k > maxbar then
+			maxbar = k
 		end
 	end
 
-	t[maxbar] = { }
-
-	for k, v in pairs( t ) do
-		ArkInventory.LocationOptionSet( loc_id, { "bar", "data", k }, v )
+	if maxbar > 0 and bar_id <= maxbar then
+		for k = bar_id + 1, maxbar do
+			local v = bar[k]
+			ArkInventory.LocationOptionSet( loc_id, { "bar", "data", k - 1 }, v )
+		end
+		-- clear the highest bar configuration which has now moved down
+		ArkInventory.LocationOptionSet( loc_id, { "bar", "data", maxbar }, nil )
 	end
 
 
@@ -8507,12 +8537,10 @@ function ArkInventory.ToggleEditMode( )
 	end
 
 	ArkInventory.Frame_Bar_Paint_All( )
-	-- Toggling edit mode should update visuals (bar highlights,
-	-- edit icons, etc.) but must not trigger a resort/recalculate
-	-- of item positions. Use Refresh so the window repaints without
-	-- rebuilding layout or sort keys, then refresh clickability so
-	-- item buttons pick up the new edit/offline behaviour.
-	ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
+	-- Switching edit mode affects bar count and ghost bars, so
+	-- recalculate layout to ensure extra edit bars get their own
+	-- rows instead of overlapping existing items.
+	ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
 	ArkInventory.Frame_Item_Update_Clickable_All( )
 end
 
