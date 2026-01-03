@@ -392,6 +392,12 @@ function ArkInventory:LISTEN_BAG_UPDATE_BUCKET( arg1 )
 	ArkInventory.LDB.Bags:Update( )
 	ArkInventory.LDB.Ammo:Update( )
 
+	-- if an Empty Bag action requested a resort, do it now
+	if ArkInventory.Global.EmptyBagResortPending then
+		ArkInventory.Global.EmptyBagResortPending = false
+		ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Resort )
+	end
+
 end
 
 function ArkInventory:LISTEN_BAG_UPDATE( event, arg1 )
@@ -1168,6 +1174,9 @@ function ArkInventory.Scan( arg1 )
 			ArkInventory.ScanBag( bliz_id )
 		elseif loc_id == ArkInventory.Const.Location.Vault then
 			ArkInventory.ScanVault( )
+    elseif loc_id == ArkInventory.Const.Location.PersonalBank then
+      -- for personal bank, use the same scan as guild vault
+      ArkInventory.ScanVault( )
 		elseif loc_id == ArkInventory.Const.Location.Wearing then
 			ArkInventory.ScanWearing( )
 		elseif loc_id == ArkInventory.Const.Location.Mail then

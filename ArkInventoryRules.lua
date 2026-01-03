@@ -1217,6 +1217,18 @@ local function Rule_Internal_WearableCheck( wearable, ignore_level )
 					-- restriction; classify it as level-only vs. other.
 					if txt ~= ITEM_DISENCHANT_NOT_DISENCHANTABLE then
 						local txtLower = string.lower( txt or "" )
+
+						-- Ascension specific: lines such as "Requires Tailoring",
+						-- "Requires Leatherworking", or "Requires Blacksmithing" indicate
+						-- a crafting profession requirement for creating set pieces, not
+						-- a restriction on equipping the item itself. These should not
+						-- cause the item to be treated as unwearable.
+						if string.find( txtLower, "requires tailoring", 1, true )
+							or string.find( txtLower, "requires leatherworking", 1, true )
+							or string.find( txtLower, "requires blacksmithing", 1, true ) then
+							-- skip this line entirely
+							break
+						end
 						local isLevelLine = false
 
 						-- try to use the localized ITEM_MIN_LEVEL pattern if available
