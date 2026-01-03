@@ -1174,6 +1174,9 @@ function ArkInventory.Scan( arg1 )
 			ArkInventory.ScanBag( bliz_id )
 		elseif loc_id == ArkInventory.Const.Location.Vault then
 			ArkInventory.ScanVault( )
+    elseif loc_id == ArkInventory.Const.Location.PersonalBank then
+      -- for personal bank, use the same scan as guild vault
+      ArkInventory.ScanVault( )
 		elseif loc_id == ArkInventory.Const.Location.Wearing then
 			ArkInventory.ScanWearing( )
 		elseif loc_id == ArkInventory.Const.Location.Mail then
