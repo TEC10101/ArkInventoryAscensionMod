@@ -1123,13 +1123,17 @@ function Rule.Execute.location( ... )
 		elseif k == "bank" or k == string.lower( ArkInventory.Localise["LOCATION_BANK"] ) then
 			k = ArkInventory.Const.Location.Bank
 		elseif k == "guild bank" or k == "vault" or k == string.lower( GUILD_BANK ) then
-			-- treat "vault" / "guild bank" as matching both the guild vault and the personal bank
-			if Rule.Item.loc_id == ArkInventory.Const.Location.Vault or Rule.Item.loc_id == ArkInventory.Const.Location.PersonalBank then
+			-- treat "vault" / "guild bank" as matching guild, personal, and realm banks
+			if Rule.Item.loc_id == ArkInventory.Const.Location.Vault
+				or Rule.Item.loc_id == ArkInventory.Const.Location.PersonalBank
+				or Rule.Item.loc_id == ArkInventory.Const.Location.RealmBank then
 				return true
 			end
 			k = ArkInventory.Const.Location.Vault
 		elseif k == "personal bank" or k == "personalbank" or k == string.lower( ArkInventory.Global.Location[ArkInventory.Const.Location.PersonalBank].Name or "" ) then
 			k = ArkInventory.Const.Location.PersonalBank
+		elseif k == "realm bank" or k == "realmbank" or k == string.lower( ArkInventory.Global.Location[ArkInventory.Const.Location.RealmBank].Name or "" ) then
+			k = ArkInventory.Const.Location.RealmBank
 		elseif k == "mail" or k == string.lower( MAIL_LABEL ) then
 			k = ArkInventory.Const.Location.Mail
 		elseif k == "wearing" or k == "gear" or k == string.lower( ArkInventory.Localise["LOCATION_WEARING"] ) then
@@ -1465,6 +1469,7 @@ function ArkInventory.Frame_Rules_Tab_Update( )
 		{ name = "ARKINV_RulesTabsBank", loc = ArkInventory.Const.Location.Bank },
 		{ name = "ARKINV_RulesTabsVault", loc = ArkInventory.Const.Location.Vault },
 		{ name = "ARKINV_RulesTabsPersonalBank", loc = ArkInventory.Const.Location.PersonalBank },
+		{ name = "ARKINV_RulesTabsRealmBank", loc = ArkInventory.Const.Location.RealmBank },
 	}
 	for _, t in ipairs( tabs ) do
 		local b = _G[t.name]

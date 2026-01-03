@@ -2029,6 +2029,185 @@
 
   </Frame>
 
+  <!-- realm bank -->
+  <Frame name="ARKINV_Frame11" inherits="ARKINV_TemplateFrameMain" id="11">
+
+    <Frames>
+      <Frame name="$parentLog" inherits="ARKINV_TemplateFrameMainLog" />
+      <Frame name="$parentInfo" inherits="ARKINV_TemplateFrameMainInfo" />
+    </Frames>
+
+  </Frame>
+
+  <Frame parent="ARKINV_Frame11Changer" name="$parentWindow" hidden="false">
+
+    <Size x="1" y="1" />
+
+    <Anchors>
+      <Anchor point="TOPLEFT" />
+      <Anchor point="BOTTOMRIGHT" />
+    </Anchors>
+
+    <Frames>
+      <Button name="$parentBag1" inherits="ArkInventory_ChangerVaultTabTemplate">
+        <Anchors>
+          <Anchor point="LEFT">
+            <Offset x="10" y="0" />
+          </Anchor>
+        </Anchors>
+      </Button>
+      <Button name="$parentBag2" inherits="ArkInventory_ChangerVaultTabTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentBag1" relativePoint="RIGHT">
+            <Offset x="5" y="0" />
+          </Anchor>
+        </Anchors>
+      </Button>
+      <Button name="$parentBag3" inherits="ArkInventory_ChangerVaultTabTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentBag2" relativePoint="RIGHT">
+            <Offset x="5" y="0" />
+          </Anchor>
+        </Anchors>
+      </Button>
+      <Button name="$parentBag4" inherits="ArkInventory_ChangerVaultTabTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentBag3" relativePoint="RIGHT">
+            <Offset x="5" y="0" />
+          </Anchor>
+        </Anchors>
+      </Button>
+      <Button name="$parentBag5" inherits="ArkInventory_ChangerVaultTabTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentBag4" relativePoint="RIGHT">
+            <Offset x="5" y="0" />
+          </Anchor>
+        </Anchors>
+      </Button>
+      <Button name="$parentBag6" inherits="ArkInventory_ChangerVaultTabTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentBag5" relativePoint="RIGHT">
+            <Offset x="5" y="0" />
+          </Anchor>
+        </Anchors>
+      </Button>
+
+      <!-- Deposit/Withdraw and money frames exist but will be disabled or repurposed in code -->
+      <Button name="$parentWithdrawButton" inherits="UIPanelButtonTemplate" text="WITHDRAW"
+        hidden="false">
+        <Size x="124" y="21" />
+        <Anchors>
+          <Anchor point="BOTTOMRIGHT">
+            <Offset x="-5" y="5" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            PlaySound( "igMainMenuOption" )
+            StaticPopup_Hide( "GUILDBANK_DEPOSIT" )
+            if StaticPopup_Visible( "GUILDBANK_WITHDRAW" ) then
+            StaticPopup_Hide( "GUILDBANK_WITHDRAW" )
+            else
+            StaticPopup_Show( "GUILDBANK_WITHDRAW" )
+            end
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <Frame name="$parentGoldAvailable" inherits="ArkInventory_SmallMoneyFrameTemplate">
+        <Anchors>
+          <Anchor point="RIGHT" relativeTo="$parentWithdrawButton" relativePoint="LEFT" />
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            ArkInventory.SmallMoneyFrame_OnLoad( self, "STATIC" )
+          </OnLoad>
+        </Scripts>
+      </Frame>
+
+      <Button name="$parentDepositButton" inherits="UIPanelButtonTemplate" text="DEPOSIT"
+        hidden="false">
+        <Size x="124" y="21" />
+        <Anchors>
+          <Anchor point="TOPRIGHT">
+            <Offset x="-5" y="-5" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            PlaySound( "igMainMenuOption" )
+            StaticPopup_Hide( "GUILDBANK_WITHDRAW" )
+            if StaticPopup_Visible( "GUILDBANK_DEPOSIT") then
+            StaticPopup_Hide( "GUILDBANK_DEPOSIT" )
+            else
+            StaticPopup_Show( "GUILDBANK_DEPOSIT" )
+            end
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <Frame name="$parentGoldTotal" inherits="ArkInventory_SmallMoneyFrameTemplate">
+        <Anchors>
+          <Anchor point="RIGHT" relativeTo="$parentDepositButton" relativePoint="LEFT" />
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            ArkInventory.SmallMoneyFrame_OnLoad( self, "GUILDBANK" )
+          </OnLoad>
+        </Scripts>
+      </Frame>
+
+      <Frame name="$parentPurchaseInfo">
+        <Size x="130" y="38" />
+        <Anchors>
+          <Anchor point="BOTTOM" relativeTo="$parentWithdrawButton" relativePoint="BOTTOM" />
+          <Anchor point="RIGHT" relativeTo="$parentGoldAvailable" relativePoint="LEFT">
+            <Offset x="-5" y="0" />
+          </Anchor>
+        </Anchors>
+        <Layers>
+          <Layer level="BACKGROUND">
+            <FontString name="$parentSlotCost" inherits="ARKINV_GameFontNormal" text="COSTS_LABEL">
+              <Size x="0" y="12" />
+              <Anchors>
+                <Anchor point="TOPLEFT" />
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Frames>
+          <Button name="$parentPurchaseButton" inherits="UIPanelButtonTemplate"
+            text="BANKSLOTPURCHASE">
+            <Size x="124" y="21" />
+            <Anchors>
+              <Anchor point="BOTTOMLEFT" />
+            </Anchors>
+            <Scripts>
+              <OnClick>
+                PlaySound( "igMainMenuOption" )
+                StaticPopup_Show( "CONFIRM_BUY_GUILDBANK_TAB" )
+              </OnClick>
+            </Scripts>
+          </Button>
+          <Frame name="$parentDetailMoneyFrame" inherits="ArkInventory_SmallMoneyFrameTemplate">
+            <Anchors>
+              <Anchor point="LEFT" relativeTo="$parentSlotCost" relativePoint="RIGHT">
+                <Offset x="10" y="0" />
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                ArkInventory.MoneyFrame_SetType( self, "STATIC" )
+              </OnLoad>
+            </Scripts>
+          </Frame>
+        </Frames>
+      </Frame>
+
+    </Frames>
+
+  </Frame>
+
   <Frame parent="ARKINV_Frame4Changer" name="$parentWindow" hidden="false">
 
     <Size x="1" y="1" />

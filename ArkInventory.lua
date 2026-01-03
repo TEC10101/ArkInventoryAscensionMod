@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.0902,
-		UIVersion = "3.09.02",
+		Version = 3.1000,
+		UIVersion = "3.10.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -97,6 +97,7 @@ ArkInventory.Const = { -- constants
 		Mount = 8,
 		Token = 9,
 		PersonalBank = 10,
+		RealmBank = 11,
 	},
 
 	Offset = {
@@ -107,6 +108,7 @@ ArkInventory.Const = { -- constants
 		Token = 5000,
 		Mount = 6000,
 		PersonalBank = 7000,
+		RealmBank = 8000,
 	},
 
 	Bag = {
@@ -204,6 +206,7 @@ ArkInventory.Const = { -- constants
 
 	Fade = 0.6,
 	GuildTag = "+",
+	RealmBankTag = "#",
 
 	InventorySlotName = { "HeadSlot", "NeckSlot", "ShoulderSlot", "BackSlot", "ChestSlot", "ShirtSlot", "TabardSlot", "WristSlot", "HandsSlot", "WaistSlot", "LegsSlot", "FeetSlot", "Finger0Slot", "Finger1Slot", "Trinket0Slot", "Trinket1Slot", "MainHandSlot", "SecondaryHandSlot", "RangedSlot" },
 
@@ -1070,6 +1073,30 @@ ArkInventory.Global = { -- globals
 			current_tab = 1,
 		},
 
+		[ArkInventory.Const.Location.RealmBank] = {
+			Internal = "realmbank",
+			Name = "Realm Bank",
+			Texture = [[Interface\Icons\INV_Misc_Coin_02]],
+			bagCount = 1, -- actual value set in OnInitialize
+			Bags = { },
+			canRestack = true,
+			hasChanger = true,
+			canSearch = true,
+
+			Layout = { },
+			maxBar = 0,
+			maxSlot = { },
+
+			isOffline = true,
+			canView = true,
+			canOverride = true,
+			canPurge = true,
+
+			drawState = ArkInventory.Const.Window.Draw.Init,
+
+			current_tab = 1,
+		},
+
 		[ArkInventory.Const.Location.Mail] = {
 			Internal = "mail",
 			Name = MAIL_LABEL,
@@ -1397,6 +1424,7 @@ ArkInventory.Const.DatabaseDefaults.realm = {
 					[ArkInventory.Const.Location.Key] = true,
 					[ArkInventory.Const.Location.Vault] = true,
 					[ArkInventory.Const.Location.PersonalBank] = true,
+					[ArkInventory.Const.Location.RealmBank] = true,
 					["*"] = false,
 				},
 				["display"] = {
@@ -1435,6 +1463,8 @@ ArkInventory.Const.DatabaseDefaults.char = {
 		["personalbank"] = {
 			-- case-insensitive substring used to detect Personal Bank
 			["titlepattern"] = "personal bank",
+			-- case-insensitive substring used to detect Realm Bank
+			["titlepattern_realm"] = "realm bank",
 		},
 		["ldb"] = {
 			["bags"] = {
@@ -1780,6 +1810,13 @@ function ArkInventory.OnInitialize( )
 	ArkInventory.Global.Location[loc_id].bagCount = MAX_GUILDBANK_TABS
 	for x = 1, MAX_GUILDBANK_TABS do
 		table.insert( ArkInventory.Global.Location[loc_id].Bags, ArkInventory.Const.Offset.PersonalBank + x )
+	end
+
+	-- realm bank (uses guild bank APIs)
+	loc_id = ArkInventory.Const.Location.RealmBank
+	ArkInventory.Global.Location[loc_id].bagCount = MAX_GUILDBANK_TABS
+	for x = 1, MAX_GUILDBANK_TABS do
+		table.insert( ArkInventory.Global.Location[loc_id].Bags, ArkInventory.Const.Offset.RealmBank + x )
 	end
 
 	-- mail
@@ -2191,11 +2228,11 @@ function ArkInventory.LocationPlayerInfoGet( loc_id )
 		ArkInventory.Global.Location[loc_id].player_id = ArkInventory.Global.Me.info.player_id
 	end
 
-	--ArkInventory.Output( "LocationPlayerInfoGet( ", loc_id, " ) player id=[", ArkInventory.Global.Location[loc_id].player_id, "]" )
-	local cp = ArkInventory.PlayerInfoGet( ArkInventory.Global.Location[loc_id].player_id )
+	local base_player_id = ArkInventory.Global.Location[loc_id].player_id
+	local cp = ArkInventory.PlayerInfoGet( base_player_id )
 
 	if cp == nil then
-		ArkInventory.Output( "invalid player id (", player_id, ") at location (", loc_id, ")" )
+		ArkInventory.Output( "invalid player id (", base_player_id, ") at location (", loc_id, ")" )
 		assert( false, "code error" )
 	end
 
@@ -4547,19 +4584,29 @@ function ArkInventory.Frame_Main_OnShow( frame )
 		PlaySound( "igCharacterInfoOpen" )
 	elseif loc_id == ArkInventory.Const.Location.Bag then
 		PlaySound( "igBackPackOpen" )
-	elseif loc_id == ArkInventory.Const.Location.Vault then
-		PlaySound( "GuildVaultOpen" )
-	elseif loc_id == ArkInventory.Const.Location.Mail then
-		PlaySound( "igSpellBookOpen" )
-	elseif loc_id == ArkInventory.Const.Location.Wearing then
-		PlaySound( "igBackPackOpen" )
-	elseif loc_id == ArkInventory.Const.Location.Pet then
-		PlaySound( "igSpellBookOpen" )
-	elseif loc_id == ArkInventory.Const.Location.Mount then
-		PlaySound( "igSpellBookOpen" )
-	elseif loc_id == ArkInventory.Const.Location.Token then
-		ArkInventory.ScanLocation( loc_id )
-		PlaySound( "igSpellBookOpen" )
+	if loc_id == ArkInventory.Const.Location.Vault then
+		-- vault location (4) is always stored under the guild owner,
+		-- never under the character directly. Personal banks use
+		-- their own location id (PersonalBank) instead.
+		local guild_id = cp.info.guild_id
+		if guild_id then
+			cp = ArkInventory.PlayerInfoGet( guild_id )
+			if cp == nil then
+				ArkInventory.Output( "invalid guild id (", guild_id, ") at location (", loc_id, ")" )
+				assert( false, "code error" )
+			end
+		end
+	elseif loc_id == ArkInventory.Const.Location.PersonalBank then
+		-- personal bank is stored under the character record
+		local owner_id = cp.info.player_id
+		cp = ArkInventory.PlayerInfoGet( owner_id ) or cp
+	elseif loc_id == ArkInventory.Const.Location.RealmBank then
+		-- realm bank is stored under the realm-wide pseudo-player
+		local realm_id = cp.info.realmbank_id
+		if realm_id then
+			cp = ArkInventory.PlayerInfoGet( realm_id ) or cp
+		end
+	end
 	end
 
 end

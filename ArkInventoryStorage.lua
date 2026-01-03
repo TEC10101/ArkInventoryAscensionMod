@@ -224,6 +224,9 @@ function ArkInventory.PlayerInfoSet( )
 		if ArkInventory.Global.Me.control[ArkInventory.Const.Location.PersonalBank] == nil then
 			ArkInventory.Global.Me.control[ArkInventory.Const.Location.PersonalBank] = true
 		end
+		if ArkInventory.Global.Me.control[ArkInventory.Const.Location.RealmBank] == nil then
+			ArkInventory.Global.Me.control[ArkInventory.Const.Location.RealmBank] = true
+		end
 	end
 
 	local m = GetMoney( )
@@ -253,6 +256,19 @@ function ArkInventory.PlayerInfoSet( )
 		g["class_local"], g["class"] = GUILD, "GUILD"
 
 	end
+
+	-- realm-wide bank pseudo-player (shared across characters on this realm/faction)
+	local realmBankId = string.format( "%s%s", ArkInventory.Const.RealmBankTag, p.realm or "" )
+	p["realmbank_id"] = realmBankId
+
+	local rb = ArkInventory.db.realm.player.data[realmBankId].info
+
+	rb["player_id"] = realmBankId
+	rb["realm"] = p.realm
+	rb["faction"] = p.faction
+	rb["faction_local"] = p.faction_local
+	rb["name"] = "Realm Bank"
+	rb["class_local"], rb["class"] = GUILD, "GUILD"
 
 	return p
 
@@ -558,6 +574,7 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 
 	local title
 	local pattern = string.lower( ( ArkInventory.db.char.option.personalbank and ArkInventory.db.char.option.personalbank.titlepattern ) or "personal bank" )
+	local patternRealm = string.lower( ( ArkInventory.db.char.option.personalbank and ArkInventory.db.char.option.personalbank.titlepattern_realm ) or "realm bank" )
 
 	if GuildBankFrameTitleText and GuildBankFrameTitleText.GetText then
 		title = GuildBankFrameTitleText:GetText( )
@@ -588,33 +605,57 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 		return false
 	end
 
-	local personal = false
-	if title and string.find( string.lower( title ), pattern, 1, true ) then
-		personal = true
-	elseif GuildBankFrame and FrameHasText( GuildBankFrame, pattern ) then
-		personal = true
+	local context = "guild" -- "guild", "personal", or "realm"
+	if title then
+		local lt = string.lower( title )
+		if string.find( lt, pattern, 1, true ) then
+			context = "personal"
+		elseif string.find( lt, patternRealm, 1, true ) then
+			context = "realm"
+		end
+	end
+
+	if context == "guild" and GuildBankFrame then
+		if FrameHasText( GuildBankFrame, pattern ) then
+			context = "personal"
+		elseif FrameHasText( GuildBankFrame, patternRealm ) then
+			context = "realm"
+		end
 	end
 
 	-- robust fallback: check tab names if the UI is up
-	if not personal then
+	if context == "guild" then
 		local tabs = GetNumGuildBankTabs and GetNumGuildBankTabs( ) or 0
 		for i = 1, tabs do
 			local name = select( 1, GetGuildBankTabInfo( i ) )
-			if name and string.find( string.lower( name ), pattern, 1, true ) then
-				personal = true
-				break
+			if name then
+				local ln = string.lower( name )
+				if string.find( ln, pattern, 1, true ) then
+					context = "personal"
+					break
+				elseif string.find( ln, patternRealm, 1, true ) then
+					context = "realm"
+					break
+				end
 			end
 		end
 	end
- 	-- if the player is not in a guild, any guild-bank style frame is a personal bank
-	if not personal and not IsInGuild( ) then
- 		personal = true
- 	end
 
-	ArkInventory.Global.Mode.VaultContext = personal and "personal" or "guild"
-	loc_id = personal and ArkInventory.Const.Location.PersonalBank or ArkInventory.Const.Location.Vault
+	-- if the player is not in a guild, any guild-bank style frame is a personal bank
+	if context == "guild" and not IsInGuild( ) then
+		context = "personal"
+	end
+
+	ArkInventory.Global.Mode.VaultContext = context
+	if context == "personal" then
+		loc_id = ArkInventory.Const.Location.PersonalBank
+	elseif context == "realm" then
+		loc_id = ArkInventory.Const.Location.RealmBank
+	else
+		loc_id = ArkInventory.Const.Location.Vault
+	end
 	ArkInventory.Global.Mode.VaultLocation = loc_id
-	ArkInventory.Global.Location[loc_id].Name = personal and "Personal Bank" or GUILD_BANK
+	ArkInventory.Global.Location[loc_id].Name = ( context == "personal" and "Personal Bank" ) or ( context == "realm" and "Realm Bank" ) or GUILD_BANK
 	ArkInventory.Global.Location[loc_id].isOffline = false
 
 	ArkInventory.PlayerInfoSet( )
@@ -649,7 +690,13 @@ function ArkInventory:LISTEN_VAULT_LEAVE( )
 	ArkInventory.Global.Mode.Vault = false
 	ArkInventory.Global.Mode.VaultContext = nil
 	ArkInventory.Global.Mode.VaultLocation = nil
-	ArkInventory.Global.Location[loc_id].Name = ( loc_id == ArkInventory.Const.Location.PersonalBank ) and "Personal Bank" or GUILD_BANK
+	if loc_id == ArkInventory.Const.Location.PersonalBank then
+		ArkInventory.Global.Location[loc_id].Name = "Personal Bank"
+	elseif loc_id == ArkInventory.Const.Location.RealmBank then
+		ArkInventory.Global.Location[loc_id].Name = "Realm Bank"
+	else
+		ArkInventory.Global.Location[loc_id].Name = GUILD_BANK
+	end
 	ArkInventory.Global.Location[loc_id].isOffline = true
 
 	ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
@@ -740,6 +787,10 @@ function ArkInventory:LISTEN_VAULT_LOG( event, ... )
 	--ArkInventory.OutputDebug( "LISTEN_VAULT_LOG: ", tab )
 
 	if ArkInventory.Global.Mode.VaultContext ~= "personal" then
+		if ArkInventory.Global.Mode.VaultContext ~= "guild" then
+			return
+		end
+
 		ArkInventory.Frame_Vault_Log_Update( )
 	end
 
@@ -751,6 +802,10 @@ function ArkInventory:LISTEN_VAULT_INFO( event, ... )
 	--ArkInventory.Output( "LISTEN_VAULT_INFO: ", tab )
 
 	if ArkInventory.Global.Mode.VaultContext ~= "personal" then
+		if ArkInventory.Global.Mode.VaultContext ~= "guild" then
+			return
+		end
+
 		ArkInventory.Frame_Vault_Info_Update( )
 	end
 
@@ -1059,7 +1114,7 @@ function ArkInventory.BagType( bliz_id )
 
 	if loc_id == nil then
 		return ArkInventory.Const.Slot.Type.Unknown
-	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 		return ArkInventory.Const.Slot.Type.Bag
 	elseif loc_id == ArkInventory.Const.Location.Mail then
 		return ArkInventory.Const.Slot.Type.Mail
@@ -1174,9 +1229,12 @@ function ArkInventory.Scan( arg1 )
 			ArkInventory.ScanBag( bliz_id )
 		elseif loc_id == ArkInventory.Const.Location.Vault then
 			ArkInventory.ScanVault( )
-    elseif loc_id == ArkInventory.Const.Location.PersonalBank then
-      -- for personal bank, use the same scan as guild vault
-      ArkInventory.ScanVault( )
+		elseif loc_id == ArkInventory.Const.Location.PersonalBank then
+			-- for personal bank, use the same scan as guild vault
+			ArkInventory.ScanVault( )
+		elseif loc_id == ArkInventory.Const.Location.RealmBank then
+			-- for realm bank, also use the vault scan
+			ArkInventory.ScanVault( )
 		elseif loc_id == ArkInventory.Const.Location.Wearing then
 			ArkInventory.ScanWearing( )
 		elseif loc_id == ArkInventory.Const.Location.Mail then
@@ -1508,6 +1566,8 @@ function ArkInventory.ScanVault( )
 	local cp
 	if loc_id == ArkInventory.Const.Location.PersonalBank then
 		cp = ArkInventory.Global.Me
+	elseif loc_id == ArkInventory.Const.Location.RealmBank then
+		cp = ArkInventory.PlayerInfoGet( ArkInventory.Global.Me.info.realmbank_id ) or ArkInventory.Global.Me
 	else
 		cp = ArkInventory.PlayerInfoGet( ArkInventory.Global.Me.info.guild_id )
 	end
@@ -1662,6 +1722,8 @@ function ArkInventory.ScanVaultHeader( )
 	local cp
 	if loc_id == ArkInventory.Const.Location.PersonalBank then
 		cp = ArkInventory.Global.Me
+	elseif loc_id == ArkInventory.Const.Location.RealmBank then
+		cp = ArkInventory.PlayerInfoGet( ArkInventory.Global.Me.info.realmbank_id ) or ArkInventory.Global.Me
 	else
 		cp = ArkInventory.PlayerInfoGet( ArkInventory.Global.Me.info.guild_id )
 	end
