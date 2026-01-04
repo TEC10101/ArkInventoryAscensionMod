@@ -6525,17 +6525,24 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 			end
 
 
-			if IsModifiedClick( "CHATLINK" ) then
-				GameTooltip_ShowCompareItem( )
-			elseif IsModifiedClick( "DRESSUP" ) then
-				ShowInspectCursor( )
-			elseif frame.readable then
-				ShowInspectCursor( )
-			else
+			-- when in edit mode we override the default cursor behaviour
+			-- so always show the normal cursor and skip CursorUpdate (which
+			-- would otherwise change to the vendor sell icon, etc.)
+			if ArkInventory.Global.Mode.Edit then
 				ResetCursor( )
-			end
+			else
+				if IsModifiedClick( "CHATLINK" ) then
+					GameTooltip_ShowCompareItem( )
+				elseif IsModifiedClick( "DRESSUP" ) then
+					ShowInspectCursor( )
+				elseif frame.readable then
+					ShowInspectCursor( )
+				else
+					ResetCursor( )
+				end
 
-			CursorUpdate( frame )
+				CursorUpdate( frame )
+			end
 
 		end
 
@@ -6543,6 +6550,15 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 
 	if not usedmycode then
 		ContainerFrameItemButton_OnEnter( frame )
+		-- for live bag items we normally delegate to the default
+		-- ContainerFrame tooltip behaviour so any server-specific
+		-- hooks still run; however in edit mode we want the cursor
+		-- to remain the normal arrow instead of the vendor sell icon
+		-- or other special cursors, so force a reset after Blizzard
+		-- has done its updates.
+		if ArkInventory.Global.Mode.Edit then
+			ResetCursor( )
+		end
 	end
 
 end
