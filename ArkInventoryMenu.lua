@@ -267,6 +267,22 @@ function ArkInventory.MenuBarOpen( frame )
 
 					end
 
+
+						-- sort axis option (per-bar)
+						local axis = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "sortaxis" } ) or "HORIZONTAL"
+						if axis ~= "HORIZONTAL" and axis ~= "VERTICAL" then
+							axis = "HORIZONTAL"
+						end
+						local axis_name = ArkInventory.Localise[axis] or axis
+
+						ArkInventory.Lib.DewDrop:AddLine(
+							"text", string.format( "%s: %s%s%s", "Axis", LIGHTYELLOW_FONT_COLOR_CODE, axis_name, FONT_COLOR_CODE_CLOSE ),
+							"tooltipTitle", "Sort Axis",
+							"tooltipText", "Choose whether this bar sorts horizontally into rows or vertically into columns.",
+							"hasArrow", true,
+							"value", "SORT_AXIS"
+						)
+
 					ArkInventory.Lib.DewDrop:AddLine( )
 
 					ArkInventory.Lib.DewDrop:AddLine(
@@ -427,6 +443,37 @@ function ArkInventory.MenuBarOpen( frame )
 						end
 
 					end
+
+
+							if value == "SORT_AXIS" then
+
+								local axis = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "sortaxis" } ) or "HORIZONTAL"
+								if axis ~= "HORIZONTAL" and axis ~= "VERTICAL" then
+									axis = "HORIZONTAL"
+								end
+
+								ArkInventory.Lib.DewDrop:AddLine(
+									"text", "Sort Axis",
+									"isTitle", true,
+									"textHeight", 12
+								)
+
+								ArkInventory.Lib.DewDrop:AddLine( )
+
+								for _, code in ipairs( { "HORIZONTAL", "VERTICAL" } ) do
+									ArkInventory.Lib.DewDrop:AddLine(
+										"text", ArkInventory.Localise[code] or code,
+										"isRadio", true,
+										"checked", code == axis,
+										"closeWhenClicked", true,
+										"func", function( )
+											ArkInventory.LocationOptionSet( loc_id, { "bar", "data", bar_id, "sortaxis" }, code )
+											ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
+										end
+									)
+								end
+
+							end
 
 
 					if value == "BACKGROUND_LIST" then
