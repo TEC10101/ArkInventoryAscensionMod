@@ -5568,6 +5568,9 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 
 		local i = cp.location[loc_id].bag[bag_id].slot[slot_id]
 
+		-- track emptiness so empty slots can be kept at the end regardless of sort direction
+		bar.item[j].empty = not i.h
+
 		if bar.item[j].sortkey == nil then
 			bar.item[j].sortkey = ArkInventory.ItemSortKeyGenerate( i, bar_id ) or "!"
 		end
@@ -5583,11 +5586,19 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 		sid = sid_def
 	end
 
-	if ArkInventory.db.global.option.sort.data[sid].ascending then
-		sort( bar.item, function( a, b ) return a.sortkey > b.sortkey end )
-	else
-		sort( bar.item, function( a, b ) return a.sortkey < b.sortkey end )
-	end
+	local sortAscending = ArkInventory.db.global.option.sort.data[sid].ascending
+
+	-- keep empty bag slots grouped at the end so the bar fill edge stays consistent
+	sort( bar.item, function( a, b )
+		if a.empty ~= b.empty then
+			return not a.empty
+		end
+		if sortAscending then
+			return a.sortkey > b.sortkey
+		else
+			return a.sortkey < b.sortkey
+		end
+	end )
 
 
 	local pad_slot = ArkInventory.LocationOptionGet( loc_id, { "slot", "pad" } )
@@ -5599,8 +5610,14 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 	end
 
 	if debugLayout then
-		local ascending = ArkInventory.db.global.option.sort.data[sid].ascending and "asc" or "desc"
-		ArkInventory.OutputDebug( "Bar layout before axis remap - loc=", loc_id, ", bar=", bar_id, ", sortid=", sid, " (", ascending, ")", ", axis=", axis, ", width=", bar.width, ", height=", bar.height, ", count=", bar.count )
+		local ascending = sortAscending and "asc" or "desc"
+		local emptyCount = 0
+		for j = 1, bar.count do
+			if bar.item[j].empty then
+				emptyCount = emptyCount + 1
+			end
+		end
+		ArkInventory.OutputDebug( "Bar layout before axis remap - loc=", loc_id, ", bar=", bar_id, ", sortid=", sid, " (", ascending, ")", ", axis=", axis, ", width=", bar.width, ", height=", bar.height, ", count=", bar.count, ", empty=", emptyCount )
 	end
 
 	-- for vertical (column) axis, remap the sorted item list so that
