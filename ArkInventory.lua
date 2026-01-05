@@ -5554,6 +5554,9 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 	local bar = ArkInventory.Global.Location[loc_id].Layout.bar[bar_id]
 	assert( bar, "bar id has not been set on frame" )
 
+	-- debug flag for layout issues (limits spam to bag location, bar 1)
+	local debugLayout = ArkInventory.Const.Debug and loc_id == ArkInventory.Const.Location.Bag and bar_id == 1
+
 	if bar.count == 0 or bar.ghost then
 		return
 	end
@@ -5590,6 +5593,46 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 	local pad_slot = ArkInventory.LocationOptionGet( loc_id, { "slot", "pad" } )
 	local pad_bar = ArkInventory.LocationOptionGet( loc_id, { "bar", "pad", "internal" } )
 	local col = bar.width
+	local axis = ArkInventory.LocationOptionGet( loc_id, { "bar", "data", bar_id, "sortaxis" } ) or "HORIZONTAL"
+	if axis ~= "HORIZONTAL" and axis ~= "VERTICAL" then
+		axis = "HORIZONTAL"
+	end
+
+	if debugLayout then
+		local ascending = ArkInventory.db.global.option.sort.data[sid].ascending and "asc" or "desc"
+		ArkInventory.OutputDebug( "Bar layout before axis remap - loc=", loc_id, ", bar=", bar_id, ", sortid=", sid, " (", ascending, ")", ", axis=", axis, ", width=", bar.width, ", height=", bar.height, ", count=", bar.count )
+	end
+
+	-- for vertical (column) axis, remap the sorted item list so that
+	-- the existing row-major anchoring code lays items out column-major
+	if axis == "VERTICAL" and bar.count > 1 and col > 0 then
+		local h = bar.height
+		if h <= 0 then
+			h = ceil( bar.count / col )
+		end
+		local n = bar.count
+		local sorted = bar.item
+		local layout = { }
+		local s = 1
+		for c = 1, col do
+			for r = 1, h do
+				if s > n then
+					break
+				end
+				local j = ( r - 1 ) * col + c
+				if j > n then
+					break
+				end
+				layout[j] = sorted[s]
+				s = s + 1
+			end
+		end
+		bar.item = layout
+
+		if debugLayout then
+			ArkInventory.OutputDebug( "Bar layout after VERTICAL remap - loc=", loc_id, ", bar=", bar_id, ", width=", bar.width, ", height=", bar.height, ", count=", bar.count )
+		end
+	end
 
 	-- cycle through the items in the bar
 	for j = 1, bar.count do
@@ -5598,6 +5641,12 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 		local framename = ArkInventory.ContainerItemNameGet( loc_id, bar.item[j].bag, bar.item[j].slot )
 		local obj = _G[framename]
 		assert( obj, "xml element '" .. framename .. "' does not exist" )
+
+		if debugLayout then
+			local row = ceil( j / col )
+			local column = ( ( j - 1 ) % col ) + 1
+			ArkInventory.OutputDebug( "Bar cell - j=", j, ", row=", row, ", col=", column, ", bag=", bar.item[j].bag, ", slot=", bar.item[j].slot )
+		end
 
 		if ArkInventory.Global.Location[loc_id].drawState <= ArkInventory.Const.Window.Draw.Recalculate then
 
@@ -5642,38 +5691,38 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 
 			else
 
-				if mod( ( j - 1 ), col ) == 0 then
+					if mod( ( j - 1 ), col ) == 0 then
 
-					-- next row, anchor to first item in previous row
-					local anchorframe = ArkInventory.ContainerItemNameGet( loc_id, bar.item[j-col].bag, bar.item[j-col].slot )
+						-- next row, anchor to first item in previous row
+						local anchorframe = ArkInventory.ContainerItemNameGet( loc_id, bar.item[j-col].bag, bar.item[j-col].slot )
 
-					if anchor == ArkInventory.Const.Anchor.BottomLeft then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, pad_slot + item_size ) -- OK
-					elseif anchor == ArkInventory.Const.Anchor.TopLeft then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, 0 - pad_slot - item_size ) -- OK
-					elseif anchor == ArkInventory.Const.Anchor.TopRight then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, 0 - pad_slot - item_size ) -- OK
-					else -- if anchor == ArkInventory.Const.Anchor.BottomRight then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, pad_slot + item_size ) -- OK
+						if anchor == ArkInventory.Const.Anchor.BottomLeft then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, pad_slot + item_size ) -- OK
+						elseif anchor == ArkInventory.Const.Anchor.TopLeft then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, 0 - pad_slot - item_size ) -- OK
+						elseif anchor == ArkInventory.Const.Anchor.TopRight then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, 0 - pad_slot - item_size ) -- OK
+						else -- if anchor == ArkInventory.Const.Anchor.BottomRight then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0, pad_slot + item_size ) -- OK
+						end
+
+					else
+
+						-- anchor to last item
+
+						local anchorframe = ArkInventory.ContainerItemNameGet( loc_id, bar.item[j-1].bag, bar.item[j-1].slot )
+
+						if anchor == ArkInventory.Const.Anchor.BottomLeft then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, pad_slot + item_size, 0 )
+						elseif anchor == ArkInventory.Const.Anchor.TopLeft then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, pad_slot + item_size, 0 )
+						elseif anchor == ArkInventory.Const.Anchor.TopRight then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0 - pad_slot - item_size, 0 )
+						else -- if anchor == ArkInventory.Const.Anchor.BottomRight then
+							obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0 - pad_slot - item_size, 0 )
+						end
+
 					end
-
-				else
-
-					-- anchor to last item
-
-					local anchorframe = ArkInventory.ContainerItemNameGet( loc_id, bar.item[j-1].bag, bar.item[j-1].slot )
-
-					if anchor == ArkInventory.Const.Anchor.BottomLeft then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, pad_slot + item_size, 0 )
-					elseif anchor == ArkInventory.Const.Anchor.TopLeft then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, pad_slot + item_size, 0 )
-					elseif anchor == ArkInventory.Const.Anchor.TopRight then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0 - pad_slot - item_size, 0 )
-					else -- if anchor == ArkInventory.Const.Anchor.BottomRight then
-						obj:SetPoint( "BOTTOMRIGHT", anchorframe, 0 - pad_slot - item_size, 0 )
-					end
-
-				end
 
 			end
 
