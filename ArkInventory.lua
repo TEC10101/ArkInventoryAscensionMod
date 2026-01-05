@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1100,
-		UIVersion = "3.11.00",
+		Version = 3.1200,
+		UIVersion = "3.12.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -6262,10 +6262,17 @@ function ArkInventory.Frame_Item_Update_Fade( frame )
 				end
 			end
 		else
-			local n = string.lower( select( 3, ArkInventory.ObjectInfo( i.h ) ) or "" )
-			if not string.find( n, strtrim( f ) ) then
-				-- drop fade to 0.2 for all non matching items
-				fade = 0.2
+			if ArkInventory.SearchItemMatchesFilter then
+				if not ArkInventory.SearchItemMatchesFilter( i.h, i.count, i.q, f ) then
+					-- drop fade to 0.2 for all non matching items
+					fade = 0.2
+				end
+			else
+				-- legacy behaviour: plain text only matches against the item name
+				local n = string.lower( select( 3, ArkInventory.ObjectInfo( i.h ) ) or "" )
+				if not string.find( n, strtrim( f ) ) then
+					fade = 0.2
+				end
 			end
 		end
 	end

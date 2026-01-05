@@ -16,6 +16,141 @@ function ArkInventory.SearchSetMode( mode )
 	end
 end
 
+-- helper used when not in rule mode: perform a plain-text search
+-- over multiple item attributes using OR logic, short-circuiting
+-- as soon as any attribute matches.
+function ArkInventory.SearchItemMatchesFilter( h, count, q, filter )
+
+	if not h then
+		return false
+	end
+
+	local filter_trim = strtrim( filter or "" )
+	if filter_trim == "" then
+		-- empty filter: treat as match so callers can
+		-- decide whether to apply any fading / filtering
+		return true
+	end
+
+	local filter_lc = string.lower( filter_trim )
+
+	-- name( )
+	local item_name = select( 3, ArkInventory.ObjectInfo( h ) ) or ""
+	local name_lc = string.lower( item_name )
+	if name_lc ~= "" and string.find( name_lc, filter_lc, 1, true ) then
+		return true
+	end
+
+	-- basic item info (only for real items)
+	local class = ArkInventory.ObjectStringDecode( h )
+	local is_item = ( class == "item" )
+	local itemType, itemSubType, equipLoc
+	local quality = q
+	if is_item then
+		local _, _, q2, _, _, t, st, _, el = GetItemInfo( h )
+		itemType = t
+		itemSubType = st
+		equipLoc = el
+		if quality == nil then
+			quality = q2
+		end
+	end
+
+	-- type( )
+	if is_item and itemType and itemType ~= "" then
+		if string.lower( itemType ) == filter_lc then
+			return true
+		end
+	end
+
+	-- subtype( )
+	if is_item and itemSubType and itemSubType ~= "" then
+		if string.lower( itemSubType ) == filter_lc then
+			return true
+		end
+	end
+
+	-- equip( )
+	if is_item and equipLoc and equipLoc ~= "" then
+		local e = strtrim( equipLoc )
+		if string.len( e ) > 1 then
+			-- map INVTYPE_* token to its localized display string
+			e = _G[e]
+		end
+		e = string.lower( strtrim( e or "" ) )
+		if e ~= "" and e == filter_lc then
+			return true
+		end
+	end
+
+	-- q( ) / quality( )
+	if is_item and quality ~= nil then
+		local n = tonumber( filter_trim )
+		if n and n == quality then
+			return true
+		end
+		local desc = _G[string.format( "ITEM_QUALITY%d_DESC", quality )]
+		if desc and string.lower( desc ) == filter_lc then
+			return true
+		end
+		-- extra colour/alias terms per quality
+		local qa = {
+			[0] = { "poor", "gray", "grey", "grays", "greys" },
+			[1] = { "common", "white", "whites" },
+			[2] = { "uncommon", "green", "greens" },
+			[3] = { "rare", "blue", "blues" },
+			[4] = { "epic", "purple", "purples" },
+			[5] = { "legendary", "orange", "oranges" },
+		}
+		local aliases = qa[quality]
+		if aliases then
+			for _, term in ipairs( aliases ) do
+				if filter_lc == term then
+					return true
+				end
+			end
+		end
+	end
+
+	-- tooltip-based checks
+	local tooltip = ArkInventory.Global and ArkInventory.Global.Tooltip and ArkInventory.Global.Tooltip.Rule
+	if not tooltip or not ArkInventory.TooltipSetHyperlink then
+		return false
+	end
+
+	-- build a tooltip for tt( ) / itemstat( ) style matching
+	ArkInventory.TooltipSetHyperlink( tooltip, h )
+
+	-- tt( ) alias tooltip( ): any tooltip line containing the text
+	if ArkInventory.TooltipContains and ArkInventory.TooltipContains( tooltip, filter_trim ) then
+		return true
+	end
+
+	-- itemstat( ): look for stats with numbers on the left side that
+	-- contain the search text (case-insensitive substring)
+	if ArkInventory.TooltipNumLines then
+		local numLines = ArkInventory.TooltipNumLines( tooltip )
+		local statName = filter_lc
+		if statName ~= "" then
+			for line = 2, numLines do
+				local leftText = _G[tooltip:GetName( ) .. "TextLeft" .. line]
+				if leftText and leftText:IsShown( ) then
+					local txt = leftText:GetText( ) or ""
+					if txt ~= "" and string.find( txt, "%d" ) then
+						local txtLower = string.lower( txt )
+						if string.find( txtLower, statName, 1, true ) then
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return false
+
+end
+
 -- shared helper: derive the longest syntactically valid rule expression
 -- from the raw search text, used by both the dedicated Search window and
 -- the main bag search when in rule mode.
@@ -486,6 +621,7 @@ function ArkInventory.Frame_Search_Table_Refresh( frame )
 	local rule_expr
 	local rule_func
 	local rule_mode = ArkInventory.SearchIsRuleMode and ArkInventory.SearchIsRuleMode( )
+
 	if rule_mode and ArkInventory.SearchRuleGetExpression then
 		rule_expr = ArkInventory.SearchRuleGetExpression( filter )
 		if rule_expr then
@@ -538,9 +674,16 @@ function ArkInventory.Frame_Search_Table_Refresh( frame )
 								ignore = true
 							end
 						else
-							if filter_lc ~= "" and item_name ~= "" then
-								if not string.find( string.lower( item_name or "" ), filter_lc, 1, true ) then
+							if ArkInventory.SearchItemMatchesFilter then
+								if not ArkInventory.SearchItemMatchesFilter( sd.h, sd.count, sd.q, filter ) then
 									ignore = true
+								end
+							else
+								-- fallback: plain text only matches against the item name
+								if filter_lc ~= "" and item_name ~= "" then
+									if not string.find( string.lower( item_name or "" ), filter_lc, 1, true ) then
+										ignore = true
+									end
 								end
 							end
 						end
