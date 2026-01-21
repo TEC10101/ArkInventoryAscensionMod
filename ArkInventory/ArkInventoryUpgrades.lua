@@ -1272,7 +1272,7 @@ function ArkInventory.ConvertOldOptions( )
 
 
 	-- migrate legacy Personal/Realm bank per-location assignments to per-tab (tab 1) synthetic locations
-	upgrade_version = 3.1300
+	upgrade_version = 3.1301
 	if ArkInventory.db.profile.option.version < upgrade_version then
 
 		ArkInventory.Output( string.format( ArkInventory.Localise["UPGRADE_PROFILE"], ArkInventory.db:GetCurrentProfile( ), upgrade_version ) )

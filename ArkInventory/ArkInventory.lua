@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1300,
-		UIVersion = "3.13.00",
+		Version = 3.1301,
+		UIVersion = "3.13.01",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -935,6 +935,8 @@ ArkInventory.Global = { -- globals
 		Vault = false,
 		VaultContext = nil,
 		VaultLocation = nil,
+		VaultSuppressLeave = false,
+		VaultUIUnhooked = false,
 		Mail = false,
 		Merchant = false,
 
@@ -1041,7 +1043,7 @@ ArkInventory.Global = { -- globals
 
 			isOffline = true,
 			canView = true,
-			canOverride = true,
+			canOverride = false,
 			canPurge = true,
 
 			drawState = ArkInventory.Const.Window.Draw.Init,
@@ -4057,6 +4059,19 @@ function ArkInventory.Frame_Main_Offline( frame )
 		or current_player_id == ArkInventory.Global.Me.info.guild_id
 		or current_player_id == ArkInventory.Global.Me.info.realmbank_id
 
+	-- if we're actively at a personal/realm vault, force online and exit early
+	-- to avoid any subsequent checks toggling it back to offline during early
+	-- login initialisation
+	if ArkInventory.Global.Mode.Vault then
+		if loc_id == ArkInventory.Const.Location.PersonalBank and ArkInventory.Global.Mode.VaultContext == "personal" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+			return
+		elseif loc_id == ArkInventory.Const.Location.RealmBank and ArkInventory.Global.Mode.VaultContext == "realm" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+			return
+		end
+	end
+
 	if is_current_player then
 	--if ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.player_id or ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.guild_id then
 
@@ -4618,6 +4633,16 @@ function ArkInventory.Frame_Main_Show( loc_id, player_id )
 			ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Resort )
 		end
 
+
+	-- ensure online state for first-open personal/realm vault sessions before
+	-- showing to avoid a brief/offline title caused by early initialisation
+	if ArkInventory.Global.Mode.Vault then
+		if loc_id == ArkInventory.Const.Location.PersonalBank and ArkInventory.Global.Mode.VaultContext == "personal" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+		elseif loc_id == ArkInventory.Const.Location.RealmBank and ArkInventory.Global.Mode.VaultContext == "realm" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+		end
+	end
 	end
 
 	ArkInventory.LocationSetValue( loc_id, "player_id", player_id )
@@ -4731,7 +4756,7 @@ function ArkInventory.Frame_Main_OnHide( frame )
 
 		PlaySound( "GuildVaultClose" )
 
-		if ArkInventory.Global.Mode.Vault and ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) then
+		if ArkInventory.Global.Mode.Vault and ( ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) or ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) then
 
 			-- close blizzards vault/personal-bank frame if we're hiding blizzard frames,
 			-- we're at the vault, and the vault window was closed
@@ -4741,8 +4766,45 @@ function ArkInventory.Frame_Main_OnHide( frame )
 			StaticPopup_Hide( "GUILDBANK_DEPOSIT" )
 			StaticPopup_Hide( "CONFIRM_BUY_GUILDBANK_TAB" )
 
+			-- allow subsequent CLOSE event to be processed normally (we suppressed
+			-- them while the Ark window was visible)
+			ArkInventory.Global.Mode.VaultSuppressLeave = false
 			CloseGuildBankFrame( )
 
+
+
+		end
+
+		-- regardless of vault control setting, if we temporarily unhooked
+		-- Blizzard events for personal/realm, restore them on hide so the
+		-- next open fires correctly
+		if ArkInventory.Global.Mode.VaultUIUnhooked then
+			if UIParent and UIParent.RegisterEvent then
+				UIParent:RegisterEvent( "GUILDBANKFRAME_OPENED" )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug( "Vault debug (OnHide): UIParent GUILDBANKFRAME_OPENED re-registered" )
+				end
+			end
+			if GuildBankFrame and GuildBankFrame.RegisterEvent then
+				GuildBankFrame:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TABS" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_MONEY" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TEXT" )
+				GuildBankFrame:RegisterEvent( "GUILD_ROSTER_UPDATE" )
+				GuildBankFrame:RegisterEvent( "GUILDBANKLOG_UPDATE" )
+				GuildBankFrame:RegisterEvent( "GUILDTABARD_UPDATE" )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug( "Vault debug (OnHide): GuildBankFrame events re-registered" )
+				end
+			end
+			ArkInventory.Global.Mode.VaultUIUnhooked = false
+		end
+
+		-- always clear Ascension flags on hide to prevent stale context
+		if GuildBankFrame then
+			GuildBankFrame.IsPersonalBank = nil
+			GuildBankFrame.IsRealmBank = nil
 		end
 
 	elseif loc_id == ArkInventory.Const.Location.Mail then
@@ -8411,56 +8473,29 @@ function ArkInventory.BlizzardAPIHooks( disable )
 
 	else
 
-		if disable or not ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) then
+		-- Always restore guild bank functions at init. ArkInventory now unhooks
+		-- dynamically inside LISTEN_VAULT_ENTER for personal/realm sessions.
+		-- This ensures that after a /reload the guild bank opens normally on
+		-- first interaction.
+		UIParent:RegisterEvent( "GUILDBANKFRAME_OPENED" )
 
-			-- restore guild bank functions
+		GuildBankFrame:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TABS" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_MONEY" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TEXT" )
+		GuildBankFrame:RegisterEvent( "GUILD_ROSTER_UPDATE" )
+		GuildBankFrame:RegisterEvent( "GUILDBANKLOG_UPDATE" )
+		GuildBankFrame:RegisterEvent( "GUILDTABARD_UPDATE" )
 
-			UIParent:RegisterEvent( "GUILDBANKFRAME_OPENED" )
-
-			GuildBankFrame:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TABS" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_MONEY" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TEXT" )
-			GuildBankFrame:RegisterEvent( "GUILD_ROSTER_UPDATE" )
-			GuildBankFrame:RegisterEvent( "GUILDBANKLOG_UPDATE" )
-			GuildBankFrame:RegisterEvent( "GUILDTABARD_UPDATE" )
-
-			-- anchor popup to blizzard frame
-			local frame = _G["GuildBankFrame"]
-			if frame then
-				GuildBankPopupFrame:ClearAllPoints( )
-				GuildBankPopupFrame:SetPoint( "TOPLEFT", frame, "TOPRIGHT", -4, -30 )
-			end
-
-			ArkInventory.Frame_Main_Hide( ArkInventory.Const.Location.Vault )
-
-		else
-
-			-- sever guild bank functions
-
-			UIParent:UnregisterEvent( "GUILDBANKFRAME_OPENED" )
-
-			GuildBankFrame:UnregisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_TABS" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_MONEY" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_TEXT" )
-			GuildBankFrame:UnregisterEvent( "GUILD_ROSTER_UPDATE" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANKLOG_UPDATE" )
-			GuildBankFrame:UnregisterEvent( "GUILDTABARD_UPDATE" )
-
-			GuildBankFrame:Hide( )
-
-			-- anchor popup to AI frame
-			local frame = _G[ArkInventory.Const.Frame.Main.Name .. ArkInventory.Const.Location.Vault]
-			if frame then
-				GuildBankPopupFrame:Hide( )
-				GuildBankPopupFrame:ClearAllPoints( )
-				GuildBankPopupFrame:SetPoint( "TOPLEFT", frame, "TOPRIGHT", -4, -30 )
-			end
-
+		-- anchor popup to blizzard frame
+		local frame = _G["GuildBankFrame"]
+		if frame then
+			GuildBankPopupFrame:ClearAllPoints( )
+			GuildBankPopupFrame:SetPoint( "TOPLEFT", frame, "TOPRIGHT", -4, -30 )
 		end
+
+		ArkInventory.Frame_Main_Hide( ArkInventory.Const.Location.Vault )
 
 	end
 
