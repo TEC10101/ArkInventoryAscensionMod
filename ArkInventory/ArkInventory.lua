@@ -4825,6 +4825,12 @@ function ArkInventory.Frame_Main_OnHide( frame )
 		ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
 	end
 
+	-- ensure no hidden edit box keeps keyboard focus (which would swallow ESC)
+	local focused = GetCurrentKeyFocus and GetCurrentKeyFocus( )
+	if focused and focused.ClearFocus then
+		focused:ClearFocus( )
+	end
+
 end
 
 function ArkInventory.Frame_Main_OnLoad( frame )

@@ -636,14 +636,23 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	ArkInventory.OutputDebug( "Vault open: context=", context, "; hiding Blizzard GuildBank UI and showing ArkInventory" )
 	ArkInventory.Global.Location[loc_id].isOffline = false
 
-	-- Hide Blizzard's guild bank frames to prevent double UI, and suppress
-	-- the immediate CLOSED event triggered by this Hide
-	if GuildBankFrame and GuildBankFrame.Hide and GuildBankFrame:IsShown( ) then
+	-- Hide Blizzard's guild bank frames using the UIPanel API to keep the
+	-- UIPanel stack consistent. Using :Hide() directly can leave UIParent
+	-- believing a panel is still open, causing ESC to appear unresponsive.
+	if GuildBankFrame and GuildBankFrame:IsShown( ) then
 		ArkInventory.Global.Mode.VaultSuppressLeave = true
-		GuildBankFrame:Hide( )
+		if HideUIPanel then
+			HideUIPanel( GuildBankFrame )
+		else
+			GuildBankFrame:Hide( )
+		end
 	end
-	if GuildBankPopupFrame and GuildBankPopupFrame.Hide then
-		GuildBankPopupFrame:Hide( )
+	if GuildBankPopupFrame then
+		if HideUIPanel then
+			HideUIPanel( GuildBankPopupFrame )
+		else
+			GuildBankPopupFrame:Hide( )
+		end
 	end
 
 	-- Temporarily unhook Blizzard's guild bank related events so it doesn't reopen
