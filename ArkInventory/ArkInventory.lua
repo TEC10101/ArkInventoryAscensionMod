@@ -7517,6 +7517,8 @@ function ArkInventory.Frame_Changer_Vault_Tab_OnClick( frame, button, mode )
 
 	local cp = ArkInventory.LocationPlayerInfoGet( loc_id )
 	local tab = cp.location[loc_id].bag[bag_id]
+	local isPersonal = ( loc_id == ArkInventory.Const.Location.PersonalBank )
+	local isRealm = ( loc_id == ArkInventory.Const.Location.RealmBank )
 
 	if tab.name == nil then
 		return
@@ -7540,8 +7542,31 @@ function ArkInventory.Frame_Changer_Vault_Tab_OnClick( frame, button, mode )
 
 		elseif button == "LeftButton" then
 
-			if mode == GuildBankFrame.mode and bag_id == GetCurrentGuildBankTab( ) then
+			-- Personal / Realm banks: drive purely from saved variables.
+			-- When a tab is clicked, switch the active tab index and
+			-- regenerate the window from cp.location[loc_id].bag[bag_id]
+			-- without relying on live guild bank queries.
+			if isPersonal or isRealm then
+
+				ArkInventory.Global.Location[loc_id].current_tab = bag_id
+
+				-- update changer highlight and then redraw the main window
+				ArkInventory.Frame_Changer_Update( loc_id )
+				-- need a full layout recalculation so that the new
+				-- active tab's bag visibility (display[loc_id].bag)
+				-- takes effect in Frame_Container_CalculateBars
+				ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
+
 				return
+			end
+
+			-- for the real guild vault we can safely skip redundant work
+			-- when clicking the already active tab. personal / realm
+			-- banks use the saved-variables path above instead.
+			if loc_id == ArkInventory.Const.Location.Vault then
+				if mode == GuildBankFrame.mode and bag_id == GetCurrentGuildBankTab( ) then
+					return
+				end
 			end
 
 			GuildBankFrame.mode = mode
@@ -7591,9 +7616,19 @@ function ArkInventory.Frame_Changer_Update_Vault( loc_id )
 		return
 	end
 
+	local current_tab
+	if loc_id == ArkInventory.Const.Location.Vault then
+		-- real guild vault follows Blizzard's current tab selection
+		current_tab = GetCurrentGuildBankTab( )
+	else
+		-- personal / realm banks track the active tab via our own
+		-- per-location current_tab field, defaulting to 1
+		current_tab = ArkInventory.Global.Location[loc_id].current_tab or 1
+	end
+
 	for bag_id in ipairs( ArkInventory.Global.Location[loc_id].Bags ) do
 
-		if bag_id == GetCurrentGuildBankTab( ) then
+		if bag_id == current_tab then
 			ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] = true
 		else
 			ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] = false

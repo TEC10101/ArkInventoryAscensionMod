@@ -1786,13 +1786,33 @@ function ArkInventory.ScanVaultHeader( )
 
 		else
 
-			bag["name"] = string.format( GUILDBANK_TAB_NUMBER, bag_id )
-			bag["texture"] = ArkInventory.Const.Texture.Empty.Bag
-			bag["count"] = 0
-			bag["empty"] = 0
-			bag["access"] = ArkInventory.Localise["STATUS_PURCHASE"]
-			bag["withdraw"] = nil
-			bag["status"] = ArkInventory.Const.Bag.Status.Purchase
+			-- for the real guild vault, tabs beyond GetNumGuildBankTabs are
+			-- unpurchased and should be marked as such. however, for
+			-- Personal/Realm banks on Ascension, extra tabs can be managed
+			-- by separate systems that are not reflected in the guild tab
+			-- count. in those cases, forcibly overriding the tab to
+			-- STATUS_PURCHASE breaks already-bought tabs (e.g. personal
+			-- bank tab 2) and prevents them from being clicked.
+			if ArkInventory.Global.Mode.VaultContext == "guild" or ArkInventory.Global.Mode.VaultContext == nil then
+
+				bag["name"] = string.format( GUILDBANK_TAB_NUMBER, bag_id )
+				bag["texture"] = ArkInventory.Const.Texture.Empty.Bag
+				bag["count"] = 0
+				bag["empty"] = 0
+				bag["access"] = ArkInventory.Localise["STATUS_PURCHASE"]
+				bag["withdraw"] = nil
+				bag["status"] = ArkInventory.Const.Bag.Status.Purchase
+
+			else
+
+				-- personal / realm bank: keep any existing status (so
+				-- purchased tabs stay Active) and only normalise the
+				-- presentation fields if they are missing.
+				bag["name"] = bag["name"] or string.format( GUILDBANK_TAB_NUMBER, bag_id )
+				bag["texture"] = bag["texture"] or ArkInventory.Const.Texture.Empty.Bag
+				-- leave count / empty / access / withdraw / status unchanged
+
+			end
 
 		end
 
