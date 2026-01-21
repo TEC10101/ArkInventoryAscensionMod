@@ -6984,6 +6984,14 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 			end
 
 			if button == "RightButton" and not IsModifierKeyDown( ) then
+				-- If Blizzard's GuildBankFrame is actually open (even if invisible),
+				-- let the default Blizzard click handler do the deposit. This avoids
+				-- the double "move" sound caused by our manual Pickup+Place logic.
+				if GuildBankFrame and GuildBankFrame.IsShown and GuildBankFrame:IsShown( ) then
+					ContainerFrameItemButton_OnClick( frame, button )
+					return
+				end
+
 				local bliz_bag = ArkInventory.BagID_Blizzard( loc_id, i.bag_id )
 				if ArkInventory.OutputDebug then
 					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp deposit path: bag_id=", i and i.bag_id, ", slot_id=", i and i.slot_id, ", current_tab=", GetCurrentGuildBankTab() or 1)
