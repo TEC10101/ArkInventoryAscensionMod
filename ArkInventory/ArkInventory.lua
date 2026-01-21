@@ -2164,6 +2164,11 @@ function ArkInventory.OnEnable( )
 	ArkInventory:RegisterEvent( "MERCHANT_SHOW", "LISTEN_MERCHANT_ENTER" )
 	ArkInventory:RegisterEvent( "MERCHANT_CLOSED", "LISTEN_MERCHANT_LEAVE" )
 
+	-- Useful for diagnosing taint/protected-action popups (e.g. disenchanting
+	-- from custom bag buttons). Only outputs when ArkInventory debug mode is on.
+	ArkInventory:RegisterEvent( "ADDON_ACTION_BLOCKED", "LISTEN_ADDON_ACTION_BLOCKED" )
+	ArkInventory:RegisterEvent( "ADDON_ACTION_FORBIDDEN", "LISTEN_ADDON_ACTION_BLOCKED" )
+
 	ArkInventory:RegisterEvent( "COMPANION_LEARNED", "LISTEN_COMPANION_UPDATE" )
 
 	ArkInventory:RegisterEvent( "EQUIPMENT_SETS_CHANGED", "LISTEN_EQUIPMENT_SETS_CHANGED" )
@@ -2378,6 +2383,20 @@ function ArkInventory.OutputDebugModeSet( value )
 		ArkInventory.Output( "debug mode is now ", state )
 
 	end
+
+end
+
+function ArkInventory:LISTEN_ADDON_ACTION_BLOCKED( event, addon, blocked )
+
+	-- Event args differ slightly across clients; keep it defensive.
+	-- Typical signatures:
+	--   ADDON_ACTION_BLOCKED(addonName, functionName)
+	--   ADDON_ACTION_FORBIDDEN(addonName, functionName)
+	if not ArkInventory.Const.Debug then
+		return
+	end
+
+	ArkInventory.OutputDebug( "Taint event:", event, ", addon=", addon or "?", ", blocked=", blocked or "?" )
 
 end
 
@@ -6942,6 +6961,20 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 
 	local loc_id = frame.ARK_Data.loc_id
 	local i = ArkInventory.Frame_Item_GetDB( frame )
+
+	-- When a spell is targeting (eg. Disenchant), let Blizzard's secure
+	-- ContainerFrameItemButtonTemplate handling run without ArkInventory
+	-- re-invoking protected click handlers. Calling those handlers from
+	-- addon code can trigger an ADDON_ACTION_BLOCKED popup.
+	if loc_id == ArkInventory.Const.Location.Bag then
+		local hasSpell = false
+		if CursorHasSpell then
+			hasSpell = CursorHasSpell( )
+		end
+		if SpellIsTargeting( ) or hasSpell then
+			return
+		end
+	end
 
 	if ArkInventory.Global.Location[loc_id].isOffline or ArkInventory.Global.Mode.Edit then
 
