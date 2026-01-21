@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1302,
-		UIVersion = "3.13.02",
+		Version = 3.1303,
+		UIVersion = "3.13.03",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -1406,6 +1406,182 @@ ArkInventory.Const.DatabaseDefaults.global = {
 		},
 	},
 	["player"] = { },
+	-- shared, non-profile defaults for Realm Bank options
+	["realmbank"] = {
+		["option"] = {
+			["location"] = {
+				["*"] = {
+					["window"] = {
+						["scale"] = 1,
+						["width"] = 16,
+						["border"] = {
+							["style"] = ArkInventory.Const.Texture.BorderDefault,
+							["size"] = nil,
+							["offset"] = nil,
+							["scale"] = 1,
+							["colour"] = {
+								["r"] = 1,
+								["g"] = 1,
+								["b"] = 1,
+							},
+						},
+						["pad"] = 8,
+						["background"] = {
+							["style"] = ArkInventory.Const.Texture.BackgroundDefault,
+							["colour"] = {
+								["r"] = 0,
+								["g"] = 0,
+								["b"] = 0,
+								["a"] = 0.75,
+							},
+						},
+					},
+					["bar"] = {
+						["per"] = 5,
+						["pad"] = {
+							["internal"] = 8,
+							["external"] = 8,
+						},
+						["border"] = {
+							["style"] = ArkInventory.Const.Texture.BorderDefault,
+							["size"] = nil,
+							["offset"] = nil,
+							["scale"] = 1,
+							["colour"] = {
+								["r"] = 0.3,
+								["g"] = 0.3,
+								["b"] = 0.3,
+							},
+						},
+						["background"] = {
+							["colour"] = {
+								["r"] = 0,
+								["g"] = 0,
+								["b"] = 0.4,
+								["a"] = 0.4,
+							},
+						},
+						["showempty"] = false,
+						["anchor"] = ArkInventory.Const.Anchor.BottomRight,
+						["compact"] = false,
+						["hide"] = false,
+						["name"] = {
+							["show"] = false,
+							["colour"] = {
+								["r"] = 1,
+								["b"] = 1,
+								["g"] = 1,
+							},
+							["height"] = 12,
+							["justify"] = ArkInventory.Const.Anchor.Left,
+							["anchor"] = ArkInventory.Const.Anchor.Automatic,
+						},
+						["data"] = {
+							["*"] = {
+								-- label
+								-- sortorder
+								-- backgroundid
+							},
+						},
+					},
+					["slot"] = {
+						["empty"] = {
+							["alpha"] = 0.1,
+							["icon"] = true,
+							["border"] = true,
+							["clump"] = false,
+						},
+						["data"] = ArkInventory.Const.Slot.Data,
+						["pad"] = 4,
+						["border"] = {
+							["style"] = ArkInventory.Const.Texture.BorderDefault,
+							["size"] = nil,
+							["offset"] = nil,
+							["scale"] = 1,
+							["rarity"] = true,
+							["raritycutoff"] = 0,
+						},
+						["ignorehidden"] = false,
+						["anchor"] = ArkInventory.Const.Anchor.BottomRight,
+						["new"] = {
+							["show"] = false,
+							["colour"] = {
+								["r"] = 1,
+								["g"] = 1,
+								["b"] = 1,
+							},
+							["cutoff"] = 4,
+						},
+						["offline"] = {
+							["fade"] = true,
+						},
+						["unusable"] = {
+							["tint"] = false,
+						},
+						["cooldown"] = {
+							["show"] = true,
+							["global"] = false,
+							["combat"] = true,
+						},
+					},
+					["sort"] = {
+						["open"] = true,
+						["instant"] = false,
+						["default"] = 9999,
+					},
+					["category"] = {
+						["*"] = nil,
+					},
+					["anchor"] = {
+						["*"] = {
+							["point"] = ArkInventory.Const.Anchor.TopRight,
+							["locked"] = false,
+							["t"] = 0,
+							["b"] = 0,
+							["l"] = 0,
+							["r"] = 0,
+						},
+					},
+					["notifyerase"] = true,
+					["title"] = {
+						["hide"] = false,
+						["size"] = 1,
+					},
+					["search"] = {
+						["hide"] = false,
+					},
+					["changer"] = {
+						["hide"] = false,
+						["highlight"] = {
+							["show"] = true,
+							["colour"] = {
+								["r"] = 0,
+								["g"] = 1,
+								["b"] = 0,
+							},
+						},
+						["freespace"] = {
+							["show"] = true,
+							["colour"] = {
+								["r"] = 1,
+								["g"] = 1,
+								["b"] = 1,
+							},
+						},
+					},
+					["status"] = {
+						["hide"] = false,
+						["emptytext"] = {
+							["show"] = true,
+							["colour"] = false,
+							["full"] = true,
+							["includetype"] = true,
+						},
+					},
+				},
+			},
+		},
+	},
 }
 
 ArkInventory.Const.DatabaseDefaults.realm = {
@@ -1733,37 +1909,6 @@ ArkInventory.Const.DatabaseDefaults.profile = {
 	},
 }
 
--- migrate legacy Personal/Realm bank options to per-tab synthetic ids on launch
-function ArkInventory.MigratePerTabOptionsOnLaunch( )
-	local db = ArkInventory.db
-	if not db or not db.profile or not db.profile.option or not db.profile.option.location then return end
-	local loc_tbl = db.profile.option.location
-
-	local function migrate( loc_id )
-		local legacy = loc_tbl[loc_id]
-		if not legacy then return end
-		local syn_id = ( loc_id * 100 ) + 1
-		if not loc_tbl[syn_id] then loc_tbl[syn_id] = { } end
-		local syn = loc_tbl[syn_id]
-
-		-- migrate category (rules) to synthetic Tab 1
-		if syn.category == nil and legacy.category ~= nil then
-			syn.category = ArkInventory.Table.CloneDeep( legacy.category )
-		end
-		-- keep bar (layout) at base location so Bars UI applies universally;
-		-- if a prior migration moved it to synthetic, restore it back.
-		if legacy.bar == nil and syn.bar ~= nil then
-			legacy.bar = ArkInventory.Table.CloneDeep( syn.bar )
-			syn.bar = nil
-		end
-
-		legacy.category = nil
-	end
-
-	migrate( ArkInventory.Const.Location.PersonalBank )
-	migrate( ArkInventory.Const.Location.RealmBank )
-end
-
 function ArkInventory.OnInitialize( )
 
 	--ArkInventory.Output( "OnInitialize" )
@@ -1786,9 +1931,6 @@ function ArkInventory.OnInitialize( )
 
 	-- load database, use default profile, metatables now active so dont play with it
 	ArkInventory.db = LibStub( "AceDB-3.0" ):New( "ARKINVDB", ArkInventory.Const.DatabaseDefaults, true )
-
-	-- migrate legacy per-location options to tab 1 synthetic on launch
-	ArkInventory.MigratePerTabOptionsOnLaunch( )
 
 	ArkInventory.StartupChecks( )
 
@@ -8847,7 +8989,27 @@ function ArkInventory.LocationOptionGetReal( loc_id, opt )
 	assert( loc_id ~= nil, "location id is nil" )
 	assert( type( opt ) == "table", "opt is not a table" )
 
-	local p = ArkInventory.db.profile.option.location[loc_id]
+	-- choose option storage root: Realm Bank uses realm-shared store
+	local base_loc = ( type( loc_id ) == "number" and loc_id >= 100 ) and math.floor( loc_id / 100 ) or loc_id
+	local useRealmShared = ( base_loc == ArkInventory.Const.Location.RealmBank )
+	local root
+	if useRealmShared then
+		-- ensure global-shared structure exists
+		ArkInventory.db.global.realmbank = ArkInventory.db.global.realmbank or { }
+		local gb = ArkInventory.db.global.realmbank
+		gb.option = gb.option or { }
+		gb.option.location = gb.option.location or { }
+		-- lazily seed this location from global realm-bank defaults if missing
+		if not gb.option.location[loc_id] then
+			local def = ArkInventory.Const.DatabaseDefaults.global.realmbank.option.location["*"]
+			gb.option.location[loc_id] = ArkInventory.Table.CloneDeep( def )
+		end
+		root = gb.option.location
+	else
+		root = ArkInventory.db.profile.option.location
+	end
+
+	local p = root[loc_id]
 
 	for k = 1, #opt do
 
@@ -8923,8 +9085,26 @@ function ArkInventory.LocationOptionSetReal( loc_id, opt, n )
 	assert( loc_id ~= nil, "location id is nil" )
 	assert( type( opt ) == "table", "opt is not a table" )
 
+	-- choose option storage root: Realm Bank uses realm-shared store
+	local base_loc = ( type( loc_id ) == "number" and loc_id >= 100 ) and math.floor( loc_id / 100 ) or loc_id
+	local useRealmShared = ( base_loc == ArkInventory.Const.Location.RealmBank )
+	local root
+	if useRealmShared then
+		ArkInventory.db.global.realmbank = ArkInventory.db.global.realmbank or { }
+		local gb = ArkInventory.db.global.realmbank
+		gb.option = gb.option or { }
+		gb.option.location = gb.option.location or { }
+		if not gb.option.location[loc_id] then
+			local def = ArkInventory.Const.DatabaseDefaults.global.realmbank.option.location["*"]
+			gb.option.location[loc_id] = ArkInventory.Table.CloneDeep( def )
+		end
+		root = gb.option.location
+	else
+		root = ArkInventory.db.profile.option.location
+	end
+
 	--s = "option.local." .. loc_id
-	local p = { ArkInventory.db.profile.option.location[loc_id] }
+	local p = { root[loc_id] }
 	local c = 1
 
 	for k = 1, #opt - 1 do
