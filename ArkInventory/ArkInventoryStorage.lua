@@ -637,27 +637,21 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	ArkInventory.Global.Location[loc_id].isOffline = false
 
 	-- Ensure Blizzard's GuildBankFrame is actually open (shown) so bank actions
-	-- succeed immediately on first open. Make it invisible and non-interactive so
-	-- it doesn't interfere with ArkInventory UI, and close it when ArkInventory
-	-- vault window hides.
-	if GuildBankFrame then
-		if ShowUIPanel then
-			ShowUIPanel( GuildBankFrame )
-		else
-			GuildBankFrame:Show( )
-		end
+	-- NOTE: Do NOT force-show/hide Blizzard UI panels here.
+	-- Showing/hiding UIPanels can trigger "Interface action failed" / protected
+	-- function errors when the bank is opened via secure item/world interactions.
+	-- Instead, if Blizzard has already opened the frame, make it invisible and
+	-- non-interactive to avoid double UI.
+	if GuildBankFrame and GuildBankFrame.IsShown and GuildBankFrame:IsShown( ) then
 		GuildBankFrame:SetAlpha( 0 )
 		GuildBankFrame:EnableMouse( false )
 		if ArkInventory.OutputDebug then
-			ArkInventory.OutputDebug( "Vault debug: GuildBankFrame shown invisibly for active session" )
+			ArkInventory.OutputDebug( "Vault debug: GuildBankFrame already shown; making it invisible for ArkInventory" )
 		end
 	end
-	if GuildBankPopupFrame then
-		if HideUIPanel then
-			HideUIPanel( GuildBankPopupFrame )
-		else
-			GuildBankPopupFrame:Hide( )
-		end
+	if GuildBankPopupFrame and GuildBankPopupFrame.IsShown and GuildBankPopupFrame:IsShown( ) then
+		GuildBankPopupFrame:SetAlpha( 0 )
+		GuildBankPopupFrame:EnableMouse( false )
 	end
 
 	-- Keep Blizzard guild bank events registered so bank actions work on first open.
@@ -681,12 +675,8 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 
 	ArkInventory.ScanVaultHeader( )
 
-	-- ensure Blizzard's current tab matches our per-location selection for
-	-- personal/realm banks so deposits and default actions use the right tab
-	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" then
-		local ct = ArkInventory.Global.Location[loc_id].current_tab or 1
-		SetCurrentGuildBankTab( ct )
-	end
+	-- Do not call SetCurrentGuildBankTab here; it can be protected/blocked.
+	-- Tab selection for bank actions is handled on explicit user interaction.
 
 	QueryGuildBankTab( GetCurrentGuildBankTab( ) or 1 )
 

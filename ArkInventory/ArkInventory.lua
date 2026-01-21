@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1303,
-		UIVersion = "3.13.03",
+		Version = 3.1304,
+		UIVersion = "3.13.04",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -4047,7 +4047,7 @@ function ArkInventory.PutItemInGuildBank( tab_id )
 
 		if canDeposit then
 
-			ArkInventory.Output( "PutItemInGuildBank( ", tab_id, " )" )
+			ArkInventory.OutputDebug( "PutItemInGuildBank( ", tab_id, " )" )
 
 			local ctab = GetCurrentGuildBankTab( )
 
