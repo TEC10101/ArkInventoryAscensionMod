@@ -8661,8 +8661,23 @@ function ArkInventory.ContainerItemNameGet( loc_id, bag_id, slot_id )
 end
 
 function ArkInventory.LocationOptionGet( loc_id, opt )
-	local loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
-	return ArkInventory.LocationOptionGetReal( loc_id, opt )
+	-- resolve any "use X for Y" redirections first
+	local real_loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
+
+	-- for Personal / Realm banks, some option groups (rules and bar
+	-- configuration) should be per-tab rather than per-location.
+	-- map those through a synthetic loc_id that encodes the active
+	-- tab so that each tab gets independent bar layout and category
+	-- assignments while still sharing the base Personal/Realm settings.
+	if ( real_loc_id == ArkInventory.Const.Location.PersonalBank or real_loc_id == ArkInventory.Const.Location.RealmBank ) and type( opt ) == "table" and opt[1] then
+		local k = opt[1]
+		if k == "category" or k == "bar" then
+			local tab = ArkInventory.Global.Location[real_loc_id].current_tab or 1
+			real_loc_id = real_loc_id * 100 + tab
+		end
+	end
+
+	return ArkInventory.LocationOptionGetReal( real_loc_id, opt )
 end
 
 function ArkInventory.LocationOptionGetReal( loc_id, opt )
@@ -8689,8 +8704,21 @@ function ArkInventory.LocationOptionGetReal( loc_id, opt )
 end
 
 function ArkInventory.LocationOptionSet( loc_id, opt, n )
-	local loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
-	return ArkInventory.LocationOptionSetReal( loc_id, opt, n )
+	-- resolve any "use X for Y" redirections first
+	local real_loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
+
+	-- keep per-tab rules and bar configuration separate for Personal /
+	-- Realm banks by writing those options under a synthetic location id
+	-- that incorporates the active tab index.
+	if ( real_loc_id == ArkInventory.Const.Location.PersonalBank or real_loc_id == ArkInventory.Const.Location.RealmBank ) and type( opt ) == "table" and opt[1] then
+		local k = opt[1]
+		if k == "category" or k == "bar" then
+			local tab = ArkInventory.Global.Location[real_loc_id].current_tab or 1
+			real_loc_id = real_loc_id * 100 + tab
+		end
+	end
+
+	return ArkInventory.LocationOptionSetReal( real_loc_id, opt, n )
 end
 
 function ArkInventory.LocationOptionSetReal( loc_id, opt, n )
