@@ -1271,6 +1271,78 @@ function ArkInventory.ConvertOldOptions( )
 
 
 
+	-- migrate legacy Personal/Realm bank per-location assignments to per-tab (tab 1) synthetic locations
+	upgrade_version = 3.1300
+	if ArkInventory.db.profile.option.version < upgrade_version then
+
+		ArkInventory.Output( string.format( ArkInventory.Localise["UPGRADE_PROFILE"], ArkInventory.db:GetCurrentProfile( ), upgrade_version ) )
+
+		local function migrate_profile( p )
+			local opt = p and p.option
+			local locTbl = opt and opt.location
+			if not locTbl then return false end
+
+			local function deepcopy( src )
+				if type( src ) ~= "table" then return src end
+				local dst = { }
+				for k, v in pairs( src ) do
+					dst[deepcopy( k )] = deepcopy( v )
+				end
+				return dst
+			end
+
+			local function migrate_loc( base_loc_id )
+				local legacy = locTbl[base_loc_id]
+				if not legacy then return end
+
+				local syn_id = ( base_loc_id * 100 ) + 1 -- synthetic id for Tab 1
+				if not locTbl[syn_id] then locTbl[syn_id] = { } end
+				local syn = locTbl[syn_id]
+
+				-- move legacy category (rule->bar assignments) to synthetic Tab 1 if not already present
+				if syn.category == nil and type( legacy.category ) == "table" then
+					syn.category = deepcopy( legacy.category )
+				end
+
+				-- move legacy bar configuration (number of bars and their properties) to synthetic Tab 1
+				if syn.bar == nil and type( legacy.bar ) == "table" then
+					syn.bar = deepcopy( legacy.bar )
+				end
+				legacy.bar = nil
+
+				-- remove legacy category now that synthetic exists
+				legacy.category = nil
+			end
+
+			migrate_loc( ArkInventory.Const.Location.PersonalBank )
+			migrate_loc( ArkInventory.Const.Location.RealmBank )
+			return true
+		end
+
+		-- migrate current profile
+		migrate_profile( ArkInventory.db.profile )
+
+		-- also migrate explicit "Default" profile if present (user’s case)
+		if ArkInventory.db.profiles and ArkInventory.db.profiles["Default"] then
+			migrate_profile( ArkInventory.db.profiles["Default"] )
+		end
+
+		-- optionally migrate all known profiles for completeness
+		if ArkInventory.db.profiles then
+			for name, p in pairs( ArkInventory.db.profiles ) do
+				migrate_profile( p )
+				if p.option and type( p.option.version ) == "number" and p.option.version < upgrade_version then
+					p.option.version = upgrade_version
+				end
+			end
+		end
+
+		ArkInventory.db.profile.option.version = upgrade_version
+
+	end
+
+
+
 
 	ArkInventory.db.profile.option.category["0:0"] = nil
 
