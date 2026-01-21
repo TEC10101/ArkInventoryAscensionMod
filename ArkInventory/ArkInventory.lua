@@ -2247,7 +2247,16 @@ function ArkInventory.LocationPlayerInfoGet( loc_id )
 				ArkInventory.Output( "player id (", player_id, ") has an invalid guild id (", guild_id, ") at location (", loc_id, ")" )
 				assert( false, "code error" )
 			end
-		end
+    end
+  elseif loc_id == ArkInventory.Const.Location.RealmBank then
+    -- realm bank is stored under the realm-wide pseudo-player
+    local realm_id = cp.info.realmbank_id
+    if realm_id then
+      local realm_cp = ArkInventory.PlayerInfoGet( realm_id )
+      if realm_cp then
+        cp = realm_cp
+      end
+    end
 	end
 
 	return cp
@@ -4009,7 +4018,13 @@ function ArkInventory.Frame_Main_Offline( frame )
 
 	--ArkInventory.Output( "loc_playerid=[", ArkInventory.Global.Location[loc_id].player_id, "] player_id=[", ArkInventory.Global.Me.info.player_id, "] guild_id=[", ArkInventory.Global.Me.info.guild_id, "]" )
 
-	if ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.player_id or ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.guild_id then
+	local current_player_id = ArkInventory.Global.Location[loc_id].player_id
+	local is_current_player = current_player_id == ArkInventory.Global.Me.info.player_id
+		or current_player_id == ArkInventory.Global.Me.info.guild_id
+		or current_player_id == ArkInventory.Global.Me.info.realmbank_id
+
+	if is_current_player then
+	--if ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.player_id or ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.guild_id then
 
 		ArkInventory.Global.Location[loc_id].isOffline = false
 
@@ -4017,7 +4032,7 @@ function ArkInventory.Frame_Main_Offline( frame )
 			ArkInventory.Global.Location[loc_id].isOffline = true
 		end
 
-		if ( loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank ) and ArkInventory.Global.Mode.Vault == false then
+		if ( loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank ) and ArkInventory.Global.Mode.Vault == false then
 			ArkInventory.Global.Location[loc_id].isOffline = true
 		end
 
@@ -4551,6 +4566,10 @@ function ArkInventory.Frame_Main_Show( loc_id, player_id )
 			else
 				player_id = ArkInventory.Global.Me.info.guild_id
 			end
+		elseif loc_id == ArkInventory.Const.Location.RealmBank then
+			player_id = ArkInventory.Global.Me.info.realmbank_id
+		elseif loc_id == ArkInventory.Const.Location.PersonalBank then
+			player_id = ArkInventory.Global.Me.info.player_id
 		else
 			player_id = ArkInventory.Global.Me.info.player_id
 		end
@@ -4674,7 +4693,7 @@ function ArkInventory.Frame_Main_OnHide( frame )
 
 	elseif loc_id == ArkInventory.Const.Location.Bag then
 		PlaySound( "igBackPackClose" )
-	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 
 		PlaySound( "GuildVaultClose" )
 
@@ -5242,7 +5261,7 @@ function ArkInventory.Frame_Container_Draw( frame )
 				local itemframe = _G[itemframename]
 				if not itemframe then
 					--ArkInventory.Output( "creating item frame [", itemframename, "]" )
-					if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+					if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 						itemframe = CreateFrame( "Button", itemframename, bagframe, "ARKINV_TemplateButtonVaultItem" )
 					elseif loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount then
 						itemframe = CreateFrame( "Button", itemframename, bagframe, "ARKINV_TemplateButtonPetItem" )
@@ -6499,7 +6518,7 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 	-- go through the default ContainerFrameItemButton_OnEnter path so
 	-- Ascension's container tooltip hooks apply consistently in both
 	-- normal and edit modes.
-	if ( ArkInventory.Global.Mode.Edit and loc_id ~= ArkInventory.Const.Location.Bag ) or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
+if ( ArkInventory.Global.Mode.Edit and loc_id ~= ArkInventory.Const.Location.Bag ) or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
 
 		usedmycode = true -- edit mode, offline, bank, keyring, vault, mail, pet, token
 
@@ -6578,7 +6597,7 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 
 				GameTooltip:SetInventoryItem( "player", KeyRingButtonIDToInvSlotID( i.slot_id ) )
 
-			elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+			elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 
 				local tab_id = i.bag_id
 
@@ -7017,11 +7036,11 @@ function ArkInventory.Frame_Status_Update( frame )
 
 	if ArkInventory.Global.Location[loc_id].isOffline then
 		ArkInventory.MoneyFrame_SetType( moneyFrame, "STATIC" )
-		MoneyFrame_Update( moneyFrameName, cp.info.money )
+		MoneyFrame_Update( moneyFrameName, cp.info.money or 0 )
 		SetMoneyFrameColor( moneyFrameName, 0.75, 0.75, 0.75 )
 	else
 		SetMoneyFrameColor( moneyFrameName, 1, 1, 1 )
-		if loc_id == ArkInventory.Const.Location.Vault then
+		if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 			ArkInventory.MoneyFrame_SetType( moneyFrame, "GUILDBANK" )
 		else
 			ArkInventory.MoneyFrame_SetType( moneyFrame, "PLAYER" )
@@ -7186,7 +7205,7 @@ function ArkInventory.Frame_Vault_Item_OnClick( frame, arg1 )
 
 	--ArkInventory.Output( "OnClick( ", frame:GetName( ), ", ", arg1, " )" )
 
-	if frame.ARK_Data.loc_id == ArkInventory.Const.Location.Vault or frame.ARK_Data.loc_id == ArkInventory.Const.Location.PersonalBank then
+	if frame.ARK_Data.loc_id == ArkInventory.Const.Location.Vault or frame.ARK_Data.loc_id == ArkInventory.Const.Location.PersonalBank or frame.ARK_Data.loc_id == ArkInventory.Const.Location.RealmBank then
 
 		local loc_id = frame.ARK_Data.loc_id
 		local tab_id = frame.ARK_Data.bag_id
@@ -7242,7 +7261,7 @@ function ArkInventory.Frame_Changer_Update( loc_id )
 
 		ArkInventory.Frame_Changer_Update_Bank( )
 
-	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 
 		ArkInventory.Frame_Changer_Update_Vault( loc_id )
 

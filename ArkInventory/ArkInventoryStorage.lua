@@ -606,7 +606,13 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	end
 
 	local context = "guild" -- "guild", "personal", or "realm"
-	if title then
+	-- Ascension-specific: check direct boolean flags first
+	-- IMPORTANT: Check IsRealmBank BEFORE IsPersonalBank because both can be true for realm banks
+	if GuildBankFrame and GuildBankFrame.IsRealmBank then
+		context = "realm"
+	elseif GuildBankFrame and GuildBankFrame.IsPersonalBank then
+		context = "personal"
+	elseif title then
 		local lt = string.lower( title )
 		if string.find( lt, pattern, 1, true ) then
 			context = "personal"
@@ -668,9 +674,9 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 
 	ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 
-	-- for personal banks, always show the window; for guild vaults,
+	-- for personal/realm banks, always show the window; for guild vaults,
 	-- respect the usual "control" setting
-	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.LocationIsControlled( loc_id ) then
+	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" or ArkInventory.LocationIsControlled( loc_id ) then
 		ArkInventory.Frame_Main_Show( loc_id )
 		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 	end
@@ -1285,7 +1291,7 @@ function ArkInventory.ScanBag( bliz_id )
 		return
 	end
 
-	ArkInventory.OutputDebug( "scaning: ", ArkInventory.Global.Location[loc_id].Name, " [", loc_id, ".", bag_id, "] - [", bliz_id, "]" )
+	--ArkInventory.OutputDebug( "scaning: ", ArkInventory.Global.Location[loc_id].Name, " [", loc_id, ".", bag_id, "] - [", bliz_id, "]" )
 
 
 	local count = 0
@@ -1543,7 +1549,7 @@ function ArkInventory.ScanVault( )
 		return
 	end
 
-	if ArkInventory.Global.Mode.VaultContext ~= "personal" then
+	if ArkInventory.Global.Mode.VaultContext ~= "personal" and ArkInventory.Global.Mode.VaultContext ~= "realm" then
 		if not IsInGuild( ) or not ArkInventory.Global.Me.info.guild_id then
 			return
 		end
@@ -1712,7 +1718,7 @@ function ArkInventory.ScanVaultHeader( )
 --		return
 --	end
 
-	if ArkInventory.Global.Mode.VaultContext ~= "personal" then
+	if ArkInventory.Global.Mode.VaultContext ~= "personal" and ArkInventory.Global.Mode.VaultContext ~= "realm" then
 		if not IsInGuild( ) or not ArkInventory.Global.Me.info.guild_id then
 			return
 		end
