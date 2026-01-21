@@ -156,6 +156,18 @@ function ArkInventory.Table.Clean( tbl, key, full )
 
 end
 
+-- deep-clone helper for migrating nested option tables
+if not ArkInventory.Table.CloneDeep then
+function ArkInventory.Table.CloneDeep( src )
+	if type( src ) ~= "table" then return src end
+	local dst = { }
+	for k, v in pairs( src ) do
+		dst[ArkInventory.Table.CloneDeep( k )] = ArkInventory.Table.CloneDeep( v )
+	end
+	return dst
+end
+end
+
 function ArkInventory.spairs( tbl, comparator )
 
 	if type( tbl ) ~= "table" then
@@ -667,6 +679,13 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	ArkInventory.PlayerInfoSet( )
 
 	ArkInventory.ScanVaultHeader( )
+
+	-- ensure Blizzard's current tab matches our per-location selection for
+	-- personal/realm banks so deposits and default actions use the right tab
+	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" then
+		local ct = ArkInventory.Global.Location[loc_id].current_tab or 1
+		SetCurrentGuildBankTab( ct )
+	end
 
 	QueryGuildBankTab( GetCurrentGuildBankTab( ) or 1 )
 
@@ -1590,7 +1609,8 @@ function ArkInventory.ScanVault( )
 	bag.empty = 0
 	bag.type = ArkInventory.Const.Slot.Type.Bag
 
-	if bag_id <= GetNumGuildBankTabs( ) then
+	local availableTabs = GetNumGuildBankTabs( ) or 0
+	if bag_id <= availableTabs then
 
 		local name, icon, isViewable, canDeposit, numWithdrawals, remainingWithdrawals = GetGuildBankTabInfo( bag_id )
 
@@ -1786,33 +1806,16 @@ function ArkInventory.ScanVaultHeader( )
 
 		else
 
-			-- for the real guild vault, tabs beyond GetNumGuildBankTabs are
-			-- unpurchased and should be marked as such. however, for
-			-- Personal/Realm banks on Ascension, extra tabs can be managed
-			-- by separate systems that are not reflected in the guild tab
-			-- count. in those cases, forcibly overriding the tab to
-			-- STATUS_PURCHASE breaks already-bought tabs (e.g. personal
-			-- bank tab 2) and prevents them from being clicked.
-			if ArkInventory.Global.Mode.VaultContext == "guild" or ArkInventory.Global.Mode.VaultContext == nil then
-
-				bag["name"] = string.format( GUILDBANK_TAB_NUMBER, bag_id )
-				bag["texture"] = ArkInventory.Const.Texture.Empty.Bag
-				bag["count"] = 0
-				bag["empty"] = 0
-				bag["access"] = ArkInventory.Localise["STATUS_PURCHASE"]
-				bag["withdraw"] = nil
-				bag["status"] = ArkInventory.Const.Bag.Status.Purchase
-
-			else
-
-				-- personal / realm bank: keep any existing status (so
-				-- purchased tabs stay Active) and only normalise the
-				-- presentation fields if they are missing.
-				bag["name"] = bag["name"] or string.format( GUILDBANK_TAB_NUMBER, bag_id )
-				bag["texture"] = bag["texture"] or ArkInventory.Const.Texture.Empty.Bag
-				-- leave count / empty / access / withdraw / status unchanged
-
-			end
+			-- for any context (guild/personal/realm), tabs beyond the
+			-- reported count are considered not purchased/unavailable for
+			-- that location and should not leak data from other contexts
+			bag["name"] = string.format( GUILDBANK_TAB_NUMBER, bag_id )
+			bag["texture"] = ArkInventory.Const.Texture.Empty.Bag
+			bag["count"] = 0
+			bag["empty"] = 0
+			bag["access"] = ArkInventory.Localise["STATUS_PURCHASE"]
+			bag["withdraw"] = nil
+			bag["status"] = ArkInventory.Const.Bag.Status.Purchase
 
 		end
 

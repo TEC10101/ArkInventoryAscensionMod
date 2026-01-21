@@ -1731,6 +1731,37 @@ ArkInventory.Const.DatabaseDefaults.profile = {
 	},
 }
 
+-- migrate legacy Personal/Realm bank options to per-tab synthetic ids on launch
+function ArkInventory.MigratePerTabOptionsOnLaunch( )
+	local db = ArkInventory.db
+	if not db or not db.profile or not db.profile.option or not db.profile.option.location then return end
+	local loc_tbl = db.profile.option.location
+
+	local function migrate( loc_id )
+		local legacy = loc_tbl[loc_id]
+		if not legacy then return end
+		local syn_id = ( loc_id * 100 ) + 1
+		if not loc_tbl[syn_id] then loc_tbl[syn_id] = { } end
+		local syn = loc_tbl[syn_id]
+
+		-- migrate category (rules) to synthetic Tab 1
+		if syn.category == nil and legacy.category ~= nil then
+			syn.category = ArkInventory.Table.CloneDeep( legacy.category )
+		end
+		-- keep bar (layout) at base location so Bars UI applies universally;
+		-- if a prior migration moved it to synthetic, restore it back.
+		if legacy.bar == nil and syn.bar ~= nil then
+			legacy.bar = ArkInventory.Table.CloneDeep( syn.bar )
+			syn.bar = nil
+		end
+
+		legacy.category = nil
+	end
+
+	migrate( ArkInventory.Const.Location.PersonalBank )
+	migrate( ArkInventory.Const.Location.RealmBank )
+end
+
 function ArkInventory.OnInitialize( )
 
 	--ArkInventory.Output( "OnInitialize" )
@@ -1753,6 +1784,9 @@ function ArkInventory.OnInitialize( )
 
 	-- load database, use default profile, metatables now active so dont play with it
 	ArkInventory.db = LibStub( "AceDB-3.0" ):New( "ARKINVDB", ArkInventory.Const.DatabaseDefaults, true )
+
+	-- migrate legacy per-location options to tab 1 synthetic on launch
+	ArkInventory.MigratePerTabOptionsOnLaunch( )
 
 	ArkInventory.StartupChecks( )
 
@@ -7549,6 +7583,9 @@ function ArkInventory.Frame_Changer_Vault_Tab_OnClick( frame, button, mode )
 			if isPersonal or isRealm then
 
 				ArkInventory.Global.Location[loc_id].current_tab = bag_id
+				-- ensure Blizzard's current tab follows so deposits target the
+				-- selected tab when right-clicking bag items
+				SetCurrentGuildBankTab( bag_id )
 
 				-- update changer highlight and then redraw the main window
 				ArkInventory.Frame_Changer_Update( loc_id )
@@ -7626,6 +7663,23 @@ function ArkInventory.Frame_Changer_Update_Vault( loc_id )
 		current_tab = ArkInventory.Global.Location[loc_id].current_tab or 1
 	end
 
+	-- ensure current_tab points to a valid, active tab for this location
+	if loc_id ~= ArkInventory.Const.Location.Vault then
+		local candidate = current_tab
+		local tab = cp.location[loc_id].bag[candidate]
+		if not tab or tab.status ~= ArkInventory.Const.Bag.Status.Active then
+			for i = 1, #ArkInventory.Global.Location[loc_id].Bags do
+				local t = cp.location[loc_id].bag[i]
+				if t and t.status == ArkInventory.Const.Bag.Status.Active then
+					candidate = i
+					break
+				end
+			end
+			current_tab = candidate or 1
+			ArkInventory.Global.Location[loc_id].current_tab = current_tab
+		end
+	end
+
 	for bag_id in ipairs( ArkInventory.Global.Location[loc_id].Bags ) do
 
 		if bag_id == current_tab then
@@ -7645,9 +7699,11 @@ function ArkInventory.Frame_Changer_Update_Vault( loc_id )
 	local moneyWithdraw = parent .. "GoldAvailable"
 	local buttonWithdraw = parent .. "WithdrawButton"
 
-	local isPersonal = ( loc_id == ArkInventory.Const.Location.PersonalBank ) or ( ArkInventory.Global.Mode.VaultContext == "personal" )
+	-- treat Ascension-style banks (personal/realm) specially; never rely on
+	-- a global context string when deciding UI for a specific location
+	local isAscensionBank = ( loc_id == ArkInventory.Const.Location.PersonalBank ) or ( loc_id == ArkInventory.Const.Location.RealmBank )
 
-	if ArkInventory.Global.Location[loc_id].isOffline or isPersonal then
+	if ArkInventory.Global.Location[loc_id].isOffline or isAscensionBank then
 
 		_G[moneyDeposit]:Hide( )
 		_G[buttonDeposit]:Hide( )
@@ -7701,7 +7757,7 @@ function ArkInventory.Frame_Changer_Update_Vault( loc_id )
 	-- purchase frame
 	local purchaseFrame = _G[parent .. "PurchaseInfo"]
 
-	if ArkInventory.Global.Location[loc_id].isOffline or isPersonal or not IsGuildLeader( ) then
+	if ArkInventory.Global.Location[loc_id].isOffline or isAscensionBank or not IsGuildLeader( ) then
 
 		purchaseFrame:Hide( )
 
@@ -8671,9 +8727,19 @@ function ArkInventory.LocationOptionGet( loc_id, opt )
 	-- assignments while still sharing the base Personal/Realm settings.
 	if ( real_loc_id == ArkInventory.Const.Location.PersonalBank or real_loc_id == ArkInventory.Const.Location.RealmBank ) and type( opt ) == "table" and opt[1] then
 		local k = opt[1]
-		if k == "category" or k == "bar" then
+		if k == "category" then
 			local tab = ArkInventory.Global.Location[real_loc_id].current_tab or 1
-			real_loc_id = real_loc_id * 100 + tab
+			if tab > 1 then
+				-- tabs 2+ are always per-tab via synthetic loc id
+				real_loc_id = real_loc_id * 100 + tab
+			else
+				-- tab 1: read legacy until migrated; if synthetic exists, read synthetic
+				local syn = real_loc_id * 100 + 1
+				local locTbl = ArkInventory.db.profile.option and ArkInventory.db.profile.option.location
+				if locTbl and locTbl[syn] and locTbl[syn][k] ~= nil then
+					real_loc_id = syn
+				end
+			end
 		end
 	end
 
@@ -8712,9 +8778,44 @@ function ArkInventory.LocationOptionSet( loc_id, opt, n )
 	-- that incorporates the active tab index.
 	if ( real_loc_id == ArkInventory.Const.Location.PersonalBank or real_loc_id == ArkInventory.Const.Location.RealmBank ) and type( opt ) == "table" and opt[1] then
 		local k = opt[1]
-		if k == "category" or k == "bar" then
+		if k == "category" then
 			local tab = ArkInventory.Global.Location[real_loc_id].current_tab or 1
-			real_loc_id = real_loc_id * 100 + tab
+			local syn = ( tab > 1 ) and ( real_loc_id * 100 + tab ) or ( real_loc_id * 100 + 1 )
+
+			local profile = ArkInventory.db.profile
+			local locTbl = profile.option.location
+			-- ensure synthetic location table exists
+			if not locTbl[syn] then
+				locTbl[syn] = { }
+			end
+			-- for tab 1, migrate legacy category/bar on first save, then clear legacy
+			if tab == 1 then
+				local orig = locTbl[real_loc_id] or { }
+				local synTbl = locTbl[syn]
+				-- create deep-copy helper if missing
+				if not ArkInventory.Table.CloneDeep then
+					function ArkInventory.Table.CloneDeep( src )
+						if type( src ) ~= "table" then return src end
+						local dst = { }
+						for kk, vv in pairs( src ) do
+							dst[ArkInventory.Table.CloneDeep( kk )] = ArkInventory.Table.CloneDeep( vv )
+						end
+						return dst
+					end
+				end
+				if synTbl.category == nil and orig.category ~= nil then
+					synTbl.category = ArkInventory.Table.CloneDeep( orig.category )
+				end
+				-- delete only legacy category now that synthetic exists
+				orig.category = nil
+			end
+
+			-- ensure path root exists for the option we're writing
+			if locTbl[syn][k] == nil then
+				locTbl[syn][k] = { }
+			end
+
+			return ArkInventory.LocationOptionSetReal( syn, opt, n )
 		end
 	end
 
