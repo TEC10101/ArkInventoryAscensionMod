@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1301,
-		UIVersion = "3.13.01",
+		Version = 3.1302,
+		UIVersion = "3.13.02",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -4769,6 +4769,12 @@ function ArkInventory.Frame_Main_OnHide( frame )
 			-- allow subsequent CLOSE event to be processed normally (we suppressed
 			-- them while the Ark window was visible)
 			ArkInventory.Global.Mode.VaultSuppressLeave = false
+			-- restore Blizzard GuildBankFrame visuals and close cleanly so the UIPanel
+			-- stack is consistent and ESC works as expected
+			if GuildBankFrame then
+				GuildBankFrame:SetAlpha( 1 )
+				GuildBankFrame:EnableMouse( true )
+			end
 			CloseGuildBankFrame( )
 
 
@@ -5789,7 +5795,6 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 		if debugLayout then
 			local row = ceil( j / col )
 			local column = ( ( j - 1 ) % col ) + 1
-			ArkInventory.OutputDebug( "Bar cell - j=", j, ", row=", row, ", col=", column, ", bag=", bar.item[j].bag, ", slot=", bar.item[j].slot )
 		end
 
 		if ArkInventory.Global.Location[loc_id].drawState <= ArkInventory.Const.Window.Draw.Recalculate then
@@ -6822,7 +6827,51 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 
 	end
 
+	-- live clicks: handle personal/realm vault deposit on first/open sessions
+	if not ArkInventory.Global.Location[loc_id].isOffline and not ArkInventory.Global.Mode.Edit then
+
+		local i = ArkInventory.Frame_Item_GetDB( frame )
+		if ArkInventory.Global.Mode.Vault and ( ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) and loc_id == ArkInventory.Const.Location.Bag then
+
+			-- respect modified clicks (chat link, dress up)
+			if i and i.h and HandleModifiedItemClick( i.h ) then
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp handled modified click; exiting")
+				end
+				return
+			end
+
+			if button == "RightButton" and not IsModifierKeyDown( ) then
+				local bliz_bag = ArkInventory.BagID_Blizzard( loc_id, i.bag_id )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp deposit path: bag_id=", i and i.bag_id, ", slot_id=", i and i.slot_id, ", current_tab=", GetCurrentGuildBankTab() or 1)
+				end
+				PickupContainerItem( bliz_bag, i.slot_id )
+				ArkInventory.PutItemInGuildBank( GetCurrentGuildBankTab( ) or 1 )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp deposit attempted via PutItemInGuildBank")
+				end
+				return
+			end
+
+			-- default behaviour for other buttons/modifiers
+			ContainerFrameItemButton_OnClick( frame, button )
+			if ArkInventory.OutputDebug then
+				ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp default ContainerFrameItemButton_OnClick")
+			end
+			return
+		end
+
+		-- not in vault override context, use default behaviour
+		ContainerFrameItemButton_OnClick( frame, button )
+		return
+	end
+
 end
+
+-- Override bag item clicks while in personal/realm vault so right-click deposits
+-- instead of using consumables. This compensates for Blizzard deposit logic that
+-- normally requires GuildBankFrame to be shown.
 
 function ArkInventory.Frame_Item_Update_Cooldown( frame, arg1 )
 

@@ -636,15 +636,20 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	ArkInventory.OutputDebug( "Vault open: context=", context, "; hiding Blizzard GuildBank UI and showing ArkInventory" )
 	ArkInventory.Global.Location[loc_id].isOffline = false
 
-	-- Hide Blizzard's guild bank frames using the UIPanel API to keep the
-	-- UIPanel stack consistent. Using :Hide() directly can leave UIParent
-	-- believing a panel is still open, causing ESC to appear unresponsive.
-	if GuildBankFrame and GuildBankFrame:IsShown( ) then
-		ArkInventory.Global.Mode.VaultSuppressLeave = true
-		if HideUIPanel then
-			HideUIPanel( GuildBankFrame )
+	-- Ensure Blizzard's GuildBankFrame is actually open (shown) so bank actions
+	-- succeed immediately on first open. Make it invisible and non-interactive so
+	-- it doesn't interfere with ArkInventory UI, and close it when ArkInventory
+	-- vault window hides.
+	if GuildBankFrame then
+		if ShowUIPanel then
+			ShowUIPanel( GuildBankFrame )
 		else
-			GuildBankFrame:Hide( )
+			GuildBankFrame:Show( )
+		end
+		GuildBankFrame:SetAlpha( 0 )
+		GuildBankFrame:EnableMouse( false )
+		if ArkInventory.OutputDebug then
+			ArkInventory.OutputDebug( "Vault debug: GuildBankFrame shown invisibly for active session" )
 		end
 	end
 	if GuildBankPopupFrame then
@@ -655,26 +660,10 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 		end
 	end
 
-	-- Temporarily unhook Blizzard's guild bank related events so it doesn't reopen
-	if UIParent and UIParent.UnregisterEvent then
-		UIParent:UnregisterEvent( "GUILDBANKFRAME_OPENED" )
-		ArkInventory.Global.Mode.VaultUIUnhooked = true
-		ArkInventory.OutputDebug( "Vault debug: UIParent GUILDBANKFRAME_OPENED unregistered" )
-	end
-	if GuildBankFrame then
-		if GuildBankFrame.UnregisterEvent then
-			GuildBankFrame:UnregisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_TABS" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_MONEY" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_TEXT" )
-			GuildBankFrame:UnregisterEvent( "GUILD_ROSTER_UPDATE" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANKLOG_UPDATE" )
-			GuildBankFrame:UnregisterEvent( "GUILDTABARD_UPDATE" )
-			ArkInventory.Global.Mode.VaultUIUnhooked = true
-			ArkInventory.OutputDebug( "Vault debug: GuildBankFrame events unregistered" )
-		end
-	end
+	-- Keep Blizzard guild bank events registered so bank actions work on first open.
+	-- We still hide the UI panel above to avoid double UI but allow the frame
+	-- to fully initialise and process updates.
+	ArkInventory.Global.Mode.VaultUIUnhooked = false
 
 	-- set the correct player context before any draw so the first open
 	-- does not appear offline
@@ -710,6 +699,8 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" or ArkInventory.LocationIsControlled( loc_id ) then
 		ArkInventory.Frame_Main_Show( loc_id )
 		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
+
+		-- bag item clicks are handled via Frame_Item_OnMouseUp; no separate override required
 	end
 
 	if ArkInventory.db.global.option.auto.open.vault and ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Bag ) then
@@ -751,25 +742,9 @@ function ArkInventory:LISTEN_VAULT_LEAVE( )
 		ArkInventory.Frame_Main_Hide( loc_id )
 	end
 
-	-- Restore Blizzard guild bank events if we unhooked them for personal/realm
-	if ArkInventory.Global.Mode.VaultUIUnhooked then
-		if UIParent and UIParent.RegisterEvent then
-			UIParent:RegisterEvent( "GUILDBANKFRAME_OPENED" )
-			ArkInventory.OutputDebug( "Vault debug: UIParent GUILDBANKFRAME_OPENED re-registered" )
-		end
-		if GuildBankFrame and GuildBankFrame.RegisterEvent then
-			GuildBankFrame:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TABS" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_MONEY" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TEXT" )
-			GuildBankFrame:RegisterEvent( "GUILD_ROSTER_UPDATE" )
-			GuildBankFrame:RegisterEvent( "GUILDBANKLOG_UPDATE" )
-			GuildBankFrame:RegisterEvent( "GUILDTABARD_UPDATE" )
-			ArkInventory.OutputDebug( "Vault debug: GuildBankFrame events re-registered" )
-		end
-		ArkInventory.Global.Mode.VaultUIUnhooked = false
-	end
+	-- bag item clicks restored automatically; no separate uninstall required
+
+	-- We no longer unhook guild bank events on enter; no re-registration required.
 
 	if ArkInventory.db.global.option.auto.close.vault and ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Bag ) then
 		ArkInventory.Frame_Main_Hide( ArkInventory.Const.Location.Bag )
