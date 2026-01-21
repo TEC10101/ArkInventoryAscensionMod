@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1200,
-		UIVersion = "3.12.00",
+		Version = 3.1300,
+		UIVersion = "3.13.00",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -4894,7 +4894,13 @@ function ArkInventory.Frame_Container_CalculateBars( frame, Layout )
 
 			local ignore = false
 
-			if loc_id == ArkInventory.Const.Location.Vault and not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] then
+			-- for multi-tab vault-style locations, skip bags that are not
+			-- the active tab entirely so they don't contribute items or
+			-- ghost bars during edit mode
+			if ( loc_id == ArkInventory.Const.Location.Vault
+				or loc_id == ArkInventory.Const.Location.PersonalBank
+				or loc_id == ArkInventory.Const.Location.RealmBank )
+				and not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] then
 				ignore = true
 			end
 
@@ -4907,23 +4913,23 @@ function ArkInventory.Frame_Container_CalculateBars( frame, Layout )
 
 				local hidden = false
 
-				if not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] then
-					-- isoalted bags do not get shown
+				local bag_hidden = not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id]
+				local category_hidden = ( bar_id < 0 )
+
+				if bag_hidden then
+					-- items in non-active tabs are always hidden
 					hidden = true
-				elseif bar_id < 0 then
-					-- hidden categories (reside on negative bar numbers) do not get shown
-					-- the first empty slot is always shown
---					if firstempty and ( cat_id == ArkInventory.CategoryGetSystemID( "EMPTY" ) or cat_id == ArkInventory.CategoryGetSystemID( "EMPTY_BAG" ) ) then
---						firstempty = false
-						-- need to enforce an update if we do this or you wont see newly collected items
---					else
-						hidden = true
---					end
+				elseif category_hidden then
+					-- hidden categories (negative bar numbers) normally hidden
+					hidden = true
 				end
 
 				if ArkInventory.Global.Mode.Edit or ArkInventory.LocationOptionGet( loc_id, { "slot", "ignorehidden" } ) then
-					-- show everything if in edit mode or the user wants us to ignore the hidden flag
-					hidden = false
+					-- in edit mode (or when ignoring hidden), still honour bag_hidden
+					-- but unhide items solely due to hidden categories
+					if not bag_hidden then
+						hidden = false
+					end
 				end
 
 				if not hidden then
