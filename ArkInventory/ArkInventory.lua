@@ -7046,6 +7046,13 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 		end
 
 		-- not in vault override context, use default behaviour
+		-- For normal bag usage, the inherited ContainerFrameItemButtonTemplate
+		-- already runs the Blizzard OnClick handler. Calling it again here can
+		-- trigger protected-action popups (even though the item still uses).
+		if loc_id == ArkInventory.Const.Location.Bag then
+			return
+		end
+
 		ContainerFrameItemButton_OnClick( frame, button )
 		return
 	end
@@ -7164,15 +7171,16 @@ function ArkInventory.Frame_Item_Update_Clickable( frame )
 
 	local loc_id = frame.ARK_Data.loc_id
 
-	local action = false
+	local disableClicks = false
+	local disableDrag = false
 
 	if ArkInventory.Global.Mode.Edit
 	or ArkInventory.Global.Location[loc_id].isOffline
 	or loc_id == ArkInventory.Const.Location.Wearing
 	or loc_id == ArkInventory.Const.Location.Mail
 	or loc_id == ArkInventory.Const.Location.Token then
-
-		action = true
+		disableClicks = true
+		disableDrag = true
 
 	else
 
@@ -7181,20 +7189,35 @@ function ArkInventory.Frame_Item_Update_Clickable( frame )
 			local bag_id = frame.ARK_Data.bag_id
 			local _, _, _, canDeposit, numWithdrawals = GetGuildBankTabInfo( bag_id )
 			if not canDeposit and numWithdrawals == 0 then
-				action = true
+				disableClicks = true
+				disableDrag = true
 			end
 
 		end
 
 	end
 
+	-- While in personal/realm vault mode, ArkInventory handles bag-slot clicks
+	-- via Frame_Item_OnMouseUp to support deposit overrides. Prevent the inherited
+	-- Blizzard OnClick from also firing (double handling) by unregistering clicks.
+	if not disableClicks
+	and loc_id == ArkInventory.Const.Location.Bag
+	and ArkInventory.Global.Mode.Vault
+	and ( ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) then
+		disableClicks = true
+		-- keep drag enabled
+	end
 
-	if action then
-		-- disable clicks/drag when in edit mode or offline
+
+	if disableClicks then
 		frame:RegisterForClicks( )
-		frame:RegisterForDrag( )
 	else
 		frame:RegisterForClicks( "LeftButtonUp", "RightButtonUp" )
+	end
+
+	if disableDrag then
+		frame:RegisterForDrag( )
+	else
 		frame:RegisterForDrag( "LeftButton" )
 	end
 
