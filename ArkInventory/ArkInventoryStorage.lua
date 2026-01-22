@@ -645,6 +645,8 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	if GuildBankFrame and GuildBankFrame.IsShown and GuildBankFrame:IsShown( ) then
 		GuildBankFrame:SetAlpha( 0 )
 		GuildBankFrame:EnableMouse( false )
+		ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, false )
+		ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = true
 		if ArkInventory.OutputDebug then
 			ArkInventory.OutputDebug( "Vault debug: GuildBankFrame already shown; making it invisible for ArkInventory" )
 		end
@@ -652,6 +654,7 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	if GuildBankPopupFrame and GuildBankPopupFrame.IsShown and GuildBankPopupFrame:IsShown( ) then
 		GuildBankPopupFrame:SetAlpha( 0 )
 		GuildBankPopupFrame:EnableMouse( false )
+		ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, false )
 	end
 
 	-- Keep Blizzard guild bank events registered so bank actions work on first open.
@@ -693,6 +696,10 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 		-- bag item clicks are handled via Frame_Item_OnMouseUp; no separate override required
 	end
 
+	-- Vault mode affects click routing for bag buttons; refresh click registration
+	-- so the inherited Blizzard OnClick is disabled only when needed.
+	ArkInventory.Frame_Item_Update_Clickable_All( )
+
 	if ArkInventory.db.global.option.auto.open.vault and ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Bag ) then
 		ArkInventory.Frame_Main_Show( ArkInventory.Const.Location.Bag )
 	end
@@ -726,7 +733,21 @@ function ArkInventory:LISTEN_VAULT_LEAVE( )
 	end
 	ArkInventory.Global.Location[loc_id].isOffline = true
 
+	-- Restore Blizzard GuildBank interaction if we disabled it for personal/realm.
+	if ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled then
+		if GuildBankFrame then
+			ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, true )
+		end
+		if GuildBankPopupFrame then
+			ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, true )
+		end
+		ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = false
+	end
+
 	ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
+
+	-- Vault mode affects click routing for bag buttons; refresh click registration.
+	ArkInventory.Frame_Item_Update_Clickable_All( )
 
 	if ArkInventory.LocationIsControlled( loc_id ) then
 		ArkInventory.Frame_Main_Hide( loc_id )

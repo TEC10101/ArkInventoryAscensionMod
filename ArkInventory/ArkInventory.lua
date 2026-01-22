@@ -2386,6 +2386,31 @@ function ArkInventory.OutputDebugModeSet( value )
 
 end
 
+function ArkInventory.BlizzardFrameInteractiveSet( frame, enabled )
+
+	-- Recursively enable/disable mouse interaction on a Blizzard frame tree.
+	-- Used to ensure hidden Blizzard UI panels (eg. GuildBankFrame) cannot
+	-- capture hover/clicks and show tooltips through ArkInventory windows.
+	if not frame then
+		return
+	end
+
+	if frame.EnableMouse then
+		frame:EnableMouse( enabled and true or false )
+	end
+	if frame.EnableMouseWheel then
+		frame:EnableMouseWheel( enabled and true or false )
+	end
+
+	if frame.GetChildren then
+		local children = { frame:GetChildren( ) }
+		for _, child in ipairs( children ) do
+			ArkInventory.BlizzardFrameInteractiveSet( child, enabled )
+		end
+	end
+
+end
+
 function ArkInventory:LISTEN_ADDON_ACTION_BLOCKED( event, addon, blocked )
 
 	-- Event args differ slightly across clients; keep it defensive.
@@ -4934,8 +4959,12 @@ function ArkInventory.Frame_Main_OnHide( frame )
 			-- stack is consistent and ESC works as expected
 			if GuildBankFrame then
 				GuildBankFrame:SetAlpha( 1 )
-				GuildBankFrame:EnableMouse( true )
+				ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, true )
 			end
+			if GuildBankPopupFrame then
+				ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, true )
+			end
+			ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = false
 			CloseGuildBankFrame( )
 
 
