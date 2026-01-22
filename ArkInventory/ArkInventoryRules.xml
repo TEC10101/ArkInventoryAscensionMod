@@ -1123,6 +1123,24 @@
             </Scripts>
           </Button>
 
+          <Button name="$parentRealmBank" inherits="ARKINV_TemplateRuleButton">
+            <Size x="110" y="22" />
+            <Anchors>
+              <Anchor point="LEFT" relativeTo="$parentPersonalBank" relativePoint="RIGHT">
+                <Offset x="5" y="0" />
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.ARK_LocId = ArkInventory.Const.Location.RealmBank
+                self:SetText( ArkInventory.Global.Location[self.ARK_LocId].Name )
+              </OnLoad>
+              <OnClick>
+                ArkInventory.Frame_Rules_Tab_OnClick( self )
+              </OnClick>
+            </Scripts>
+          </Button>
+
         </Frames>
 
       </Frame>
