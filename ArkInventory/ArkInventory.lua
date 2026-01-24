@@ -27,8 +27,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1200,
-		UIVersion = "3.12.00",
+		Version = 3.1307,
+		UIVersion = "3.13.07",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -935,6 +935,8 @@ ArkInventory.Global = { -- globals
 		Vault = false,
 		VaultContext = nil,
 		VaultLocation = nil,
+		VaultSuppressLeave = false,
+		VaultUIUnhooked = false,
 		Mail = false,
 		Merchant = false,
 
@@ -1041,7 +1043,7 @@ ArkInventory.Global = { -- globals
 
 			isOffline = true,
 			canView = true,
-			canOverride = true,
+			canOverride = false,
 			canPurge = true,
 
 			drawState = ArkInventory.Const.Window.Draw.Init,
@@ -1404,6 +1406,182 @@ ArkInventory.Const.DatabaseDefaults.global = {
 		},
 	},
 	["player"] = { },
+	-- shared, non-profile defaults for Realm Bank options
+	["realmbank"] = {
+		["option"] = {
+			["location"] = {
+				["*"] = {
+					["window"] = {
+						["scale"] = 1,
+						["width"] = 16,
+						["border"] = {
+							["style"] = ArkInventory.Const.Texture.BorderDefault,
+							["size"] = nil,
+							["offset"] = nil,
+							["scale"] = 1,
+							["colour"] = {
+								["r"] = 1,
+								["g"] = 1,
+								["b"] = 1,
+							},
+						},
+						["pad"] = 8,
+						["background"] = {
+							["style"] = ArkInventory.Const.Texture.BackgroundDefault,
+							["colour"] = {
+								["r"] = 0,
+								["g"] = 0,
+								["b"] = 0,
+								["a"] = 0.75,
+							},
+						},
+					},
+					["bar"] = {
+						["per"] = 5,
+						["pad"] = {
+							["internal"] = 8,
+							["external"] = 8,
+						},
+						["border"] = {
+							["style"] = ArkInventory.Const.Texture.BorderDefault,
+							["size"] = nil,
+							["offset"] = nil,
+							["scale"] = 1,
+							["colour"] = {
+								["r"] = 0.3,
+								["g"] = 0.3,
+								["b"] = 0.3,
+							},
+						},
+						["background"] = {
+							["colour"] = {
+								["r"] = 0,
+								["g"] = 0,
+								["b"] = 0.4,
+								["a"] = 0.4,
+							},
+						},
+						["showempty"] = false,
+						["anchor"] = ArkInventory.Const.Anchor.BottomRight,
+						["compact"] = false,
+						["hide"] = false,
+						["name"] = {
+							["show"] = false,
+							["colour"] = {
+								["r"] = 1,
+								["b"] = 1,
+								["g"] = 1,
+							},
+							["height"] = 12,
+							["justify"] = ArkInventory.Const.Anchor.Left,
+							["anchor"] = ArkInventory.Const.Anchor.Automatic,
+						},
+						["data"] = {
+							["*"] = {
+								-- label
+								-- sortorder
+								-- backgroundid
+							},
+						},
+					},
+					["slot"] = {
+						["empty"] = {
+							["alpha"] = 0.1,
+							["icon"] = true,
+							["border"] = true,
+							["clump"] = false,
+						},
+						["data"] = ArkInventory.Const.Slot.Data,
+						["pad"] = 4,
+						["border"] = {
+							["style"] = ArkInventory.Const.Texture.BorderDefault,
+							["size"] = nil,
+							["offset"] = nil,
+							["scale"] = 1,
+							["rarity"] = true,
+							["raritycutoff"] = 0,
+						},
+						["ignorehidden"] = false,
+						["anchor"] = ArkInventory.Const.Anchor.BottomRight,
+						["new"] = {
+							["show"] = false,
+							["colour"] = {
+								["r"] = 1,
+								["g"] = 1,
+								["b"] = 1,
+							},
+							["cutoff"] = 4,
+						},
+						["offline"] = {
+							["fade"] = true,
+						},
+						["unusable"] = {
+							["tint"] = false,
+						},
+						["cooldown"] = {
+							["show"] = true,
+							["global"] = false,
+							["combat"] = true,
+						},
+					},
+					["sort"] = {
+						["open"] = true,
+						["instant"] = false,
+						["default"] = 9999,
+					},
+					["category"] = {
+						["*"] = nil,
+					},
+					["anchor"] = {
+						["*"] = {
+							["point"] = ArkInventory.Const.Anchor.TopRight,
+							["locked"] = false,
+							["t"] = 0,
+							["b"] = 0,
+							["l"] = 0,
+							["r"] = 0,
+						},
+					},
+					["notifyerase"] = true,
+					["title"] = {
+						["hide"] = false,
+						["size"] = 1,
+					},
+					["search"] = {
+						["hide"] = false,
+					},
+					["changer"] = {
+						["hide"] = false,
+						["highlight"] = {
+							["show"] = true,
+							["colour"] = {
+								["r"] = 0,
+								["g"] = 1,
+								["b"] = 0,
+							},
+						},
+						["freespace"] = {
+							["show"] = true,
+							["colour"] = {
+								["r"] = 1,
+								["g"] = 1,
+								["b"] = 1,
+							},
+						},
+					},
+					["status"] = {
+						["hide"] = false,
+						["emptytext"] = {
+							["show"] = true,
+							["colour"] = false,
+							["full"] = true,
+							["includetype"] = true,
+						},
+					},
+				},
+			},
+		},
+	},
 }
 
 ArkInventory.Const.DatabaseDefaults.realm = {
@@ -1986,6 +2164,11 @@ function ArkInventory.OnEnable( )
 	ArkInventory:RegisterEvent( "MERCHANT_SHOW", "LISTEN_MERCHANT_ENTER" )
 	ArkInventory:RegisterEvent( "MERCHANT_CLOSED", "LISTEN_MERCHANT_LEAVE" )
 
+	-- Useful for diagnosing taint/protected-action popups (e.g. disenchanting
+	-- from custom bag buttons). Only outputs when ArkInventory debug mode is on.
+	ArkInventory:RegisterEvent( "ADDON_ACTION_BLOCKED", "LISTEN_ADDON_ACTION_BLOCKED" )
+	ArkInventory:RegisterEvent( "ADDON_ACTION_FORBIDDEN", "LISTEN_ADDON_ACTION_BLOCKED" )
+
 	ArkInventory:RegisterEvent( "COMPANION_LEARNED", "LISTEN_COMPANION_UPDATE" )
 
 	ArkInventory:RegisterEvent( "EQUIPMENT_SETS_CHANGED", "LISTEN_EQUIPMENT_SETS_CHANGED" )
@@ -2203,6 +2386,45 @@ function ArkInventory.OutputDebugModeSet( value )
 
 end
 
+function ArkInventory.BlizzardFrameInteractiveSet( frame, enabled )
+
+	-- Recursively enable/disable mouse interaction on a Blizzard frame tree.
+	-- Used to ensure hidden Blizzard UI panels (eg. GuildBankFrame) cannot
+	-- capture hover/clicks and show tooltips through ArkInventory windows.
+	if not frame then
+		return
+	end
+
+	if frame.EnableMouse then
+		frame:EnableMouse( enabled and true or false )
+	end
+	if frame.EnableMouseWheel then
+		frame:EnableMouseWheel( enabled and true or false )
+	end
+
+	if frame.GetChildren then
+		local children = { frame:GetChildren( ) }
+		for _, child in ipairs( children ) do
+			ArkInventory.BlizzardFrameInteractiveSet( child, enabled )
+		end
+	end
+
+end
+
+function ArkInventory:LISTEN_ADDON_ACTION_BLOCKED( event, addon, blocked )
+
+	-- Event args differ slightly across clients; keep it defensive.
+	-- Typical signatures:
+	--   ADDON_ACTION_BLOCKED(addonName, functionName)
+	--   ADDON_ACTION_FORBIDDEN(addonName, functionName)
+	if not ArkInventory.Const.Debug then
+		return
+	end
+
+	ArkInventory.OutputDebug( "Taint event:", event, ", addon=", addon or "?", ", blocked=", blocked or "?" )
+
+end
+
 function ArkInventory.PT_ItemInSets( item, setnames )
 
 	if not item or not setnames then return false end
@@ -2247,7 +2469,16 @@ function ArkInventory.LocationPlayerInfoGet( loc_id )
 				ArkInventory.Output( "player id (", player_id, ") has an invalid guild id (", guild_id, ") at location (", loc_id, ")" )
 				assert( false, "code error" )
 			end
-		end
+    end
+  elseif loc_id == ArkInventory.Const.Location.RealmBank then
+    -- realm bank is stored under the realm-wide pseudo-player
+    local realm_id = cp.info.realmbank_id
+    if realm_id then
+      local realm_cp = ArkInventory.PlayerInfoGet( realm_id )
+      if realm_cp then
+        cp = realm_cp
+      end
+    end
 	end
 
 	return cp
@@ -3860,7 +4091,7 @@ function ArkInventory.PutItemInGuildBank( tab_id )
 
 		if canDeposit then
 
-			ArkInventory.Output( "PutItemInGuildBank( ", tab_id, " )" )
+			ArkInventory.OutputDebug( "PutItemInGuildBank( ", tab_id, " )" )
 
 			local ctab = GetCurrentGuildBankTab( )
 
@@ -4009,7 +4240,26 @@ function ArkInventory.Frame_Main_Offline( frame )
 
 	--ArkInventory.Output( "loc_playerid=[", ArkInventory.Global.Location[loc_id].player_id, "] player_id=[", ArkInventory.Global.Me.info.player_id, "] guild_id=[", ArkInventory.Global.Me.info.guild_id, "]" )
 
-	if ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.player_id or ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.guild_id then
+	local current_player_id = ArkInventory.Global.Location[loc_id].player_id
+	local is_current_player = current_player_id == ArkInventory.Global.Me.info.player_id
+		or current_player_id == ArkInventory.Global.Me.info.guild_id
+		or current_player_id == ArkInventory.Global.Me.info.realmbank_id
+
+	-- if we're actively at a personal/realm vault, force online and exit early
+	-- to avoid any subsequent checks toggling it back to offline during early
+	-- login initialisation
+	if ArkInventory.Global.Mode.Vault then
+		if loc_id == ArkInventory.Const.Location.PersonalBank and ArkInventory.Global.Mode.VaultContext == "personal" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+			return
+		elseif loc_id == ArkInventory.Const.Location.RealmBank and ArkInventory.Global.Mode.VaultContext == "realm" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+			return
+		end
+	end
+
+	if is_current_player then
+	--if ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.player_id or ArkInventory.Global.Location[loc_id].player_id == ArkInventory.Global.Me.info.guild_id then
 
 		ArkInventory.Global.Location[loc_id].isOffline = false
 
@@ -4017,7 +4267,7 @@ function ArkInventory.Frame_Main_Offline( frame )
 			ArkInventory.Global.Location[loc_id].isOffline = true
 		end
 
-		if ( loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank ) and ArkInventory.Global.Mode.Vault == false then
+		if ( loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank ) and ArkInventory.Global.Mode.Vault == false then
 			ArkInventory.Global.Location[loc_id].isOffline = true
 		end
 
@@ -4551,6 +4801,10 @@ function ArkInventory.Frame_Main_Show( loc_id, player_id )
 			else
 				player_id = ArkInventory.Global.Me.info.guild_id
 			end
+		elseif loc_id == ArkInventory.Const.Location.RealmBank then
+			player_id = ArkInventory.Global.Me.info.realmbank_id
+		elseif loc_id == ArkInventory.Const.Location.PersonalBank then
+			player_id = ArkInventory.Global.Me.info.player_id
 		else
 			player_id = ArkInventory.Global.Me.info.player_id
 		end
@@ -4565,6 +4819,16 @@ function ArkInventory.Frame_Main_Show( loc_id, player_id )
 			ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Resort )
 		end
 
+
+	-- ensure online state for first-open personal/realm vault sessions before
+	-- showing to avoid a brief/offline title caused by early initialisation
+	if ArkInventory.Global.Mode.Vault then
+		if loc_id == ArkInventory.Const.Location.PersonalBank and ArkInventory.Global.Mode.VaultContext == "personal" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+		elseif loc_id == ArkInventory.Const.Location.RealmBank and ArkInventory.Global.Mode.VaultContext == "realm" then
+			ArkInventory.Global.Location[loc_id].isOffline = false
+		end
+	end
 	end
 
 	ArkInventory.LocationSetValue( loc_id, "player_id", player_id )
@@ -4674,11 +4938,11 @@ function ArkInventory.Frame_Main_OnHide( frame )
 
 	elseif loc_id == ArkInventory.Const.Location.Bag then
 		PlaySound( "igBackPackClose" )
-	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 
 		PlaySound( "GuildVaultClose" )
 
-		if ArkInventory.Global.Mode.Vault and ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) then
+		if ArkInventory.Global.Mode.Vault and ( ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) or ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) then
 
 			-- close blizzards vault/personal-bank frame if we're hiding blizzard frames,
 			-- we're at the vault, and the vault window was closed
@@ -4688,8 +4952,55 @@ function ArkInventory.Frame_Main_OnHide( frame )
 			StaticPopup_Hide( "GUILDBANK_DEPOSIT" )
 			StaticPopup_Hide( "CONFIRM_BUY_GUILDBANK_TAB" )
 
+			-- allow subsequent CLOSE event to be processed normally (we suppressed
+			-- them while the Ark window was visible)
+			ArkInventory.Global.Mode.VaultSuppressLeave = false
+			-- restore Blizzard GuildBankFrame visuals and close cleanly so the UIPanel
+			-- stack is consistent and ESC works as expected
+			if GuildBankFrame then
+				GuildBankFrame:SetAlpha( 1 )
+				ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, true )
+			end
+			if GuildBankPopupFrame then
+				ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, true )
+			end
+			ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = false
 			CloseGuildBankFrame( )
 
+
+
+		end
+
+		-- regardless of vault control setting, if we temporarily unhooked
+		-- Blizzard events for personal/realm, restore them on hide so the
+		-- next open fires correctly
+		if ArkInventory.Global.Mode.VaultUIUnhooked then
+			if UIParent and UIParent.RegisterEvent then
+				UIParent:RegisterEvent( "GUILDBANKFRAME_OPENED" )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug( "Vault debug (OnHide): UIParent GUILDBANKFRAME_OPENED re-registered" )
+				end
+			end
+			if GuildBankFrame and GuildBankFrame.RegisterEvent then
+				GuildBankFrame:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TABS" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_MONEY" )
+				GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TEXT" )
+				GuildBankFrame:RegisterEvent( "GUILD_ROSTER_UPDATE" )
+				GuildBankFrame:RegisterEvent( "GUILDBANKLOG_UPDATE" )
+				GuildBankFrame:RegisterEvent( "GUILDTABARD_UPDATE" )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug( "Vault debug (OnHide): GuildBankFrame events re-registered" )
+				end
+			end
+			ArkInventory.Global.Mode.VaultUIUnhooked = false
+		end
+
+		-- always clear Ascension flags on hide to prevent stale context
+		if GuildBankFrame then
+			GuildBankFrame.IsPersonalBank = nil
+			GuildBankFrame.IsRealmBank = nil
 		end
 
 	elseif loc_id == ArkInventory.Const.Location.Mail then
@@ -4708,6 +5019,12 @@ function ArkInventory.Frame_Main_OnHide( frame )
 		-- if the edit mode is active then disable edit mode and taint so it's rebuilt when next opened
 		ArkInventory.Global.Mode.Edit = false
 		ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
+	end
+
+	-- ensure no hidden edit box keeps keyboard focus (which would swallow ESC)
+	local focused = GetCurrentKeyFocus and GetCurrentKeyFocus( )
+	if focused and focused.ClearFocus then
+		focused:ClearFocus( )
 	end
 
 end
@@ -4841,7 +5158,13 @@ function ArkInventory.Frame_Container_CalculateBars( frame, Layout )
 
 			local ignore = false
 
-			if loc_id == ArkInventory.Const.Location.Vault and not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] then
+			-- for multi-tab vault-style locations, skip bags that are not
+			-- the active tab entirely so they don't contribute items or
+			-- ghost bars during edit mode
+			if ( loc_id == ArkInventory.Const.Location.Vault
+				or loc_id == ArkInventory.Const.Location.PersonalBank
+				or loc_id == ArkInventory.Const.Location.RealmBank )
+				and not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] then
 				ignore = true
 			end
 
@@ -4854,23 +5177,23 @@ function ArkInventory.Frame_Container_CalculateBars( frame, Layout )
 
 				local hidden = false
 
-				if not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] then
-					-- isoalted bags do not get shown
+				local bag_hidden = not ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id]
+				local category_hidden = ( bar_id < 0 )
+
+				if bag_hidden then
+					-- items in non-active tabs are always hidden
 					hidden = true
-				elseif bar_id < 0 then
-					-- hidden categories (reside on negative bar numbers) do not get shown
-					-- the first empty slot is always shown
---					if firstempty and ( cat_id == ArkInventory.CategoryGetSystemID( "EMPTY" ) or cat_id == ArkInventory.CategoryGetSystemID( "EMPTY_BAG" ) ) then
---						firstempty = false
-						-- need to enforce an update if we do this or you wont see newly collected items
---					else
-						hidden = true
---					end
+				elseif category_hidden then
+					-- hidden categories (negative bar numbers) normally hidden
+					hidden = true
 				end
 
 				if ArkInventory.Global.Mode.Edit or ArkInventory.LocationOptionGet( loc_id, { "slot", "ignorehidden" } ) then
-					-- show everything if in edit mode or the user wants us to ignore the hidden flag
-					hidden = false
+					-- in edit mode (or when ignoring hidden), still honour bag_hidden
+					-- but unhide items solely due to hidden categories
+					if not bag_hidden then
+						hidden = false
+					end
 				end
 
 				if not hidden then
@@ -5242,7 +5565,7 @@ function ArkInventory.Frame_Container_Draw( frame )
 				local itemframe = _G[itemframename]
 				if not itemframe then
 					--ArkInventory.Output( "creating item frame [", itemframename, "]" )
-					if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+					if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 						itemframe = CreateFrame( "Button", itemframename, bagframe, "ARKINV_TemplateButtonVaultItem" )
 					elseif loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount then
 						itemframe = CreateFrame( "Button", itemframename, bagframe, "ARKINV_TemplateButtonPetItem" )
@@ -5662,7 +5985,6 @@ function ArkInventory.Frame_Bar_DrawItems( frame )
 		if debugLayout then
 			local row = ceil( j / col )
 			local column = ( ( j - 1 ) % col ) + 1
-			ArkInventory.OutputDebug( "Bar cell - j=", j, ", row=", row, ", col=", column, ", bag=", bar.item[j].bag, ", slot=", bar.item[j].slot )
 		end
 
 		if ArkInventory.Global.Location[loc_id].drawState <= ArkInventory.Const.Window.Draw.Recalculate then
@@ -6499,7 +6821,7 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 	-- go through the default ContainerFrameItemButton_OnEnter path so
 	-- Ascension's container tooltip hooks apply consistently in both
 	-- normal and edit modes.
-	if ( ArkInventory.Global.Mode.Edit and loc_id ~= ArkInventory.Const.Location.Bag ) or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
+if ( ArkInventory.Global.Mode.Edit and loc_id ~= ArkInventory.Const.Location.Bag ) or ArkInventory.Global.Location[loc_id].isOffline or bliz_id == BANK_CONTAINER or bliz_id == KEYRING_CONTAINER or loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank or loc_id == ArkInventory.Const.Location.Wearing or loc_id == ArkInventory.Const.Location.Mail or loc_id == ArkInventory.Const.Location.Pet or loc_id == ArkInventory.Const.Location.Mount or loc_id == ArkInventory.Const.Location.Token then
 
 		usedmycode = true -- edit mode, offline, bank, keyring, vault, mail, pet, token
 
@@ -6578,7 +6900,7 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 
 				GameTooltip:SetInventoryItem( "player", KeyRingButtonIDToInvSlotID( i.slot_id ) )
 
-			elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+			elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 
 				local tab_id = i.bag_id
 
@@ -6669,6 +6991,20 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 	local loc_id = frame.ARK_Data.loc_id
 	local i = ArkInventory.Frame_Item_GetDB( frame )
 
+	-- When a spell is targeting (eg. Disenchant), let Blizzard's secure
+	-- ContainerFrameItemButtonTemplate handling run without ArkInventory
+	-- re-invoking protected click handlers. Calling those handlers from
+	-- addon code can trigger an ADDON_ACTION_BLOCKED popup.
+	if loc_id == ArkInventory.Const.Location.Bag then
+		local hasSpell = false
+		if CursorHasSpell then
+			hasSpell = CursorHasSpell( )
+		end
+		if SpellIsTargeting( ) or hasSpell then
+			return
+		end
+	end
+
 	if ArkInventory.Global.Location[loc_id].isOffline or ArkInventory.Global.Mode.Edit then
 
 		if IsModifierKeyDown( ) then
@@ -6695,7 +7031,66 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 
 	end
 
+	-- live clicks: handle personal/realm vault deposit on first/open sessions
+	if not ArkInventory.Global.Location[loc_id].isOffline and not ArkInventory.Global.Mode.Edit then
+
+		local i = ArkInventory.Frame_Item_GetDB( frame )
+		if ArkInventory.Global.Mode.Vault and ( ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) and loc_id == ArkInventory.Const.Location.Bag then
+
+			-- respect modified clicks (chat link, dress up)
+			if i and i.h and HandleModifiedItemClick( i.h ) then
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp handled modified click; exiting")
+				end
+				return
+			end
+
+			if button == "RightButton" and not IsModifierKeyDown( ) then
+				-- If Blizzard's GuildBankFrame is actually open (even if invisible),
+				-- let the default Blizzard click handler do the deposit. This avoids
+				-- the double "move" sound caused by our manual Pickup+Place logic.
+				if GuildBankFrame and GuildBankFrame.IsShown and GuildBankFrame:IsShown( ) then
+					ContainerFrameItemButton_OnClick( frame, button )
+					return
+				end
+
+				local bliz_bag = ArkInventory.BagID_Blizzard( loc_id, i.bag_id )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp deposit path: bag_id=", i and i.bag_id, ", slot_id=", i and i.slot_id, ", current_tab=", GetCurrentGuildBankTab() or 1)
+				end
+				PickupContainerItem( bliz_bag, i.slot_id )
+				ArkInventory.PutItemInGuildBank( GetCurrentGuildBankTab( ) or 1 )
+				if ArkInventory.OutputDebug then
+					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp deposit attempted via PutItemInGuildBank")
+				end
+				return
+			end
+
+			-- default behaviour for other buttons/modifiers
+			ContainerFrameItemButton_OnClick( frame, button )
+			if ArkInventory.OutputDebug then
+				ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp default ContainerFrameItemButton_OnClick")
+			end
+			return
+		end
+
+		-- not in vault override context, use default behaviour
+		-- For normal bag usage, the inherited ContainerFrameItemButtonTemplate
+		-- already runs the Blizzard OnClick handler. Calling it again here can
+		-- trigger protected-action popups (even though the item still uses).
+		if loc_id == ArkInventory.Const.Location.Bag then
+			return
+		end
+
+		ContainerFrameItemButton_OnClick( frame, button )
+		return
+	end
+
 end
+
+-- Override bag item clicks while in personal/realm vault so right-click deposits
+-- instead of using consumables. This compensates for Blizzard deposit logic that
+-- normally requires GuildBankFrame to be shown.
 
 function ArkInventory.Frame_Item_Update_Cooldown( frame, arg1 )
 
@@ -6805,15 +7200,16 @@ function ArkInventory.Frame_Item_Update_Clickable( frame )
 
 	local loc_id = frame.ARK_Data.loc_id
 
-	local action = false
+	local disableClicks = false
+	local disableDrag = false
 
 	if ArkInventory.Global.Mode.Edit
 	or ArkInventory.Global.Location[loc_id].isOffline
 	or loc_id == ArkInventory.Const.Location.Wearing
 	or loc_id == ArkInventory.Const.Location.Mail
 	or loc_id == ArkInventory.Const.Location.Token then
-
-		action = true
+		disableClicks = true
+		disableDrag = true
 
 	else
 
@@ -6822,20 +7218,35 @@ function ArkInventory.Frame_Item_Update_Clickable( frame )
 			local bag_id = frame.ARK_Data.bag_id
 			local _, _, _, canDeposit, numWithdrawals = GetGuildBankTabInfo( bag_id )
 			if not canDeposit and numWithdrawals == 0 then
-				action = true
+				disableClicks = true
+				disableDrag = true
 			end
 
 		end
 
 	end
 
+	-- While in personal/realm vault mode, ArkInventory handles bag-slot clicks
+	-- via Frame_Item_OnMouseUp to support deposit overrides. Prevent the inherited
+	-- Blizzard OnClick from also firing (double handling) by unregistering clicks.
+	if not disableClicks
+	and loc_id == ArkInventory.Const.Location.Bag
+	and ArkInventory.Global.Mode.Vault
+	and ( ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) then
+		disableClicks = true
+		-- keep drag enabled
+	end
 
-	if action then
-		-- disable clicks/drag when in edit mode or offline
+
+	if disableClicks then
 		frame:RegisterForClicks( )
-		frame:RegisterForDrag( )
 	else
 		frame:RegisterForClicks( "LeftButtonUp", "RightButtonUp" )
+	end
+
+	if disableDrag then
+		frame:RegisterForDrag( )
+	else
 		frame:RegisterForDrag( "LeftButton" )
 	end
 
@@ -7017,11 +7428,11 @@ function ArkInventory.Frame_Status_Update( frame )
 
 	if ArkInventory.Global.Location[loc_id].isOffline then
 		ArkInventory.MoneyFrame_SetType( moneyFrame, "STATIC" )
-		MoneyFrame_Update( moneyFrameName, cp.info.money )
+		MoneyFrame_Update( moneyFrameName, cp.info.money or 0 )
 		SetMoneyFrameColor( moneyFrameName, 0.75, 0.75, 0.75 )
 	else
 		SetMoneyFrameColor( moneyFrameName, 1, 1, 1 )
-		if loc_id == ArkInventory.Const.Location.Vault then
+		if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 			ArkInventory.MoneyFrame_SetType( moneyFrame, "GUILDBANK" )
 		else
 			ArkInventory.MoneyFrame_SetType( moneyFrame, "PLAYER" )
@@ -7186,7 +7597,7 @@ function ArkInventory.Frame_Vault_Item_OnClick( frame, arg1 )
 
 	--ArkInventory.Output( "OnClick( ", frame:GetName( ), ", ", arg1, " )" )
 
-	if frame.ARK_Data.loc_id == ArkInventory.Const.Location.Vault or frame.ARK_Data.loc_id == ArkInventory.Const.Location.PersonalBank then
+	if frame.ARK_Data.loc_id == ArkInventory.Const.Location.Vault or frame.ARK_Data.loc_id == ArkInventory.Const.Location.PersonalBank or frame.ARK_Data.loc_id == ArkInventory.Const.Location.RealmBank then
 
 		local loc_id = frame.ARK_Data.loc_id
 		local tab_id = frame.ARK_Data.bag_id
@@ -7242,7 +7653,7 @@ function ArkInventory.Frame_Changer_Update( loc_id )
 
 		ArkInventory.Frame_Changer_Update_Bank( )
 
-	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank then
+	elseif loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 
 		ArkInventory.Frame_Changer_Update_Vault( loc_id )
 
@@ -7498,6 +7909,8 @@ function ArkInventory.Frame_Changer_Vault_Tab_OnClick( frame, button, mode )
 
 	local cp = ArkInventory.LocationPlayerInfoGet( loc_id )
 	local tab = cp.location[loc_id].bag[bag_id]
+	local isPersonal = ( loc_id == ArkInventory.Const.Location.PersonalBank )
+	local isRealm = ( loc_id == ArkInventory.Const.Location.RealmBank )
 
 	if tab.name == nil then
 		return
@@ -7521,8 +7934,34 @@ function ArkInventory.Frame_Changer_Vault_Tab_OnClick( frame, button, mode )
 
 		elseif button == "LeftButton" then
 
-			if mode == GuildBankFrame.mode and bag_id == GetCurrentGuildBankTab( ) then
+			-- Personal / Realm banks: drive purely from saved variables.
+			-- When a tab is clicked, switch the active tab index and
+			-- regenerate the window from cp.location[loc_id].bag[bag_id]
+			-- without relying on live guild bank queries.
+			if isPersonal or isRealm then
+
+				ArkInventory.Global.Location[loc_id].current_tab = bag_id
+				-- ensure Blizzard's current tab follows so deposits target the
+				-- selected tab when right-clicking bag items
+				SetCurrentGuildBankTab( bag_id )
+
+				-- update changer highlight and then redraw the main window
+				ArkInventory.Frame_Changer_Update( loc_id )
+				-- need a full layout recalculation so that the new
+				-- active tab's bag visibility (display[loc_id].bag)
+				-- takes effect in Frame_Container_CalculateBars
+				ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
+
 				return
+			end
+
+			-- for the real guild vault we can safely skip redundant work
+			-- when clicking the already active tab. personal / realm
+			-- banks use the saved-variables path above instead.
+			if loc_id == ArkInventory.Const.Location.Vault then
+				if mode == GuildBankFrame.mode and bag_id == GetCurrentGuildBankTab( ) then
+					return
+				end
 			end
 
 			GuildBankFrame.mode = mode
@@ -7572,9 +8011,36 @@ function ArkInventory.Frame_Changer_Update_Vault( loc_id )
 		return
 	end
 
+	local current_tab
+	if loc_id == ArkInventory.Const.Location.Vault then
+		-- real guild vault follows Blizzard's current tab selection
+		current_tab = GetCurrentGuildBankTab( )
+	else
+		-- personal / realm banks track the active tab via our own
+		-- per-location current_tab field, defaulting to 1
+		current_tab = ArkInventory.Global.Location[loc_id].current_tab or 1
+	end
+
+	-- ensure current_tab points to a valid, active tab for this location
+	if loc_id ~= ArkInventory.Const.Location.Vault then
+		local candidate = current_tab
+		local tab = cp.location[loc_id].bag[candidate]
+		if not tab or tab.status ~= ArkInventory.Const.Bag.Status.Active then
+			for i = 1, #ArkInventory.Global.Location[loc_id].Bags do
+				local t = cp.location[loc_id].bag[i]
+				if t and t.status == ArkInventory.Const.Bag.Status.Active then
+					candidate = i
+					break
+				end
+			end
+			current_tab = candidate or 1
+			ArkInventory.Global.Location[loc_id].current_tab = current_tab
+		end
+	end
+
 	for bag_id in ipairs( ArkInventory.Global.Location[loc_id].Bags ) do
 
-		if bag_id == GetCurrentGuildBankTab( ) then
+		if bag_id == current_tab then
 			ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] = true
 		else
 			ArkInventory.db.realm.player.data[cp.info.player_id].display[loc_id].bag[bag_id] = false
@@ -7591,9 +8057,11 @@ function ArkInventory.Frame_Changer_Update_Vault( loc_id )
 	local moneyWithdraw = parent .. "GoldAvailable"
 	local buttonWithdraw = parent .. "WithdrawButton"
 
-	local isPersonal = ( loc_id == ArkInventory.Const.Location.PersonalBank ) or ( ArkInventory.Global.Mode.VaultContext == "personal" )
+	-- treat Ascension-style banks (personal/realm) specially; never rely on
+	-- a global context string when deciding UI for a specific location
+	local isAscensionBank = ( loc_id == ArkInventory.Const.Location.PersonalBank ) or ( loc_id == ArkInventory.Const.Location.RealmBank )
 
-	if ArkInventory.Global.Location[loc_id].isOffline or isPersonal then
+	if ArkInventory.Global.Location[loc_id].isOffline or isAscensionBank then
 
 		_G[moneyDeposit]:Hide( )
 		_G[buttonDeposit]:Hide( )
@@ -7647,7 +8115,7 @@ function ArkInventory.Frame_Changer_Update_Vault( loc_id )
 	-- purchase frame
 	local purchaseFrame = _G[parent .. "PurchaseInfo"]
 
-	if ArkInventory.Global.Location[loc_id].isOffline or isPersonal or not IsGuildLeader( ) then
+	if ArkInventory.Global.Location[loc_id].isOffline or isAscensionBank or not IsGuildLeader( ) then
 
 		purchaseFrame:Hide( )
 
@@ -8295,56 +8763,29 @@ function ArkInventory.BlizzardAPIHooks( disable )
 
 	else
 
-		if disable or not ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) then
+		-- Always restore guild bank functions at init. ArkInventory now unhooks
+		-- dynamically inside LISTEN_VAULT_ENTER for personal/realm sessions.
+		-- This ensures that after a /reload the guild bank opens normally on
+		-- first interaction.
+		UIParent:RegisterEvent( "GUILDBANKFRAME_OPENED" )
 
-			-- restore guild bank functions
+		GuildBankFrame:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TABS" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_MONEY" )
+		GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TEXT" )
+		GuildBankFrame:RegisterEvent( "GUILD_ROSTER_UPDATE" )
+		GuildBankFrame:RegisterEvent( "GUILDBANKLOG_UPDATE" )
+		GuildBankFrame:RegisterEvent( "GUILDTABARD_UPDATE" )
 
-			UIParent:RegisterEvent( "GUILDBANKFRAME_OPENED" )
-
-			GuildBankFrame:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TABS" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_MONEY" )
-			GuildBankFrame:RegisterEvent( "GUILDBANK_UPDATE_TEXT" )
-			GuildBankFrame:RegisterEvent( "GUILD_ROSTER_UPDATE" )
-			GuildBankFrame:RegisterEvent( "GUILDBANKLOG_UPDATE" )
-			GuildBankFrame:RegisterEvent( "GUILDTABARD_UPDATE" )
-
-			-- anchor popup to blizzard frame
-			local frame = _G["GuildBankFrame"]
-			if frame then
-				GuildBankPopupFrame:ClearAllPoints( )
-				GuildBankPopupFrame:SetPoint( "TOPLEFT", frame, "TOPRIGHT", -4, -30 )
-			end
-
-			ArkInventory.Frame_Main_Hide( ArkInventory.Const.Location.Vault )
-
-		else
-
-			-- sever guild bank functions
-
-			UIParent:UnregisterEvent( "GUILDBANKFRAME_OPENED" )
-
-			GuildBankFrame:UnregisterEvent( "GUILDBANKBAGSLOTS_CHANGED" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_TABS" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_MONEY" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANK_UPDATE_TEXT" )
-			GuildBankFrame:UnregisterEvent( "GUILD_ROSTER_UPDATE" )
-			GuildBankFrame:UnregisterEvent( "GUILDBANKLOG_UPDATE" )
-			GuildBankFrame:UnregisterEvent( "GUILDTABARD_UPDATE" )
-
-			GuildBankFrame:Hide( )
-
-			-- anchor popup to AI frame
-			local frame = _G[ArkInventory.Const.Frame.Main.Name .. ArkInventory.Const.Location.Vault]
-			if frame then
-				GuildBankPopupFrame:Hide( )
-				GuildBankPopupFrame:ClearAllPoints( )
-				GuildBankPopupFrame:SetPoint( "TOPLEFT", frame, "TOPRIGHT", -4, -30 )
-			end
-
+		-- anchor popup to blizzard frame
+		local frame = _G["GuildBankFrame"]
+		if frame then
+			GuildBankPopupFrame:ClearAllPoints( )
+			GuildBankPopupFrame:SetPoint( "TOPLEFT", frame, "TOPRIGHT", -4, -30 )
 		end
+
+		ArkInventory.Frame_Main_Hide( ArkInventory.Const.Location.Vault )
 
 	end
 
@@ -8607,8 +9048,33 @@ function ArkInventory.ContainerItemNameGet( loc_id, bag_id, slot_id )
 end
 
 function ArkInventory.LocationOptionGet( loc_id, opt )
-	local loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
-	return ArkInventory.LocationOptionGetReal( loc_id, opt )
+	-- resolve any "use X for Y" redirections first
+	local real_loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
+
+	-- for Personal / Realm banks, some option groups (rules and bar
+	-- configuration) should be per-tab rather than per-location.
+	-- map those through a synthetic loc_id that encodes the active
+	-- tab so that each tab gets independent bar layout and category
+	-- assignments while still sharing the base Personal/Realm settings.
+	if ( real_loc_id == ArkInventory.Const.Location.PersonalBank or real_loc_id == ArkInventory.Const.Location.RealmBank ) and type( opt ) == "table" and opt[1] then
+		local k = opt[1]
+		if k == "category" then
+			local tab = ArkInventory.Global.Location[real_loc_id].current_tab or 1
+			if tab > 1 then
+				-- tabs 2+ are always per-tab via synthetic loc id
+				real_loc_id = real_loc_id * 100 + tab
+			else
+				-- tab 1: read legacy until migrated; if synthetic exists, read synthetic
+				local syn = real_loc_id * 100 + 1
+				local locTbl = ArkInventory.db.profile.option and ArkInventory.db.profile.option.location
+				if locTbl and locTbl[syn] and locTbl[syn][k] ~= nil then
+					real_loc_id = syn
+				end
+			end
+		end
+	end
+
+	return ArkInventory.LocationOptionGetReal( real_loc_id, opt )
 end
 
 function ArkInventory.LocationOptionGetReal( loc_id, opt )
@@ -8616,7 +9082,27 @@ function ArkInventory.LocationOptionGetReal( loc_id, opt )
 	assert( loc_id ~= nil, "location id is nil" )
 	assert( type( opt ) == "table", "opt is not a table" )
 
-	local p = ArkInventory.db.profile.option.location[loc_id]
+	-- choose option storage root: Realm Bank uses realm-shared store
+	local base_loc = ( type( loc_id ) == "number" and loc_id >= 100 ) and math.floor( loc_id / 100 ) or loc_id
+	local useRealmShared = ( base_loc == ArkInventory.Const.Location.RealmBank )
+	local root
+	if useRealmShared then
+		-- ensure global-shared structure exists
+		ArkInventory.db.global.realmbank = ArkInventory.db.global.realmbank or { }
+		local gb = ArkInventory.db.global.realmbank
+		gb.option = gb.option or { }
+		gb.option.location = gb.option.location or { }
+		-- lazily seed this location from global realm-bank defaults if missing
+		if not gb.option.location[loc_id] then
+			local def = ArkInventory.Const.DatabaseDefaults.global.realmbank.option.location["*"]
+			gb.option.location[loc_id] = ArkInventory.Table.CloneDeep( def )
+		end
+		root = gb.option.location
+	else
+		root = ArkInventory.db.profile.option.location
+	end
+
+	local p = root[loc_id]
 
 	for k = 1, #opt do
 
@@ -8635,8 +9121,56 @@ function ArkInventory.LocationOptionGetReal( loc_id, opt )
 end
 
 function ArkInventory.LocationOptionSet( loc_id, opt, n )
-	local loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
-	return ArkInventory.LocationOptionSetReal( loc_id, opt, n )
+	-- resolve any "use X for Y" redirections first
+	local real_loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
+
+	-- keep per-tab rules and bar configuration separate for Personal /
+	-- Realm banks by writing those options under a synthetic location id
+	-- that incorporates the active tab index.
+	if ( real_loc_id == ArkInventory.Const.Location.PersonalBank or real_loc_id == ArkInventory.Const.Location.RealmBank ) and type( opt ) == "table" and opt[1] then
+		local k = opt[1]
+		if k == "category" then
+			local tab = ArkInventory.Global.Location[real_loc_id].current_tab or 1
+			local syn = ( tab > 1 ) and ( real_loc_id * 100 + tab ) or ( real_loc_id * 100 + 1 )
+
+			local profile = ArkInventory.db.profile
+			local locTbl = profile.option.location
+			-- ensure synthetic location table exists
+			if not locTbl[syn] then
+				locTbl[syn] = { }
+			end
+			-- for tab 1, migrate legacy category/bar on first save, then clear legacy
+			if tab == 1 then
+				local orig = locTbl[real_loc_id] or { }
+				local synTbl = locTbl[syn]
+				-- create deep-copy helper if missing
+				if not ArkInventory.Table.CloneDeep then
+					function ArkInventory.Table.CloneDeep( src )
+						if type( src ) ~= "table" then return src end
+						local dst = { }
+						for kk, vv in pairs( src ) do
+							dst[ArkInventory.Table.CloneDeep( kk )] = ArkInventory.Table.CloneDeep( vv )
+						end
+						return dst
+					end
+				end
+				if synTbl.category == nil and orig.category ~= nil then
+					synTbl.category = ArkInventory.Table.CloneDeep( orig.category )
+				end
+				-- delete only legacy category now that synthetic exists
+				orig.category = nil
+			end
+
+			-- ensure path root exists for the option we're writing
+			if locTbl[syn][k] == nil then
+				locTbl[syn][k] = { }
+			end
+
+			return ArkInventory.LocationOptionSetReal( syn, opt, n )
+		end
+	end
+
+	return ArkInventory.LocationOptionSetReal( real_loc_id, opt, n )
 end
 
 function ArkInventory.LocationOptionSetReal( loc_id, opt, n )
@@ -8644,8 +9178,26 @@ function ArkInventory.LocationOptionSetReal( loc_id, opt, n )
 	assert( loc_id ~= nil, "location id is nil" )
 	assert( type( opt ) == "table", "opt is not a table" )
 
+	-- choose option storage root: Realm Bank uses realm-shared store
+	local base_loc = ( type( loc_id ) == "number" and loc_id >= 100 ) and math.floor( loc_id / 100 ) or loc_id
+	local useRealmShared = ( base_loc == ArkInventory.Const.Location.RealmBank )
+	local root
+	if useRealmShared then
+		ArkInventory.db.global.realmbank = ArkInventory.db.global.realmbank or { }
+		local gb = ArkInventory.db.global.realmbank
+		gb.option = gb.option or { }
+		gb.option.location = gb.option.location or { }
+		if not gb.option.location[loc_id] then
+			local def = ArkInventory.Const.DatabaseDefaults.global.realmbank.option.location["*"]
+			gb.option.location[loc_id] = ArkInventory.Table.CloneDeep( def )
+		end
+		root = gb.option.location
+	else
+		root = ArkInventory.db.profile.option.location
+	end
+
 	--s = "option.local." .. loc_id
-	local p = { ArkInventory.db.profile.option.location[loc_id] }
+	local p = { root[loc_id] }
 	local c = 1
 
 	for k = 1, #opt - 1 do
