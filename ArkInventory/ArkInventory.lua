@@ -28,7 +28,7 @@ ArkInventory.Const = { -- constants
 	Program = {
 		Name = "ArkInventory",
 		Version = 3.1307,
-		UIVersion = "3.13.07",
+		UIVersion = "3.13.08",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -7003,6 +7003,16 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 		if SpellIsTargeting( ) or hasSpell then
 			return
 		end
+	end
+
+	-- Alt+RightClick shortcut: open the item edit menu even when
+	-- not in edit mode. This uses the same Dewdrop menu as edit
+	-- mode but does not toggle the global edit state.
+	if not ArkInventory.Global.Mode.Edit and button == "RightButton" and IsAltKeyDown( ) then
+		if i and i.h then
+			ArkInventory.MenuItemOpen( frame, true )
+		end
+		return
 	end
 
 	if ArkInventory.Global.Location[loc_id].isOffline or ArkInventory.Global.Mode.Edit then

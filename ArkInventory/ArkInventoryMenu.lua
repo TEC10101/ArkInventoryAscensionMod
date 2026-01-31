@@ -833,9 +833,14 @@ function ArkInventory.MenuBarOpen( frame )
 
 end
 
-function ArkInventory.MenuItemOpen( frame )
+function ArkInventory.MenuItemOpen( frame, allowWhenNotEditing )
 
-	if ArkInventory.Global.Mode.Edit == false then
+	-- Normally the item edit menu is only available while in
+	-- edit mode. When invoked via Alt+RightClick we bypass this
+	-- restriction by passing allowWhenNotEditing = true so that
+	-- the same Dewdrop menu can be opened without toggling the
+	-- global edit mode state.
+	if ArkInventory.Global.Mode.Edit == false and not allowWhenNotEditing then
 		return
 	end
 
