@@ -27,7 +27,7 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1307,
+		Version = 3.1308,
 		UIVersion = "3.13.08",
 		--Beta = "Beta xx-xx",
 	},
