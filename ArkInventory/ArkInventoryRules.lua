@@ -1977,24 +1977,27 @@ function ArkInventory.Frame_Rules_Table_Refresh( f )
 				end
 			end
 
-			-- collect bar assignments for other locations, with location names
-			if cat_id and ArkInventory.Global and ArkInventory.Global.Location then
-				local others = { }
-				for l_id in pairs( ArkInventory.Global.Location ) do
-					if not loc_id or l_id ~= loc_id then
-						local cat_bar, def_bar = ArkInventory.CategoryLocationGet( l_id, cat_id )
-						if cat_bar and cat_bar ~= 0 and not def_bar then
-							local loc = ArkInventory.Global.Location[l_id]
-							local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
-							table.insert( others, string.format( "%s %d", loc_name, abs( cat_bar ) ) )
+				-- collect bar assignments for other locations, with location names.
+				-- use raw vault mappings so that guild vault assignments do not
+				-- get double-counted when personal/realm banks are active.
+				if cat_id and ArkInventory.Global and ArkInventory.Global.Location then
+					local others = { }
+					for l_id in pairs( ArkInventory.Global.Location ) do
+						if not loc_id or l_id ~= loc_id then
+							local raw_vault = true
+							local cat_bar, def_bar = ArkInventory.CategoryLocationGet( l_id, cat_id, raw_vault )
+							if cat_bar and cat_bar ~= 0 and not def_bar then
+								local loc = ArkInventory.Global.Location[l_id]
+								local loc_name = loc and loc.Name or ArkInventory.Localise["LOCATION"] or ""
+								table.insert( others, string.format( "%s %d", loc_name, abs( cat_bar ) ) )
+							end
 						end
 					end
+					if #others > 0 then
+						table.sort( others )
+						others_bracket_text = " [" .. table.concat( others, ", " ) .. "]"
+					end
 				end
-				if #others > 0 then
-					table.sort( others )
-					others_bracket_text = " [" .. table.concat( others, ", " ) .. "]"
-				end
-			end
 
 			local has_any_assignment = ( current_bracket_text ~= nil ) or ( others_bracket_text ~= nil )
 

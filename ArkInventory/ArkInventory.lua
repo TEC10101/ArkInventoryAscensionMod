@@ -3004,7 +3004,7 @@ function ArkInventory.LocationSetValue( l, k, v )
 end
 
 
-function ArkInventory.CategoryBarGet( loc_id, cat_id )
+function ArkInventory.CategoryBarGet( loc_id, cat_id, raw_vault )
 
 	local cat_def = ArkInventory.CategoryGetSystemID( "SYSTEM_DEFAULT" )
 
@@ -3014,12 +3014,14 @@ function ArkInventory.CategoryBarGet( loc_id, cat_id )
 
 	-- when physically at a vault-style container, make sure category
 	-- lookups for the generic vault location are redirected to the
-	-- actual active vault location (guild vault vs personal bank)
-	if loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultLocation then
-		loc_id = ArkInventory.Global.Mode.VaultLocation
+	-- actual active vault location (guild vault vs personal/realm bank),
+	-- unless the caller explicitly requests the raw vault mapping.
+	local effective_loc_id = loc_id
+	if not raw_vault and loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultLocation then
+		effective_loc_id = ArkInventory.Global.Mode.VaultLocation
 	end
 
-	local bar = ArkInventory.LocationOptionGet( loc_id, { "category", cat_id } )
+	local bar = ArkInventory.LocationOptionGet( effective_loc_id, { "category", cat_id } )
 
 	-- if it's the default category and the default is not on a bar then put it on bar 1
 	if bar == nil and cat_id == cat_def then
@@ -3107,7 +3109,7 @@ function ArkInventory.CategoryLocationSet( loc_id, cat_id, bar_id )
 
 end
 
-function ArkInventory.CategoryLocationGet( loc_id, cat_id )
+function ArkInventory.CategoryLocationGet( loc_id, cat_id, raw_vault )
 
 	-- maps category id's to the bars they are assigned to
 
@@ -3119,17 +3121,18 @@ function ArkInventory.CategoryLocationGet( loc_id, cat_id )
 	-- vault location id to the currently active vault location
 	-- so that guild vault and personal bank each honour their
 	-- own bar layouts and category mappings.
-	if loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultLocation then
-		loc_id = ArkInventory.Global.Mode.VaultLocation
+	local effective_loc_id = loc_id
+	if not raw_vault and loc_id == ArkInventory.Const.Location.Vault and ArkInventory.Global.Mode.Vault and ArkInventory.Global.Mode.VaultLocation then
+		effective_loc_id = ArkInventory.Global.Mode.VaultLocation
 	end
 
-	local bar = ArkInventory.CategoryBarGet( loc_id, cat_id )
+	local bar = ArkInventory.CategoryBarGet( effective_loc_id, cat_id, raw_vault )
 	--ArkInventory.Output( "loc=[", loc_id, "], cat=[", cat_id, "], bar=[", bar, "]" )
 
 	if not bar then
 		-- if this category hasn't been assigned to a bar then return the bar that DEFAULT is using
 		local cat_def = ArkInventory.CategoryGetSystemID( "SYSTEM_DEFAULT" )
-		return ArkInventory.CategoryBarGet( loc_id, cat_def ), true
+		return ArkInventory.CategoryBarGet( effective_loc_id, cat_def, raw_vault ), true
 	else
 		return bar, false
 	end
