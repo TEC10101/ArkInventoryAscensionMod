@@ -7459,9 +7459,12 @@ function ArkInventory.Frame_Item_OnLoad( frame )
 
 	frame.locked = false
 
-	if loc_id == ArkInventory.Const.Location.Vault then
+	-- Replace the stack split handler for any guild-style bank
+	-- location (standard guild vault, personal bank, realm bank)
+	-- so that the StackSplitFrame "OK" button actually performs
+	-- a SplitGuildBankItem on the correct tab/slot.
+	if loc_id == ArkInventory.Const.Location.Vault or loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank then
 
-		-- replace the split function
 		frame.SplitStack = function( button, split )
 			local tab_id = frame.ARK_Data.bag_id
 			local slot_id = frame.ARK_Data.slot_id
