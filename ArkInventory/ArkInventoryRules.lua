@@ -83,6 +83,17 @@ function ArkInventory.RuleAppliesToItem( rid, i )
 	local ra = ArkInventory.db.global.option.category[ArkInventory.Const.Category.Type.Rule].data[rid]
 	local rp_enabled = ArkInventory.RuleProfileGetEnabled( rid )
 
+	-- If this profile has no explicit enabled state recorded for the rule
+	-- (nil entry), but the rule is assigned to a bar in the current location,
+	-- treat it as enabled so per-location assignments can't silently fail.
+	if ( not rp_enabled ) and ( ArkInventory.db.profile.option.rule[rid] == nil ) and i and i.loc_id then
+		local cat_id = ArkInventory.CategoryCodeJoin( ArkInventory.Const.Category.Type.Rule, rid )
+		local cat_bar, def_bar = ArkInventory.CategoryLocationGet( i.loc_id, cat_id )
+		if abs( cat_bar or 0 ) > 0 and not def_bar then
+			rp_enabled = true
+		end
+	end
+
 	if not i or not rp_enabled or not ra or not ra.used or ra.damaged then
 		return false, nil
 	end
@@ -504,8 +515,16 @@ function Rule.Execute.itemstat( ... )
 		if ArkInventory.Global.Location[Rule.Item.loc_id].isOffline then
 			ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Rule, Rule.Item.h )
 		else
-			local bliz_id = ArkInventory.BagID_Blizzard( Rule.Item.loc_id, Rule.Item.bag_id )
-			ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Rule, bliz_id, Rule.Item.slot_id )
+			-- vault-style locations (guild vault / personal bank / realm bank)
+			-- are not regular bag containers; they require SetGuildBankItem.
+			if Rule.Item.loc_id == ArkInventory.Const.Location.Vault
+				or Rule.Item.loc_id == ArkInventory.Const.Location.PersonalBank
+				or Rule.Item.loc_id == ArkInventory.Const.Location.RealmBank then
+				ArkInventory.TooltipSetGuildBankItem( ArkInventory.Global.Tooltip.Rule, Rule.Item.bag_id, Rule.Item.slot_id )
+			else
+				local bliz_id = ArkInventory.BagID_Blizzard( Rule.Item.loc_id, Rule.Item.bag_id )
+				ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Rule, bliz_id, Rule.Item.slot_id )
+			end
 		end
 	end
 
@@ -596,8 +615,16 @@ function Rule.Execute.tooltip( ... )
 		if ArkInventory.Global.Location[Rule.Item.loc_id].isOffline then
 			ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Rule, Rule.Item.h )
 		else
-			local bliz_id = ArkInventory.BagID_Blizzard( Rule.Item.loc_id, Rule.Item.bag_id )
-			ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Rule, bliz_id, Rule.Item.slot_id )
+			-- vault-style locations (guild vault / personal bank / realm bank)
+			-- are not regular bag containers; they require SetGuildBankItem.
+			if Rule.Item.loc_id == ArkInventory.Const.Location.Vault
+				or Rule.Item.loc_id == ArkInventory.Const.Location.PersonalBank
+				or Rule.Item.loc_id == ArkInventory.Const.Location.RealmBank then
+				ArkInventory.TooltipSetGuildBankItem( ArkInventory.Global.Tooltip.Rule, Rule.Item.bag_id, Rule.Item.slot_id )
+			else
+				local bliz_id = ArkInventory.BagID_Blizzard( Rule.Item.loc_id, Rule.Item.bag_id )
+				ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Rule, bliz_id, Rule.Item.slot_id )
+			end
 		end
 
 	end

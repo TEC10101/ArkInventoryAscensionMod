@@ -129,8 +129,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1310,
-		UIVersion = "3.13.10",
+		Version = 3.1311,
+		UIVersion = "3.13.11",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -3072,20 +3072,34 @@ function ArkInventory.CategoryLocationSet( loc_id, cat_id, bar_id )
 			-- assigned to any bar in any location for this profile,
 			-- then disable it for this profile
 			local still_used = false
-			for l_id in pairs( ArkInventory.Global.Location ) do
-				local cats = ArkInventory.LocationOptionGet( l_id, { "category" } )
-				if cats then
-					for assigned_cat, assigned_bar in pairs( cats ) do
-						if assigned_cat == cat_id and assigned_bar ~= nil then
+			local function ScanLocationRootForCategory( root )
+				if still_used then
+					return
+				end
+				if type( root ) ~= "table" then
+					return
+				end
+				for _, locOpt in pairs( root ) do
+					if type( locOpt ) == "table" then
+						local cats = locOpt.category
+						if type( cats ) == "table" and cats[cat_id] ~= nil then
 							still_used = true
-							break
+							return
 						end
 					end
 				end
-				if still_used then
-					break
+			end
+
+			-- Profile-scoped locations (includes synthetic per-tab ids)
+			ScanLocationRootForCategory( ArkInventory.db.profile.option.location )
+			-- Realm-bank shared locations (also includes synthetic per-tab ids)
+			if not still_used then
+				local gb = ArkInventory.db.global and ArkInventory.db.global.realmbank
+				if gb and gb.option and gb.option.location then
+					ScanLocationRootForCategory( gb.option.location )
 				end
 			end
+
 			if not still_used then
 				local rp = ArkInventory.db.profile.option.rule[cat_code]
 				if type( rp ) ~= "table" then
@@ -9196,6 +9210,19 @@ function ArkInventory.LocationOptionGet( loc_id, opt )
 	-- resolve any "use X for Y" redirections first
 	local real_loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
 
+	-- helper: determine which option root table backs a given location id
+	local function LocationOptionRoot( any_loc_id )
+		local base_loc = ( type( any_loc_id ) == "number" and any_loc_id >= 100 ) and math.floor( any_loc_id / 100 ) or any_loc_id
+		if base_loc == ArkInventory.Const.Location.RealmBank then
+			ArkInventory.db.global.realmbank = ArkInventory.db.global.realmbank or { }
+			local gb = ArkInventory.db.global.realmbank
+			gb.option = gb.option or { }
+			gb.option.location = gb.option.location or { }
+			return gb.option.location
+		end
+		return ArkInventory.db.profile.option.location
+	end
+
 	-- for Personal / Realm banks, some option groups (rules and bar
 	-- configuration) should be per-tab rather than per-location.
 	-- map those through a synthetic loc_id that encodes the active
@@ -9211,8 +9238,8 @@ function ArkInventory.LocationOptionGet( loc_id, opt )
 			else
 				-- tab 1: read legacy until migrated; if synthetic exists, read synthetic
 				local syn = real_loc_id * 100 + 1
-				local locTbl = ArkInventory.db.profile.option and ArkInventory.db.profile.option.location
-				if locTbl and locTbl[syn] and locTbl[syn][k] ~= nil then
+				local root = LocationOptionRoot( syn )
+				if root and root[syn] and root[syn][k] ~= nil then
 					real_loc_id = syn
 				end
 			end
@@ -9269,6 +9296,23 @@ function ArkInventory.LocationOptionSet( loc_id, opt, n )
 	-- resolve any "use X for Y" redirections first
 	local real_loc_id = ArkInventory.db.profile.option.use[loc_id] or loc_id
 
+	-- helper: determine which option root table backs a given location id
+	local function LocationOptionRoot( any_loc_id )
+		local base_loc = ( type( any_loc_id ) == "number" and any_loc_id >= 100 ) and math.floor( any_loc_id / 100 ) or any_loc_id
+		if base_loc == ArkInventory.Const.Location.RealmBank then
+			ArkInventory.db.global.realmbank = ArkInventory.db.global.realmbank or { }
+			local gb = ArkInventory.db.global.realmbank
+			gb.option = gb.option or { }
+			gb.option.location = gb.option.location or { }
+			if not gb.option.location[any_loc_id] then
+				local def = ArkInventory.Const.DatabaseDefaults.global.realmbank.option.location["*"]
+				gb.option.location[any_loc_id] = ArkInventory.Table.CloneDeep( def )
+			end
+			return gb.option.location
+		end
+		return ArkInventory.db.profile.option.location
+	end
+
 	-- keep per-tab rules and bar configuration separate for Personal /
 	-- Realm banks by writing those options under a synthetic location id
 	-- that incorporates the active tab index.
@@ -9278,9 +9322,8 @@ function ArkInventory.LocationOptionSet( loc_id, opt, n )
 			local tab = ArkInventory.Global.Location[real_loc_id].current_tab or 1
 			local syn = ( tab > 1 ) and ( real_loc_id * 100 + tab ) or ( real_loc_id * 100 + 1 )
 
-			local profile = ArkInventory.db.profile
-			local locTbl = profile.option.location
-			-- ensure synthetic location table exists
+			local locTbl = LocationOptionRoot( syn )
+			-- ensure synthetic location table exists (for migration convenience)
 			if not locTbl[syn] then
 				locTbl[syn] = { }
 			end
@@ -9288,17 +9331,6 @@ function ArkInventory.LocationOptionSet( loc_id, opt, n )
 			if tab == 1 then
 				local orig = locTbl[real_loc_id] or { }
 				local synTbl = locTbl[syn]
-				-- create deep-copy helper if missing
-				if not ArkInventory.Table.CloneDeep then
-					function ArkInventory.Table.CloneDeep( src )
-						if type( src ) ~= "table" then return src end
-						local dst = { }
-						for kk, vv in pairs( src ) do
-							dst[ArkInventory.Table.CloneDeep( kk )] = ArkInventory.Table.CloneDeep( vv )
-						end
-						return dst
-					end
-				end
 				if synTbl.category == nil and orig.category ~= nil then
 					synTbl.category = ArkInventory.Table.CloneDeep( orig.category )
 				end
