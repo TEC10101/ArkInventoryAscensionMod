@@ -21,14 +21,116 @@ ArkInventory.db = { }
 
 ArkInventory.Table = { } -- table functions live here, coded elsewhere
 
+function ArkInventory.UISpecialFramesIndex( name )
+
+	if not UISpecialFrames or not name then
+		return
+	end
+
+	for i, v in ipairs( UISpecialFrames ) do
+		if v == name then
+			return i
+		end
+	end
+
+end
+
+function ArkInventory.UISpecialFramesRemoveAll( name )
+
+	if not UISpecialFrames or not name then
+		return
+	end
+
+	for i = #UISpecialFrames, 1, -1 do
+		if UISpecialFrames[i] == name then
+			tremove( UISpecialFrames, i )
+		end
+	end
+
+end
+
+function ArkInventory.UISpecialFramesInsertAt( name, idx )
+
+	if not UISpecialFrames or not name then
+		return
+	end
+
+	idx = tonumber( idx ) or ( #UISpecialFrames + 1 )
+	if idx < 1 then
+		idx = 1
+	elseif idx > ( #UISpecialFrames + 1 ) then
+		idx = #UISpecialFrames + 1
+	end
+
+	tinsert( UISpecialFrames, idx, name )
+
+end
+
+function ArkInventory.VaultUISpecialFramesOrderSet( loc_id, enable )
+
+	if not UISpecialFrames then
+		return
+	end
+
+	if not loc_id then
+		return
+	end
+
+	local frame = ArkInventory.Frame_Main_Get and ArkInventory.Frame_Main_Get( loc_id )
+	if not frame or not frame.GetName then
+		return
+	end
+
+	local name = frame:GetName( )
+	if not name then
+		return
+	end
+
+	ArkInventory.Global.Mode.VaultSpecialFrames = ArkInventory.Global.Mode.VaultSpecialFrames or { }
+	local store = ArkInventory.Global.Mode.VaultSpecialFrames
+
+	if enable then
+
+		local current = ArkInventory.UISpecialFramesIndex( name )
+		local guild = ArkInventory.UISpecialFramesIndex( "GuildBankFrame" )
+		if not current or not guild then
+			return
+		end
+
+		-- If our Ark frame is after GuildBankFrame, ESC will hide GuildBankFrame first.
+		-- That can leave the underlying guild bank session open (but invisible), which
+		-- prevents reopening until you move away. Move Ark frame to before GuildBankFrame
+		-- for the duration of personal/realm sessions.
+		if current > guild then
+			if not store[name] then
+				store[name] = current
+			end
+			ArkInventory.UISpecialFramesRemoveAll( name )
+			guild = ArkInventory.UISpecialFramesIndex( "GuildBankFrame" )
+			ArkInventory.UISpecialFramesInsertAt( name, guild or ( #UISpecialFrames + 1 ) )
+		end
+
+	else
+
+		local original = store[name]
+		if original then
+			ArkInventory.UISpecialFramesRemoveAll( name )
+			ArkInventory.UISpecialFramesInsertAt( name, original )
+			store[name] = nil
+		end
+
+	end
+
+end
+
 ArkInventory.Const = { -- constants
 
 	TOC = select( 4, GetBuildInfo( ) ) or 0,  -- /run print( ArkInventory.Const.TOC )
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1308,
-		UIVersion = "3.13.08",
+		Version = 3.1309,
+		UIVersion = "3.13.09",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -4952,24 +5054,51 @@ function ArkInventory.Frame_Main_OnHide( frame )
 			StaticPopup_Hide( "GUILDBANK_DEPOSIT" )
 			StaticPopup_Hide( "CONFIRM_BUY_GUILDBANK_TAB" )
 
-			-- allow subsequent CLOSE event to be processed normally (we suppressed
-			-- them while the Ark window was visible)
+			-- allow subsequent CLOSE event to be processed normally
 			ArkInventory.Global.Mode.VaultSuppressLeave = false
-			-- restore Blizzard GuildBankFrame visuals and close cleanly so the UIPanel
-			-- stack is consistent and ESC works as expected
+
+			-- Restore UISpecialFrames ordering (we temporarily move Ark before
+			-- GuildBankFrame for ESC-close correctness in personal/realm)
+			ArkInventory.VaultUISpecialFramesOrderSet( loc_id, false )
+
+			-- Close the underlying guild bank session. When closing via ESC, WoW can
+			-- hide GuildBankFrame before hiding the Ark frame, which can make
+			-- CloseGuildBankFrame a no-op on some clients if it checks IsShown.
+			-- If that happens, the player remains "in" the bank session but the UI is
+			-- hidden, preventing reopening. Ensure the frame is shown (but invisible)
+			-- long enough for a clean CloseGuildBankFrame.
+			local gb_temp_shown = false
+			if GuildBankFrame and GuildBankFrame.IsShown and ( not GuildBankFrame:IsShown( ) ) then
+				GuildBankFrame:SetAlpha( 0 )
+				GuildBankFrame:EnableMouse( false )
+				GuildBankFrame:Show( )
+				gb_temp_shown = true
+			end
+
+			CloseGuildBankFrame( )
+
+			if gb_temp_shown and GuildBankFrame and GuildBankFrame.IsShown and GuildBankFrame:IsShown( ) then
+				GuildBankFrame:Hide( )
+			end
+
+			-- Restore Blizzard GuildBankFrame visuals/interactivity for the next open.
 			if GuildBankFrame then
 				GuildBankFrame:SetAlpha( 1 )
 				ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, true )
 			end
 			if GuildBankPopupFrame then
+				GuildBankPopupFrame:SetAlpha( 1 )
 				ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, true )
 			end
 			ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = false
-			CloseGuildBankFrame( )
 
 
 
 		end
+
+		-- safety: if a personal/realm frame was re-ordered for ESC correctness but we
+		-- didn't enter the controlled branch above, still restore ordering
+		ArkInventory.VaultUISpecialFramesOrderSet( loc_id, false )
 
 		-- regardless of vault control setting, if we temporarily unhooked
 		-- Blizzard events for personal/realm, restore them on hide so the

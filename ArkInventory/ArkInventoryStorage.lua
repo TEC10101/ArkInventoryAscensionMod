@@ -636,6 +636,10 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	ArkInventory.OutputDebug( "Vault open: context=", context, "; hiding Blizzard GuildBank UI and showing ArkInventory" )
 	ArkInventory.Global.Location[loc_id].isOffline = false
 
+	-- Ensure ESC closes the Ark frame first (before GuildBankFrame) so our OnHide
+	-- can close the underlying guild bank session cleanly.
+	ArkInventory.VaultUISpecialFramesOrderSet( loc_id, true )
+
 	-- Ensure Blizzard's GuildBankFrame is actually open (shown) so bank actions
 	-- NOTE: Do NOT force-show/hide Blizzard UI panels here.
 	-- Showing/hiding UIPanels can trigger "Interface action failed" / protected
@@ -710,16 +714,24 @@ function ArkInventory:LISTEN_VAULT_LEAVE( )
 
 	--ArkInventory.OutputDebug( "LISTEN_VAULT_LEAVE" )
 
-	-- ignore any CLOSED events while ArkInventory's personal/realm window is visible.
-	-- we set VaultSuppressLeave=true on enter and only clear it when the Ark
-	-- window is hidden (see Frame_Main_OnHide). This avoids first-open toggling
-	-- to offline due to Blizzard firing CLOSE during our Hide.
-	if ArkInventory.Global.Mode.VaultSuppressLeave and ( ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) then
-		ArkInventory.OutputDebug( "Vault leave: suppressed CLOSE event for context=", ArkInventory.Global.Mode.VaultContext )
-		return
-	end
-
 	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
+
+	-- Restore UISpecialFrames ordering if we adjusted it for personal/realm.
+	ArkInventory.VaultUISpecialFramesOrderSet( loc_id, false )
+
+	-- Ignore CLOSED events caused by hiding Blizzard's GuildBankFrame during
+	-- personal/realm opens, but ONLY while the Ark window is still visible.
+	-- If the Ark window is already hidden (Escape-close case), treat this as
+	-- a real close so state/event cleanup occurs and the guild bank can open.
+	if ArkInventory.Global.Mode.VaultSuppressLeave and ( ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) then
+		local frame = ArkInventory.Frame_Main_Get and ArkInventory.Frame_Main_Get( loc_id )
+		if frame and frame.IsVisible and frame:IsVisible( ) then
+			ArkInventory.OutputDebug( "Vault leave: suppressed CLOSE event for context=", ArkInventory.Global.Mode.VaultContext )
+			return
+		end
+		ArkInventory.Global.Mode.VaultSuppressLeave = false
+		ArkInventory.OutputDebug( "Vault leave: CLOSE was real (Ark hidden), processing leave for context=", ArkInventory.Global.Mode.VaultContext )
+	end
 
 	ArkInventory.Global.Mode.Vault = false
 	ArkInventory.Global.Mode.VaultContext = nil
@@ -736,9 +748,13 @@ function ArkInventory:LISTEN_VAULT_LEAVE( )
 	-- Restore Blizzard GuildBank interaction if we disabled it for personal/realm.
 	if ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled then
 		if GuildBankFrame then
+			GuildBankFrame:SetAlpha( 1 )
+			GuildBankFrame:EnableMouse( true )
 			ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, true )
 		end
 		if GuildBankPopupFrame then
+			GuildBankPopupFrame:SetAlpha( 1 )
+			GuildBankPopupFrame:EnableMouse( true )
 			ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, true )
 		end
 		ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = false
