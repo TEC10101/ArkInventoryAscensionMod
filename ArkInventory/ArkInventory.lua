@@ -7762,6 +7762,17 @@ function ArkInventory.Frame_Vault_Item_OnClick( frame, arg1 )
 		local tab_id = frame.ARK_Data.bag_id
 		local slot_id = frame.ARK_Data.slot_id
 
+		-- When Alt+RightClicking a personal/realm bank slot, the
+		-- edit menu has already been opened via Frame_Item_OnMouseUp.
+		-- Suppress the normal guild bank click behaviour here so the
+		-- item is not also moved between bank and bags.
+		if not ArkInventory.Global.Mode.Edit
+		and ( loc_id == ArkInventory.Const.Location.PersonalBank or loc_id == ArkInventory.Const.Location.RealmBank )
+		and arg1 == "RightButton"
+		and IsAltKeyDown( ) then
+			return
+		end
+
 		if HandleModifiedItemClick( GetGuildBankItemLink( tab_id, slot_id ) ) then
 			return
 		end
