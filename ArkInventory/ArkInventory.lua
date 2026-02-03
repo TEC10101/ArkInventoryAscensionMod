@@ -4405,6 +4405,17 @@ end
 function ArkInventory.Frame_Main_Anchor_Set( loc_id, rescale )
 
 	local frame = ArkInventory.Frame_Main_Get( loc_id )
+
+	-- If the window is being dragged, do not re-anchor it. The window is
+	-- frequently refreshed (Frame_Main_Update -> Frame_Main_Scale -> Anchor_Set),
+	-- and re-anchoring while the frame is moving causes snap-back / cursor offset
+	-- issues and can be very expensive when other UI panels are open.
+	if frame and frame.ARK_Data and frame.ARK_Data.dragging then
+		return
+	end
+	if frame and frame.IsMoving and frame:IsMoving( ) then
+		return
+	end
 	local anchor = ArkInventory.LocationOptionGet( loc_id, { "anchor", loc_id, "point" } )
 
 	local t = ArkInventory.LocationOptionGet( loc_id, { "anchor", loc_id, "t" } ) * ( rescale or 1 )
@@ -4503,15 +4514,81 @@ function ArkInventory.Frame_Main_Anchor_Set( loc_id, rescale )
 
 	end
 
-	if ArkInventory.LocationOptionGet( loc_id, { "anchor", loc_id, "locked" } ) then
+	local locked = ArkInventory.LocationOptionGet( loc_id, { "anchor", loc_id, "locked" } )
+	if locked then
 		frame:RegisterForDrag( )
 	else
 		frame:RegisterForDrag( "LeftButton" )
 	end
 
+	-- Keep title-bar drag state consistent with the frame lock state.
+	local title = _G[frame:GetName( ) .. ArkInventory.Const.Frame.Title.Name]
+	if title then
+		if locked then
+			title:RegisterForDrag( )
+		else
+			title:RegisterForDrag( "LeftButton" )
+		end
+	end
+
 	if rescale then
 		ArkInventory.Frame_Main_Anchor_Save( frame )
 	end
+
+end
+
+function ArkInventory.Frame_Main_OnDragStart( frame )
+
+	if ArkInventory.ValidFrame( frame, true ) == false then
+		return
+	end
+
+	local loc_id = frame.ARK_Data.loc_id
+	if ArkInventory.LocationOptionGet( loc_id, { "anchor", loc_id, "locked" } ) then
+		return
+	end
+
+	frame.ARK_Data.dragging = true
+
+	-- Show a temporary mouse-capture shield while dragging.
+	-- This prevents rapid OnEnter/OnLeave churn on underlying UI (Auction House)
+	-- and on our own item buttons while the window moves.
+	if frame.ARK_Data.dragShield then
+		frame.ARK_Data.dragShield:Show( )
+	end
+
+	-- Avoid excessive tooltip churn while moving the window.
+	if GameTooltip and GameTooltip:IsShown( ) then
+		GameTooltip:Hide( )
+	end
+
+	if frame.StartMoving and ( not ( frame.IsMoving and frame:IsMoving( ) ) ) then
+		frame:StartMoving( )
+	end
+
+end
+
+function ArkInventory.Frame_Main_OnDragStop( frame )
+
+	if ArkInventory.ValidFrame( frame, true ) == false then
+		return
+	end
+
+	frame.ARK_Data.dragging = nil
+
+	if frame.ARK_Data.dragShield then
+		frame.ARK_Data.dragShield:Hide( )
+	end
+
+	if frame.StopMovingOrSizing then
+		frame:StopMovingOrSizing( )
+	end
+
+	ArkInventory.Frame_Main_Anchor_Save( frame )
+
+	-- Re-apply anchor rules so the frame doesn't remain with temporary drag points.
+	local loc_id = frame.ARK_Data.loc_id
+	ArkInventory.Frame_Main_Anchor_Set( loc_id )
 
 end
 
@@ -5241,13 +5318,64 @@ function ArkInventory.Frame_Main_OnLoad( frame )
   frame:SetMovable( true )
   frame:SetClampedToScreen( true )
 
+	-- Create a mouse-capture shield used only while dragging.
+	-- (Avoids mouseover storms when overlapping other complex frames like AH.)
+	if not frame.ARK_Data.dragShield then
+		local shield = CreateFrame( "Frame", nil, frame )
+		shield:EnableMouse( true )
+		shield:SetAllPoints( frame )
+		shield:SetFrameStrata( frame:GetFrameStrata( ) )
+		shield:SetFrameLevel( frame:GetFrameLevel( ) + 100 )
+		shield:Hide( )
+		shield:SetScript( "OnMouseDown", function( self, button )
+			if button == "LeftButton" then
+				ArkInventory.Frame_Main_OnDragStart( frame )
+			end
+		end )
+		shield:SetScript( "OnMouseUp", function( self, button )
+			if button == "LeftButton" then
+				ArkInventory.Frame_Main_OnDragStop( frame )
+			end
+		end )
+		shield:SetScript( "OnDragStart", function( self ) ArkInventory.Frame_Main_OnDragStart( frame ) end )
+		shield:SetScript( "OnDragStop", function( self ) ArkInventory.Frame_Main_OnDragStop( frame ) end )
+		frame.ARK_Data.dragShield = shield
+	end
+
   local title = _G[ frame:GetName() .. ArkInventory.Const.Frame.Title.Name ]
   if title then
       title:EnableMouse( true )
-      title:RegisterForDrag( "LeftButton" )
-      title:SetScript( "OnDragStart", function( self ) frame:StartMoving() end )
-      title:SetScript( "OnDragStop", function( self ) frame:StopMovingOrSizing(); ArkInventory.Frame_Main_Anchor_Save( frame ) end )
+		title:RegisterForDrag( "LeftButton" )
+		title:SetScript( "OnDragStart", function( self ) ArkInventory.Frame_Main_OnDragStart( frame ) end )
+		title:SetScript( "OnDragStop", function( self ) ArkInventory.Frame_Main_OnDragStop( frame ) end )
+		-- Use OnMouseDown to avoid Blizzard's drag threshold (deadzone).
+		title:SetScript( "OnMouseDown", function( self, button )
+			if button == "LeftButton" then
+				ArkInventory.Frame_Main_OnDragStart( frame )
+			end
+		end )
+		title:SetScript( "OnMouseUp", function( self, button )
+			if button == "LeftButton" then
+				ArkInventory.Frame_Main_OnDragStop( frame )
+			end
+		end )
   end
+
+	-- Override XML drag scripts so we can guard against refresh/anchor churn while
+	-- dragging (which otherwise causes snap-back and lag). Also use OnMouseDown
+	-- to start moving immediately (no drag threshold).
+	frame:SetScript( "OnDragStart", ArkInventory.Frame_Main_OnDragStart )
+	frame:SetScript( "OnDragStop", ArkInventory.Frame_Main_OnDragStop )
+	frame:SetScript( "OnMouseDown", function( self, button )
+		if button == "LeftButton" then
+			ArkInventory.Frame_Main_OnDragStart( self )
+		end
+	end )
+	frame:SetScript( "OnMouseUp", function( self, button )
+		if button == "LeftButton" then
+			ArkInventory.Frame_Main_OnDragStop( self )
+		end
+	end )
 
 end
 
@@ -6950,6 +7078,17 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 	end
 
 	if not ArkInventory.db.global.option.tooltip.show then
+		return
+	end
+
+	-- When the container window is being dragged, avoid rebuilding tooltips.
+	-- Auction-related tooltip integrations (eg. pricing addons) can be expensive
+	-- and rapid tooltip rebuilds during movement can cause noticeable freezes.
+	local main = ArkInventory.Frame_Main_Get( frame.ARK_Data.loc_id )
+	if main and main.ARK_Data and main.ARK_Data.dragging then
+		return
+	end
+	if main and main.IsMoving and main:IsMoving( ) then
 		return
 	end
 
