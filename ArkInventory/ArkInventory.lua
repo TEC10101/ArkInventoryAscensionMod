@@ -129,8 +129,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1311,
-		UIVersion = "3.13.11",
+		Version = 3.1312,
+		UIVersion = "3.13.12",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -4514,22 +4514,9 @@ function ArkInventory.Frame_Main_Anchor_Set( loc_id, rescale )
 
 	end
 
-	local locked = ArkInventory.LocationOptionGet( loc_id, { "anchor", loc_id, "locked" } )
-	if locked then
-		frame:RegisterForDrag( )
-	else
-		frame:RegisterForDrag( "LeftButton" )
-	end
-
-	-- Keep title-bar drag state consistent with the frame lock state.
-	local title = _G[frame:GetName( ) .. ArkInventory.Const.Frame.Title.Name]
-	if title then
-		if locked then
-			title:RegisterForDrag( )
-		else
-			title:RegisterForDrag( "LeftButton" )
-		end
-	end
+	-- Dragging is handled via OnMouseDown/OnMouseUp (see Frame_Main_OnLoad) to
+	-- avoid Blizzard's drag threshold and to prevent double-triggering.
+	-- The locked setting is enforced inside Frame_Main_OnDragStart.
 
 	if rescale then
 		ArkInventory.Frame_Main_Anchor_Save( frame )
@@ -5345,9 +5332,12 @@ function ArkInventory.Frame_Main_OnLoad( frame )
   local title = _G[ frame:GetName() .. ArkInventory.Const.Frame.Title.Name ]
   if title then
       title:EnableMouse( true )
-		title:RegisterForDrag( "LeftButton" )
-		title:SetScript( "OnDragStart", function( self ) ArkInventory.Frame_Main_OnDragStart( frame ) end )
-		title:SetScript( "OnDragStop", function( self ) ArkInventory.Frame_Main_OnDragStop( frame ) end )
+		-- Do not use RegisterForDrag / OnDragStart here. Those introduce a drag
+		-- threshold and can double-trigger with our mouse handlers, causing the
+		-- frame to jump away from the cursor.
+		title:RegisterForDrag( )
+		title:SetScript( "OnDragStart", nil )
+		title:SetScript( "OnDragStop", nil )
 		-- Use OnMouseDown to avoid Blizzard's drag threshold (deadzone).
 		title:SetScript( "OnMouseDown", function( self, button )
 			if button == "LeftButton" then
@@ -5362,10 +5352,11 @@ function ArkInventory.Frame_Main_OnLoad( frame )
   end
 
 	-- Override XML drag scripts so we can guard against refresh/anchor churn while
-	-- dragging (which otherwise causes snap-back and lag). Also use OnMouseDown
-	-- to start moving immediately (no drag threshold).
-	frame:SetScript( "OnDragStart", ArkInventory.Frame_Main_OnDragStart )
-	frame:SetScript( "OnDragStop", ArkInventory.Frame_Main_OnDragStop )
+	-- dragging (which otherwise causes snap-back and lag). Prefer mouse down/up to
+	-- start moving immediately (no drag threshold).
+	frame:RegisterForDrag( )
+	frame:SetScript( "OnDragStart", nil )
+	frame:SetScript( "OnDragStop", nil )
 	frame:SetScript( "OnMouseDown", function( self, button )
 		if button == "LeftButton" then
 			ArkInventory.Frame_Main_OnDragStart( self )
