@@ -5876,7 +5876,7 @@ function ArkInventory.Frame_Main_OnHide( frame )
 
 		PlaySound( "GuildVaultClose" )
 
-		if ArkInventory.Global.Mode.Vault and ( ArkInventory.LocationIsControlled( ArkInventory.Const.Location.Vault ) or ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" ) then
+		if ArkInventory.Global.Mode.Vault and ArkInventory.LocationIsControlled( loc_id ) then
 
 			-- close blizzards vault/personal-bank frame if we're hiding blizzard frames,
 			-- we're at the vault, and the vault window was closed

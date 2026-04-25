@@ -632,39 +632,47 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 		return
 	end
 
-	-- Personal/Realm banks should be online and use ArkInventory only
-	ArkInventory.OutputDebug( "Vault open: context=", context, "; hiding Blizzard GuildBank UI and showing ArkInventory" )
+	-- Personal/Realm bank data is always online while the vault session is active.
 	ArkInventory.Global.Location[loc_id].isOffline = false
 
-	-- Ensure ESC closes the Ark frame first (before GuildBankFrame) so our OnHide
-	-- can close the underlying guild bank session cleanly.
-	ArkInventory.VaultUISpecialFramesOrderSet( loc_id, true )
+	if ArkInventory.LocationIsControlled( loc_id ) then
 
-	-- Ensure Blizzard's GuildBankFrame is actually open (shown) so bank actions
-	-- NOTE: Do NOT force-show/hide Blizzard UI panels here.
-	-- Showing/hiding UIPanels can trigger "Interface action failed" / protected
-	-- function errors when the bank is opened via secure item/world interactions.
-	-- Instead, if Blizzard has already opened the frame, make it invisible and
-	-- non-interactive to avoid double UI.
-	if GuildBankFrame and GuildBankFrame.IsShown and GuildBankFrame:IsShown( ) then
-		GuildBankFrame:SetAlpha( 0 )
-		GuildBankFrame:EnableMouse( false )
-		ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, false )
-		ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = true
-		if ArkInventory.OutputDebug then
-			ArkInventory.OutputDebug( "Vault debug: GuildBankFrame already shown; making it invisible for ArkInventory" )
+		ArkInventory.OutputDebug( "Vault open: context=", context, "; hiding Blizzard GuildBank UI and showing ArkInventory" )
+
+		-- Ensure ESC closes the Ark frame first (before GuildBankFrame) so our OnHide
+		-- can close the underlying guild bank session cleanly.
+		ArkInventory.VaultUISpecialFramesOrderSet( loc_id, true )
+
+		-- NOTE: Do NOT force-show/hide Blizzard UI panels here.
+		-- Showing/hiding UIPanels can trigger "Interface action failed" / protected
+		-- function errors when the bank is opened via secure item/world interactions.
+		-- Instead, if Blizzard has already opened the frame, make it invisible and
+		-- non-interactive to avoid double UI.
+		if GuildBankFrame and GuildBankFrame.IsShown and GuildBankFrame:IsShown( ) then
+			GuildBankFrame:SetAlpha( 0 )
+			GuildBankFrame:EnableMouse( false )
+			ArkInventory.BlizzardFrameInteractiveSet( GuildBankFrame, false )
+			ArkInventory.Global.Mode.VaultBlizzardInteractionDisabled = true
+			if ArkInventory.OutputDebug then
+				ArkInventory.OutputDebug( "Vault debug: GuildBankFrame already shown; making it invisible for ArkInventory" )
+			end
 		end
-	end
-	if GuildBankPopupFrame and GuildBankPopupFrame.IsShown and GuildBankPopupFrame:IsShown( ) then
-		GuildBankPopupFrame:SetAlpha( 0 )
-		GuildBankPopupFrame:EnableMouse( false )
-		ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, false )
-	end
+		if GuildBankPopupFrame and GuildBankPopupFrame.IsShown and GuildBankPopupFrame:IsShown( ) then
+			GuildBankPopupFrame:SetAlpha( 0 )
+			GuildBankPopupFrame:EnableMouse( false )
+			ArkInventory.BlizzardFrameInteractiveSet( GuildBankPopupFrame, false )
+		end
 
-	-- Keep Blizzard guild bank events registered so bank actions work on first open.
-	-- We still hide the UI panel above to avoid double UI but allow the frame
-	-- to fully initialise and process updates.
-	ArkInventory.Global.Mode.VaultUIUnhooked = false
+		-- Keep Blizzard guild bank events registered so bank actions work on first open.
+		-- We still hide the UI panel above to avoid double UI but allow the frame
+		-- to fully initialise and process updates.
+		ArkInventory.Global.Mode.VaultUIUnhooked = false
+
+	else
+
+		ArkInventory.OutputDebug( "Vault open: context=", context, "; override disabled, leaving Blizzard UI active" )
+
+	end
 
 	-- set the correct player context before any draw so the first open
 	-- does not appear offline
@@ -691,9 +699,8 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 
 	-- defer initial draw until after Frame_Main_Show sets up state
 
-	-- for personal/realm banks, always show the window; for guild vaults,
-	-- respect the usual "control" setting
-	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" or ArkInventory.LocationIsControlled( loc_id ) then
+	-- Respect the override (control) setting for all locations including personal/realm banks.
+	if ArkInventory.LocationIsControlled( loc_id ) then
 		ArkInventory.Frame_Main_Show( loc_id )
 		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 
