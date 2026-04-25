@@ -687,6 +687,16 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 
 	QueryGuildBankTab( GetCurrentGuildBankTab( ) or 1 )
 
+	-- For personal/realm banks request data for all purchased tabs so they are
+	-- available when the bucket scan runs.  SetCurrentGuildBankTab is avoided;
+	-- we only ask the server to send item data for each tab.
+	if context == "personal" or context == "realm" then
+		local numTabs = GetNumGuildBankTabs( ) or 0
+		for i = 2, numTabs do
+			QueryGuildBankTab( i )
+		end
+	end
+
 	local cp = ArkInventory.Global.Me
 
 	-- defer initial draw until after Frame_Main_Show sets up state
@@ -800,7 +810,15 @@ function ArkInventory:LISTEN_VAULT_UPDATE_BUCKET( )
 
 	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
 
-	ArkInventory.ScanVault( )
+	-- For personal/realm banks scan ALL purchased tabs so Tab 2+ items are captured
+	if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" then
+		local numTabs = GetNumGuildBankTabs( ) or 0
+		for i = 1, numTabs do
+			ArkInventory.ScanVault( i )
+		end
+	else
+		ArkInventory.ScanVault( )
+	end
 	ArkInventory.ScanVaultHeader( )
 
 	ArkInventory.RestackResume( ArkInventory.Const.Location.Vault )
@@ -1611,7 +1629,7 @@ function ArkInventory.ScanBag( bliz_id )
 
 end
 
-function ArkInventory.ScanVault( )
+function ArkInventory.ScanVault( bag_id )
 
 	--local m1 = ArkInventory.MemoryUsed( true )
 
@@ -1634,7 +1652,7 @@ function ArkInventory.ScanVault( )
 	end
 
 	local loc_id = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
-	local bag_id = GetCurrentGuildBankTab( )
+	bag_id = bag_id or GetCurrentGuildBankTab( )
 
 	if not ArkInventory.LocationIsMonitored( loc_id ) then
 		--ArkInventory.Output( RED_FONT_COLOR_CODE, "aborted scan of bag id [", bliz_id, "], location ", loc_id, " [", ArkInventory.Global.Location[loc_id].Name, "] is not being monitored" )
