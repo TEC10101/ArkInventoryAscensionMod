@@ -129,8 +129,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1313,
-		UIVersion = "3.13.13",
+		Version = 3.1314,
+		UIVersion = "3.13.14",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -2230,7 +2230,7 @@ function ArkInventory.OnEnable( )
 	ArkInventory:RegisterEvent( "PLAYER_REGEN_DISABLED", "LISTEN_COMBAT_ENTER" ) -- player about to enter combat
 	ArkInventory:RegisterEvent( "PLAYER_REGEN_ENABLED", "LISTEN_COMBAT_LEAVE" ) -- player left combat
 
-	local bucket1 = ArkInventory.db.global.option.bucket[ArkInventory.Const.Location.Bag] or 0.1
+	local bucket1 = ArkInventory.db.global.option.bucket[ArkInventory.Const.Location.Bag] or 0.5
 
 	ArkInventory:RegisterBucketMessage( "LISTEN_BAG_UPDATE_BUCKET", bucket1 )
 	ArkInventory:RegisterEvent( "BAG_UPDATE", "LISTEN_BAG_UPDATE" )
@@ -2247,7 +2247,7 @@ function ArkInventory.OnEnable( )
 
 	ArkInventory:RegisterEvent( "GUILDBANKFRAME_OPENED", "LISTEN_VAULT_ENTER" )
 	ArkInventory:RegisterEvent( "GUILDBANKFRAME_CLOSED", "LISTEN_VAULT_LEAVE" )
-	ArkInventory:RegisterBucketMessage( "LISTEN_VAULT_UPDATE_BUCKET", ArkInventory.db.global.option.bucket[ArkInventory.Const.Location.Vault] or 1.5 )
+	ArkInventory:RegisterBucketMessage( "LISTEN_VAULT_UPDATE_BUCKET", ArkInventory.db.global.option.bucket[ArkInventory.Const.Location.Vault] or 0.5 )
 	ArkInventory:RegisterEvent( "GUILDBANKBAGSLOTS_CHANGED", "LISTEN_VAULT_UPDATE" )
 	ArkInventory:RegisterEvent( "GUILDBANK_ITEM_LOCK_CHANGED", "LISTEN_VAULT_LOCK" )
 	ArkInventory:RegisterEvent( "GUILDBANK_UPDATE_MONEY", "LISTEN_VAULT_MONEY" )
@@ -8077,7 +8077,7 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 			-- respect modified clicks (chat link, dress up)
 			if i and i.h and HandleModifiedItemClick( i.h ) then
 				if ArkInventory.OutputDebug then
-					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp handled modified click; exiting")
+					ArkInventory.OutputDebug( "Vault clicks: bag OnMouseUp handled modified click; exiting" )
 				end
 				return
 			end
@@ -8092,13 +8092,31 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 				end
 
 				local bliz_bag = ArkInventory.BagID_Blizzard( loc_id, i.bag_id )
+				-- determine the logical target tab: for personal/realm banks use the
+				-- location-specific current_tab first, falling back to Blizzard's
+				-- current guild bank tab if needed
+				local target_tab = GetCurrentGuildBankTab( ) or 1
+				local vault_loc = ArkInventory.Global.Mode.VaultLocation or ArkInventory.Const.Location.Vault
+				if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" then
+					local loc = ArkInventory.Global.Location[vault_loc]
+					if loc and loc.current_tab then
+						target_tab = loc.current_tab
+					end
+				end
+
 				if ArkInventory.OutputDebug then
-					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp deposit path: bag_id=", i and i.bag_id, ", slot_id=", i and i.slot_id, ", current_tab=", GetCurrentGuildBankTab() or 1)
+					ArkInventory.OutputDebug( "Vault clicks: bag OnMouseUp deposit path: bag_id=", i and i.bag_id, ", slot_id=", i and i.slot_id, ", target_tab=", target_tab )
 				end
 				PickupContainerItem( bliz_bag, i.slot_id )
-				ArkInventory.PutItemInGuildBank( GetCurrentGuildBankTab( ) or 1 )
+				ArkInventory.PutItemInGuildBank( target_tab )
+				-- In personal/realm bank mode, immediately request a vault rescan so
+				-- any race or missed Blizzard events can't leave stale icons in the
+				-- previous tab view.
+				if ArkInventory.Global.Mode.VaultContext == "personal" or ArkInventory.Global.Mode.VaultContext == "realm" then
+					ArkInventory:SendMessage( "LISTEN_VAULT_UPDATE_BUCKET", 1 )
+				end
 				if ArkInventory.OutputDebug then
-					ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp deposit attempted via PutItemInGuildBank")
+					ArkInventory.OutputDebug( "Vault clicks: bag OnMouseUp deposit attempted via PutItemInGuildBank" )
 				end
 				return
 			end
@@ -8106,7 +8124,7 @@ function ArkInventory.Frame_Item_OnMouseUp( frame, button )
 			-- default behaviour for other buttons/modifiers
 			ContainerFrameItemButton_OnClick( frame, button )
 			if ArkInventory.OutputDebug then
-				ArkInventory.OutputDebug("Vault clicks: bag OnMouseUp default ContainerFrameItemButton_OnClick")
+				ArkInventory.OutputDebug( "Vault clicks: bag OnMouseUp default ContainerFrameItemButton_OnClick" )
 			end
 			return
 		end
