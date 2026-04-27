@@ -693,7 +693,13 @@ function ArkInventory:LISTEN_VAULT_ENTER( )
 	-- Do not call SetCurrentGuildBankTab here; it can be protected/blocked.
 	-- Tab selection for bank actions is handled on explicit user interaction.
 
-	QueryGuildBankTab( GetCurrentGuildBankTab( ) or 1 )
+	-- Always open Personal/Realm banks to tab 1.
+	if context == "personal" or context == "realm" then
+		ArkInventory.Global.Location[loc_id].current_tab = 1
+		QueryGuildBankTab( 1 )
+	else
+		QueryGuildBankTab( GetCurrentGuildBankTab( ) or 1 )
+	end
 
 	local cp = ArkInventory.Global.Me
 
