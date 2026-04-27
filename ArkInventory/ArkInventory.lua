@@ -129,8 +129,8 @@ ArkInventory.Const = { -- constants
 
 	Program = {
 		Name = "ArkInventory",
-		Version = 3.1401,
-		UIVersion = "3.14.01",
+		Version = 3.1402,
+		UIVersion = "3.14.02",
 		--Beta = "Beta xx-xx",
 	},
 
@@ -1699,13 +1699,13 @@ ArkInventory.Const.DatabaseDefaults.realm = {
 				},
 				["erasesilent"] = false,
 				["control"] = { -- which locations to take control of
+          ["*"] = false,
 					[ArkInventory.Const.Location.Bag] = true,
 					[ArkInventory.Const.Location.Bank] = true,
-					[ArkInventory.Const.Location.Key] = true,
-					[ArkInventory.Const.Location.Vault] = true,
+					--[ArkInventory.Const.Location.Key] = true,
+					--[ArkInventory.Const.Location.Vault] = true,
 					[ArkInventory.Const.Location.PersonalBank] = true,
-					[ArkInventory.Const.Location.RealmBank] = true,
-					["*"] = false,
+					[ArkInventory.Const.Location.RealmBank] = true
 				},
 				["display"] = {
 					["*"] = {
