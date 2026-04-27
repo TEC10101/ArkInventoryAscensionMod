@@ -394,21 +394,29 @@ function ArkInventory.Frame_Main_OnDragStart( frame )
 
 	frame.ARK_Data.dragging = true
 
-	-- Mitigation: when the auction UI is open, force Ark to a higher strata while dragging.
-	-- This avoids some heavy/slow re-layering behavior where Ark starts below AH and then
-	-- jumps above after a multi-second stall.
-	local ah = ArkInventory.TraceGetAuctionFrame and ArkInventory.TraceGetAuctionFrame( ) or nil
-	if ah and ah.IsShown and ah:IsShown( ) and frame.SetFrameStrata and frame.GetFrameStrata then
+	-- Raise the dragged frame's strata by one level so it is always on top of any
+	-- other Ark frame (which share the same default strata).  Both frames are already
+	-- toplevel="true" in XML, so SetToplevel alone cannot break the tie – an explicit
+	-- strata bump is required to resolve the z-fighting immediately.
+	if frame.SetFrameStrata and frame.GetFrameStrata then
 		if not frame.ARK_Data.dragOrigStrata then
-			frame.ARK_Data.dragOrigStrata = frame:GetFrameStrata( )
-			frame.ARK_Data.dragOrigTop = (frame.IsToplevel and frame:IsToplevel( )) or nil
-		end
-		pcall( function( ) frame:SetFrameStrata( "DIALOG" ) end )
-		if frame.SetToplevel then
-			pcall( function( ) frame:SetToplevel( true ) end )
-		end
-		if ArkInventory.Trace and ArkInventory.Trace.enabled then
-			ArkInventory.TraceEvent( "DRAG_RAISE", { from = frame.ARK_Data.dragOrigStrata, to = "DIALOG" } )
+			local strata = frame:GetFrameStrata( )
+			frame.ARK_Data.dragOrigStrata = strata
+			local strataUp = {
+				["BACKGROUND"]        = "LOW",
+				["LOW"]               = "MEDIUM",
+				["MEDIUM"]            = "HIGH",
+				["HIGH"]              = "DIALOG",
+				["DIALOG"]            = "FULLSCREEN",
+				["FULLSCREEN"]        = "FULLSCREEN_DIALOG",
+				["FULLSCREEN_DIALOG"] = "TOOLTIP",
+				["TOOLTIP"]           = "TOOLTIP",
+			}
+			local newStrata = strataUp[strata] or strata
+			pcall( function( ) frame:SetFrameStrata( newStrata ) end )
+			if ArkInventory.Trace and ArkInventory.Trace.enabled then
+				ArkInventory.TraceEvent( "DRAG_RAISE", { from = strata, to = newStrata } )
+			end
 		end
 	end
 
@@ -458,10 +466,6 @@ function ArkInventory.Frame_Main_OnDragStop( frame )
 	if frame.ARK_Data.dragOrigStrata and frame.SetFrameStrata then
 		pcall( function( ) frame:SetFrameStrata( frame.ARK_Data.dragOrigStrata ) end )
 		frame.ARK_Data.dragOrigStrata = nil
-	end
-	if frame.ARK_Data.dragOrigTop ~= nil and frame.SetToplevel then
-		pcall( function( ) frame:SetToplevel( frame.ARK_Data.dragOrigTop and true or false ) end )
-		frame.ARK_Data.dragOrigTop = nil
 	end
 
 	ArkInventory.Frame_Main_Anchor_Save( frame )
