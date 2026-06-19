@@ -1,5 +1,5 @@
 ﻿## Interface: 30300
-## X-Curse-Packaged-Version: 3.13.14
+## X-Curse-Packaged-Version: 3.14.02
 ## X-Curse-Project-Name: ArkInventory
 ## X-Curse-Project-ID: ark-inventory
 ## X-Curse-Repository-ID: wow/ark-inventory/mainline
@@ -8,7 +8,7 @@
 ## Title-zhCN: [背包]ArkInventory 整合背包银行
 ## Author: Arkayenro - Mod by Thatgnome
 ## Email: arkayenro at gmail dot com
-## Version: 3.13.14
+## Version: 3.14.02
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: ARKINVDB
@@ -40,6 +40,13 @@ Locale\locale.xml
 ArkInventoryExternals.lua
 
 ArkInventory.lua
+ArkInventoryTrace.lua
+ArkInventoryCategories.lua
+ArkInventoryFrame.lua
+ArkInventoryBar.lua
+ArkInventoryItem.lua
+ArkInventoryChanger.lua
+ArkInventoryHooks.lua
 ArkInventoryCompanion.lua
 
 ArkInventoryStorage.lua

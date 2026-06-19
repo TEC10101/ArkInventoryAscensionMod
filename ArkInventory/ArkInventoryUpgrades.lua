@@ -942,6 +942,27 @@ function ArkInventory.ConvertOldOptions( )
 	end
 
 
+	-- upgrade_version = 3.1402
+	-- if ArkInventory.db.realm.player.version < upgrade_version then
+	-- 	ArkInventory.Output( string.format( ArkInventory.Localise["UPGRADE_GLOBAL"], "player", upgrade_version ) )
+	-- 	-- Default the Override (control) checkbox to enabled for PersonalBank and RealmBank.
+	-- 	-- These locations were previously initialized to false via the AceDB wildcard default
+	-- 	-- before their explicit defaults (true) were added, so all existing player records need patching.
+	-- 	for n in pairs( ArkInventory.db.realm.player.data ) do
+	-- 		local ctl = ArkInventory.db.realm.player.data[n].control
+	-- 		if ctl then
+	-- 			if not ctl[ArkInventory.Const.Location.PersonalBank] then
+	-- 				ctl[ArkInventory.Const.Location.PersonalBank] = true
+	-- 			end
+	-- 			if not ctl[ArkInventory.Const.Location.RealmBank] then
+	-- 				ctl[ArkInventory.Const.Location.RealmBank] = true
+	-- 			end
+	-- 		end
+	-- 	end
+	-- 	ArkInventory.db.realm.player.version = upgrade_version
+	-- end
+
+
 	upgrade_version = 3.0223
 	if ArkInventory.db.global.option.version < upgrade_version then
 		ArkInventory.Output( string.format( ArkInventory.Localise["UPGRADE_GLOBAL"], "player", upgrade_version ) )
